@@ -26,19 +26,13 @@ class TransactionDecorator < ApplicationDecorator
     amount.negative? ? "has-text-danger" : "has-text-success"
   end
 
-  # Used to specify default value of Transaction type on form
-  def trx_type_credit_form
-    amount.present? ? amount.positive? : false
-  end
-
-  def trx_type_debit_form
+  def trx_type_value_form
     if object.new_record?
-      true
+      "debit"
     else
-      amount.present? ? amount.negative? : false
+      amount.present? ? (amount.negative? ? "debit" : "credit") : nil
     end
   end
-  ###
 
   def memo_decorated
     memo? ? memo : "- None -"

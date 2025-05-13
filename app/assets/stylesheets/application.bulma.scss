@@ -2,48 +2,23 @@
  *= require_tree .
  *= require_self
  */
+@use 'fonts';
+@use 'obtheme' as ob;
 
-// Import only what you need from Bulma
-// @import "bulma/sass/utilities/_all.sass";
-// @import "bulma/sass/base/_all.sass";
-// @import "bulma/sass/elements/button.sass";
-// @import "bulma/sass/elements/container.sass";
-// @import "bulma/sass/elements/title.sass";
-// @import "bulma/sass/form/_all.sass";
-// @import "bulma/sass/components/navbar.sass";
-// @import "bulma/sass/layout/hero.sass";
-// @import "bulma/sass/layout/section.sass";
+// @use 'bulma-checkradio';
 
-@import 'fonts';
-@import 'bulmaVars';
-
-@import 'bulma/bulma';
-
-@import 'bulma-checkradio';
-
-@import 'helpers';
-@import 'devise';
-@import 'card';
-@import 'table';
-@import 'stashes';
-@import 'tooltip';
+@use 'helpers';
+@use 'devise';
+@use 'card';
+@use 'table';
+@use 'stashes';
+@use 'tooltip';
 
 nav.navbar {
-  border-top: 5px solid $link;
+  border-top: 5px solid ob.$link;
 }
 
-// Sticky Footer
-#app {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
 
-  .olubalance {
-    flex: 1;
-  }
-}
-
-// End Sticky Footer
 
 .button.is-small {
   border-radius: 5px;
@@ -84,7 +59,7 @@ a.navbar-link {
 // Override file-cta and file-name border color
 .file-cta,
 .file-name {
-  border-color: $primary;
+  border-color: ob.$primary;
 }
 
 .ob-file-name {
@@ -146,7 +121,7 @@ a.navbar-link {
 }
 
 .ob-balance-tag {
-  border: 2px solid $primary;
+  border: 2px solid ob.$primary;
   //box-shadow: 0 0 8px $white;
 }
 
@@ -155,7 +130,7 @@ a.has-text-white.sortable {
 
   &.sort-selected {
     .sortable-column-name {
-      border-bottom: 1px dashed $light;
+      border-bottom: 1px dashed ob.$light;
       padding-bottom: 2px;
     }
   }
@@ -164,13 +139,13 @@ a.has-text-white.sortable {
     font-size: 1rem;
 
     &:hover {
-      color: $light !important;
-      border-bottom: 1px dashed $light;
+      color: ob.$light !important;
+      border-bottom: 1px dashed ob.$light;
       padding-bottom: 2px;
     }
 
     &:focus {
-      color: $light !important;
+      color: ob.$light !important;
     }
   }
 
