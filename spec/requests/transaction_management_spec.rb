@@ -28,12 +28,13 @@ RSpec.describe "Transaction management", type: :request do
     user2 = FactoryBot.create(:user, email: 'testuser2@gmail.com')
     account2 = FactoryBot.create(:account, name: "User 2 Account", user: user2)
     transaction2 = FactoryBot.create(:transaction, account: account2)
-
+  
     sign_in @user
-    expect { 
-      get account_transactions_path(account2)
-    }.to raise_error(ActiveRecord::RecordNotFound)
+    get account_transactions_path(account2)
+    
+    expect(response).to have_http_status(:not_found) # 404
   end
+  
 
   it "displays pending balance when pending transactions exist" do
     @balance = @starting_balance - @trx_amount
