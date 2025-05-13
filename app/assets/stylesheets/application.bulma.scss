@@ -3,187 +3,176 @@
  *= require_self
  */
 @use 'fonts';
-@use 'obtheme';
+@use 'obtheme' as ob;
 
-// @import 'bulma-checkradio';
+// @use 'bulma-checkradio';
 
-// @import 'helpers';
-// @import 'devise';
-// @import 'card';
-// @import 'table';
-// @import 'stashes';
-// @import 'tooltip';
+@use 'helpers';
+@use 'devise';
+@use 'card';
+@use 'table';
+@use 'stashes';
+@use 'tooltip';
 
-// nav.navbar {
-//   border-top: 5px solid $link;
-// }
+nav.navbar {
+  border-top: 5px solid ob.$link;
+}
 
-// // Sticky Footer
-// #app {
-//   display: flex;
-//   min-height: 100vh;
-//   flex-direction: column;
 
-//   .olubalance {
-//     flex: 1;
-//   }
-// }
 
-// // End Sticky Footer
+.button.is-small {
+  border-radius: 5px;
+}
 
-// .button.is-small {
-//   border-radius: 5px;
-// }
+.button,
+a.dropdown-item {
+  font-weight: bold;
+}
 
-// .button,
-// a.dropdown-item {
-//   font-weight: bold;
-// }
+h6.title {
+  i {
+    margin-right: 10px;
+  }
+}
 
-// h6.title {
-//   i {
-//     margin-right: 10px;
-//   }
-// }
+a.navbar-item,
+a.navbar-link {
+  font-weight: bold;
+}
 
-// a.navbar-item,
-// a.navbar-link {
-//   font-weight: bold;
-// }
+.navbar-menu {
+  padding-left: 50px;
+}
 
-// .navbar-menu {
-//   padding-left: 50px;
-// }
+// Override max height for logo
+.navbar-item img {
+  max-height: 2.25rem;
+}
 
-// // Override max height for logo
-// .navbar-item img {
-//   max-height: 2.25rem;
-// }
+// Make cards equal height
+.has-equal-height {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-// // Make cards equal height
-// .has-equal-height {
-//   height: 100%;
-//   display: flex;
-//   flex-direction: column;
-// }
+// Override file-cta and file-name border color
+.file-cta,
+.file-name {
+  border-color: ob.$primary;
+}
 
-// // Override file-cta and file-name border color
-// .file-cta,
-// .file-name {
-//   border-color: $primary;
-// }
+.ob-file-name {
+  margin-top: 0.5em;
+}
 
-// .ob-file-name {
-//   margin-top: 0.5em;
-// }
+.ob-icon-rpad {
+  i {
+    margin-right: 10px;
+  }
+}
 
-// .ob-icon-rpad {
-//   i {
-//     margin-right: 10px;
-//   }
-// }
+.ob-attachment-img {
+  border-radius: 4px;
+  box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
 
-// .ob-attachment-img {
-//   border-radius: 4px;
-//   box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
-// }
+.ob-modal-card {
+  border-radius: 5px;
+}
 
-// .ob-modal-card {
-//   border-radius: 5px;
-// }
+.ob-main-menu {
+  width: 18rem;
+}
 
-// .ob-main-menu {
-//   width: 18rem;
-// }
+.has-text-shadow {
+  //text-shadow: 1px 1px 10px #acacac;
+  text-shadow: 1px 1px 10px #636363;
+}
 
-// .has-text-shadow {
-//   //text-shadow: 1px 1px 10px #acacac;
-//   text-shadow: 1px 1px 10px #636363;
-// }
+// Add progress bar values
+.progress-wrapper {
+  position: relative;
+}
 
-// // Add progress bar values
-// .progress-wrapper {
-//   position: relative;
-// }
+.progress-value {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: calc(1rem / 1.5);
+  line-height: 1rem;
+  font-weight: bold;
+}
 
-// .progress-value {
-//   position: absolute;
-//   top: 0;
-//   left: 50%;
-//   transform: translateX(-50%);
-//   font-size: calc(1rem / 1.5);
-//   line-height: 1rem;
-//   font-weight: bold;
-// }
+.progress.is-small + .progress-value {
+  font-size: calc(0.75rem / 1.5);
+  line-height: 0.75rem;
+}
 
-// .progress.is-small + .progress-value {
-//   font-size: calc(0.75rem / 1.5);
-//   line-height: 0.75rem;
-// }
+.progress.is-medium + .progress-value {
+  font-size: calc(1.25rem / 1.5);
+  line-height: 1.25rem;
+}
 
-// .progress.is-medium + .progress-value {
-//   font-size: calc(1.25rem / 1.5);
-//   line-height: 1.25rem;
-// }
+.progress.is-large + .progress-value {
+  font-size: calc(1.5rem / 1.5);
+  line-height: 1.5rem;
+}
 
-// .progress.is-large + .progress-value {
-//   font-size: calc(1.5rem / 1.5);
-//   line-height: 1.5rem;
-// }
+.ob-balance-tag {
+  border: 2px solid ob.$primary;
+  //box-shadow: 0 0 8px $white;
+}
 
-// .ob-balance-tag {
-//   border: 2px solid $primary;
-//   //box-shadow: 0 0 8px $white;
-// }
+a.has-text-white.sortable {
+  font-size: 0;
 
-// a.has-text-white.sortable {
-//   font-size: 0;
+  &.sort-selected {
+    .sortable-column-name {
+      border-bottom: 1px dashed ob.$light;
+      padding-bottom: 2px;
+    }
+  }
 
-//   &.sort-selected {
-//     .sortable-column-name {
-//       border-bottom: 1px dashed $light;
-//       padding-bottom: 2px;
-//     }
-//   }
+  .sortable-column-name {
+    font-size: 1rem;
 
-//   .sortable-column-name {
-//     font-size: 1rem;
+    &:hover {
+      color: ob.$light !important;
+      border-bottom: 1px dashed ob.$light;
+      padding-bottom: 2px;
+    }
 
-//     &:hover {
-//       color: $light !important;
-//       border-bottom: 1px dashed $light;
-//       padding-bottom: 2px;
-//     }
+    &:focus {
+      color: ob.$light !important;
+    }
+  }
 
-//     &:focus {
-//       color: $light !important;
-//     }
-//   }
+  .icon {
+    font-size: 1rem;
+    margin-right: 5px;
+  }
+}
 
-//   .icon {
-//     font-size: 1rem;
-//     margin-right: 5px;
-//   }
-// }
+.sort {
+  position: absolute;
+  top: 1rem;
+  left: 0.5rem;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+}
 
-// .sort {
-//   position: absolute;
-//   top: 1rem;
-//   left: 0.5rem;
-//   width: 0;
-//   height: 0;
-//   border-left: 6px solid transparent;
-//   border-right: 6px solid transparent;
-// }
+.sort-desc {
+  border-top: 8px solid #fff;
+}
 
-// .sort-desc {
-//   border-top: 8px solid #fff;
-// }
+.sort-asc {
+  border-bottom: 8px solid #fff;
+}
 
-// .sort-asc {
-//   border-bottom: 8px solid #fff;
-// }
-
-// .is-circular {
-//   border-radius: 50%;
-// }
+.is-circular {
+  border-radius: 50%;
+}

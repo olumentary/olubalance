@@ -30,3 +30,6 @@ application.register("trxform", TrxformController)
 
 import TrxsearchController from "./trxsearch_controller"
 application.register("trxsearch", TrxsearchController)
+
+import TrxtypeRadioButtonsController from "./trxtype_radio_buttons_controller"
+application.register("trxtype-radio-buttons", TrxtypeRadioButtonsController)

@@ -26,13 +26,34 @@
 
         <!-- Transaction Type -->
         <div class="field">
-          <div class="control">
-            <span class="">
-              <%= f.radio_button :trx_type, 'credit', id: 'creditType', checked: @transaction.trx_type_credit_form, class: 'is-checkradio is-success' %>
-              <label for="creditType" class="label has-text-grey">Credit</label>
-              <%= f.radio_button :trx_type, 'debit', id: 'debitType', checked: @transaction.trx_type_debit_form, class: 'is-checkradio is-danger' %>
-              <label for="debitType" class="label has-text-grey">Debit</label>
-            </span>
+          <%= f.label :trx_type, class: "label has-text-grey" do %>Transaction Type<% end %>
+
+          <div class="control" data-controller="trxtype-radio-buttons">
+            <div class="buttons are-small">
+              <button
+                type="button"
+                class="button is-success is-outlined"
+                data-trxtype-radio-buttons-target="button"
+                data-value="credit"
+                id="creditType"
+              >
+                Credit
+              </button>
+              <button
+                type="button"
+                class="button is-danger is-outlined"
+                data-trxtype-radio-buttons-target="button"
+                data-value="debit"
+                id="debitType"
+              >
+                Debit
+              </button>
+            </div>
+
+            <%= f.hidden_field :trx_type, 
+                  value: @transaction.trx_type_value_form,
+                  data: { trxtype_radio_buttons_target: "input" }
+            %>
           </div>
         </div>
 

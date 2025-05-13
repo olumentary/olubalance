@@ -1,3 +1,5 @@
+@use "obtheme" as ob;
+
 .column>.card {
   //min-height: 200px;
 
@@ -43,11 +45,11 @@
 }
 
 .stash-card {
-  border: 1px solid $primary;
+  border: 1px solid ob.$primary;
   height: 75px;
 
   a:hover {
-    color: $link;
+    color: ob.$link;
   }
 
   .card-content {
@@ -59,7 +61,7 @@
 
     progress {
       background-color: white;
-      border: 1px solid $link;
+      border: 1px solid ob.$link;
       margin-bottom: 0.3rem;
     }
 

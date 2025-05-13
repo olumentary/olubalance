@@ -1,3 +1,5 @@
+@use "obtheme" as ob;
+
 table.ob-table {
   $ob-table-border-radius: 4px;
   font-size: 0.9em;
@@ -7,7 +9,7 @@ table.ob-table {
 
   thead.ob-table-phead {
     // height: 4em;
-    background-color: $link;
+    background-color: ob.$link;
     border-top-left-radius: $ob-table-border-radius;
     border-top-right-radius: $ob-table-border-radius;
 
