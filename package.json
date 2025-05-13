@@ -7,10 +7,10 @@
     "@hotwired/turbo-rails": "^8.0.13",
     "@rails/activestorage": "^8.0.200",
     "animate.css": "^4.1.1",
-    "bulma": "^0.9.1",
+    "bulma": "^1.0.0",
     "bulma-toast": "^2.2.0",
     "esbuild": "^0.17.15",
-    "sass": "^1.80.6"
+    "sass": "^1.88.0"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets",

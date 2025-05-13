@@ -14,190 +14,191 @@
 // @import "bulma/sass/layout/hero.sass";
 // @import "bulma/sass/layout/section.sass";
 
-@import 'fonts';
-@import 'bulmaVars';
 
-@import 'bulma/bulma';
+// @use 'fonts';
+// @use 'bulmaVars';
 
-@import 'bulma-checkradio';
+@use 'bulma/bulma';
 
-@import 'helpers';
-@import 'devise';
-@import 'card';
-@import 'table';
-@import 'stashes';
-@import 'tooltip';
+// @import 'bulma-checkradio';
 
-nav.navbar {
-  border-top: 5px solid $link;
-}
+// @import 'helpers';
+// @import 'devise';
+// @import 'card';
+// @import 'table';
+// @import 'stashes';
+// @import 'tooltip';
 
-// Sticky Footer
-#app {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
+// nav.navbar {
+//   border-top: 5px solid $link;
+// }
 
-  .olubalance {
-    flex: 1;
-  }
-}
+// // Sticky Footer
+// #app {
+//   display: flex;
+//   min-height: 100vh;
+//   flex-direction: column;
 
-// End Sticky Footer
+//   .olubalance {
+//     flex: 1;
+//   }
+// }
 
-.button.is-small {
-  border-radius: 5px;
-}
+// // End Sticky Footer
 
-.button,
-a.dropdown-item {
-  font-weight: bold;
-}
+// .button.is-small {
+//   border-radius: 5px;
+// }
 
-h6.title {
-  i {
-    margin-right: 10px;
-  }
-}
+// .button,
+// a.dropdown-item {
+//   font-weight: bold;
+// }
 
-a.navbar-item,
-a.navbar-link {
-  font-weight: bold;
-}
+// h6.title {
+//   i {
+//     margin-right: 10px;
+//   }
+// }
 
-.navbar-menu {
-  padding-left: 50px;
-}
+// a.navbar-item,
+// a.navbar-link {
+//   font-weight: bold;
+// }
 
-// Override max height for logo
-.navbar-item img {
-  max-height: 2.25rem;
-}
+// .navbar-menu {
+//   padding-left: 50px;
+// }
 
-// Make cards equal height
-.has-equal-height {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+// // Override max height for logo
+// .navbar-item img {
+//   max-height: 2.25rem;
+// }
 
-// Override file-cta and file-name border color
-.file-cta,
-.file-name {
-  border-color: $primary;
-}
+// // Make cards equal height
+// .has-equal-height {
+//   height: 100%;
+//   display: flex;
+//   flex-direction: column;
+// }
 
-.ob-file-name {
-  margin-top: 0.5em;
-}
+// // Override file-cta and file-name border color
+// .file-cta,
+// .file-name {
+//   border-color: $primary;
+// }
 
-.ob-icon-rpad {
-  i {
-    margin-right: 10px;
-  }
-}
+// .ob-file-name {
+//   margin-top: 0.5em;
+// }
 
-.ob-attachment-img {
-  border-radius: 4px;
-  box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
-}
+// .ob-icon-rpad {
+//   i {
+//     margin-right: 10px;
+//   }
+// }
 
-.ob-modal-card {
-  border-radius: 5px;
-}
+// .ob-attachment-img {
+//   border-radius: 4px;
+//   box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+// }
 
-.ob-main-menu {
-  width: 18rem;
-}
+// .ob-modal-card {
+//   border-radius: 5px;
+// }
 
-.has-text-shadow {
-  //text-shadow: 1px 1px 10px #acacac;
-  text-shadow: 1px 1px 10px #636363;
-}
+// .ob-main-menu {
+//   width: 18rem;
+// }
 
-// Add progress bar values
-.progress-wrapper {
-  position: relative;
-}
+// .has-text-shadow {
+//   //text-shadow: 1px 1px 10px #acacac;
+//   text-shadow: 1px 1px 10px #636363;
+// }
 
-.progress-value {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: calc(1rem / 1.5);
-  line-height: 1rem;
-  font-weight: bold;
-}
+// // Add progress bar values
+// .progress-wrapper {
+//   position: relative;
+// }
 
-.progress.is-small + .progress-value {
-  font-size: calc(0.75rem / 1.5);
-  line-height: 0.75rem;
-}
+// .progress-value {
+//   position: absolute;
+//   top: 0;
+//   left: 50%;
+//   transform: translateX(-50%);
+//   font-size: calc(1rem / 1.5);
+//   line-height: 1rem;
+//   font-weight: bold;
+// }
 
-.progress.is-medium + .progress-value {
-  font-size: calc(1.25rem / 1.5);
-  line-height: 1.25rem;
-}
+// .progress.is-small + .progress-value {
+//   font-size: calc(0.75rem / 1.5);
+//   line-height: 0.75rem;
+// }
 
-.progress.is-large + .progress-value {
-  font-size: calc(1.5rem / 1.5);
-  line-height: 1.5rem;
-}
+// .progress.is-medium + .progress-value {
+//   font-size: calc(1.25rem / 1.5);
+//   line-height: 1.25rem;
+// }
 
-.ob-balance-tag {
-  border: 2px solid $primary;
-  //box-shadow: 0 0 8px $white;
-}
+// .progress.is-large + .progress-value {
+//   font-size: calc(1.5rem / 1.5);
+//   line-height: 1.5rem;
+// }
 
-a.has-text-white.sortable {
-  font-size: 0;
+// .ob-balance-tag {
+//   border: 2px solid $primary;
+//   //box-shadow: 0 0 8px $white;
+// }
 
-  &.sort-selected {
-    .sortable-column-name {
-      border-bottom: 1px dashed $light;
-      padding-bottom: 2px;
-    }
-  }
+// a.has-text-white.sortable {
+//   font-size: 0;
 
-  .sortable-column-name {
-    font-size: 1rem;
+//   &.sort-selected {
+//     .sortable-column-name {
+//       border-bottom: 1px dashed $light;
+//       padding-bottom: 2px;
+//     }
+//   }
 
-    &:hover {
-      color: $light !important;
-      border-bottom: 1px dashed $light;
-      padding-bottom: 2px;
-    }
+//   .sortable-column-name {
+//     font-size: 1rem;
 
-    &:focus {
-      color: $light !important;
-    }
-  }
+//     &:hover {
+//       color: $light !important;
+//       border-bottom: 1px dashed $light;
+//       padding-bottom: 2px;
+//     }
 
-  .icon {
-    font-size: 1rem;
-    margin-right: 5px;
-  }
-}
+//     &:focus {
+//       color: $light !important;
+//     }
+//   }
 
-.sort {
-  position: absolute;
-  top: 1rem;
-  left: 0.5rem;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-}
+//   .icon {
+//     font-size: 1rem;
+//     margin-right: 5px;
+//   }
+// }
 
-.sort-desc {
-  border-top: 8px solid #fff;
-}
+// .sort {
+//   position: absolute;
+//   top: 1rem;
+//   left: 0.5rem;
+//   width: 0;
+//   height: 0;
+//   border-left: 6px solid transparent;
+//   border-right: 6px solid transparent;
+// }
 
-.sort-asc {
-  border-bottom: 8px solid #fff;
-}
+// .sort-desc {
+//   border-top: 8px solid #fff;
+// }
 
-.is-circular {
-  border-radius: 50%;
-}
+// .sort-asc {
+//   border-bottom: 8px solid #fff;
+// }
+
+// .is-circular {
+//   border-radius: 50%;
+// }

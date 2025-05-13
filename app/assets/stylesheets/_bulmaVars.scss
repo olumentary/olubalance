@@ -1,12 +1,13 @@
 // Set Bulma Variables
-$family-primary: 'Inter-Regular';
-// $primary: #4db6ac;
-$primary: #26a69a;
-$link: #00796b;
-$white-ter: hsl(0, 0%, 96%);
+@use "bulma/sass" with (
+  $family-primary: 'Inter-Regular',
+  $primary: #26a69a,
+  $link: #00796b,
+  $white-ter: hsl(0, 0%, 96%),
 
-$table-head-background-color: $primary;
-$table-head-cell-color: $white-ter;
-$table-color: hsl(0, 0%, 35%);
+  $table-head-background-color: $primary,
+  $table-head-cell-color: $white-ter,
+  $table-color: hsl(0, 0%, 35%),
 
-$modal-background-background-color: rgba(0, 0, 0, 0.5);
+  $modal-background-background-color: rgba(0, 0, 0, 0.5),
+);
