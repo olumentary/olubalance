@@ -9,11 +9,12 @@ export default class extends Controller {
     //Invoke bulma toast notifications, if any
     var message = this.data.get("message")
     var messageType = this.data.get("message-type")
+    var toastClass = messageType == "notice" ? "link" : "danger"
     if (message && messageType) {
       bulmaToast.toast({ 
         message: message,
         position: 'top-center',
-        type: 'is-' + messageType,
+        type: 'is-' + toastClass,
         duration: 1500 
       })
     }

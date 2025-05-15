@@ -8,7 +8,7 @@
   <div class="level-item has-text-centered">
     <div>
       <p class="title tag is-warning is-6"><%= @account.pending_balance_display %></p>
-      <p class="heading has-text-grey has-text-weight-semibold">Pending</p>
+      <p class="heading has-text-grey is-size-7 has-text-weight-bold">Pending</p>
     </div>
   </div>
 <% end %>
@@ -16,7 +16,7 @@
   <div class="level-item has-text-centered">
     <div>
       <p class="title tag is-success is-6"><%= number_to_currency(@stashed) %></p>
-      <p class="heading has-text-grey has-text-weight-semibold">Stashed</p>
+      <p class="heading has-text-grey is-size-7 has-text-weight-bold">Stashed</p>
     </div>
   </div>
 <% end %>
@@ -24,7 +24,7 @@
   <div class="level-item has-text-centered">
     <div>
       <p class="title tag is-white is-6"><%= @account.interest_rate %>%
-      <p class="heading has-text-grey has-text-weight-semibold">Interest Rate</p>
+      <p class="heading has-text-grey is-size-7 has-text-weight-bold">Interest Rate</p>
     </div>
   </div>
 <% end %>

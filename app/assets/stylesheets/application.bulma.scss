@@ -5,8 +5,7 @@
 @use 'fonts';
 @use 'obtheme' as ob;
 
-// @use 'bulma-checkradio';
-
+@use 'bulmaoverrides';
 @use 'helpers';
 @use 'devise';
 @use 'card';
@@ -17,8 +16,6 @@
 nav.navbar {
   border-top: 5px solid ob.$link;
 }
-
-
 
 .button.is-small {
   border-radius: 5px;
