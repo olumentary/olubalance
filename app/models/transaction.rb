@@ -22,6 +22,7 @@ class Transaction < ApplicationRecord
 
   # before_post_process :rename_file
 
+  before_create :set_pending
   before_save :convert_amount
   before_save :set_account
   after_create :update_account_balance_create
@@ -49,6 +50,10 @@ class Transaction < ApplicationRecord
   end
 
   private
+
+  def set_pending
+    self.pending = true if pending.nil?
+  end
 
   def convert_amount
     self.amount = -amount.abs if trx_type == "debit"
