@@ -29,6 +29,7 @@ class Stash < ApplicationRecord
     transaction.account_id = account_id
     transaction.description = "Transfer from " + name + " Stash (Stash Deleted)"
     transaction.amount = balance.abs
+    transaction.skip_pending_default = true
     transaction.locked = true
     transaction.save
   end

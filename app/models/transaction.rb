@@ -10,7 +10,7 @@ class Transaction < ApplicationRecord
   # Link running_balance to view
   delegate :running_balance, to: :transaction_balance
 
-  attr_accessor :trx_type
+  attr_accessor :trx_type, :skip_pending_default
 
   # default_scope { order('trx_date, id DESC') }
   validates :trx_type, presence: { message: "Please select debit or credit" },
@@ -52,7 +52,8 @@ class Transaction < ApplicationRecord
   private
 
   def set_pending
-    self.pending = true if pending.nil?
+    return if skip_pending_default
+    self.pending = true if new_record?
   end
 
   def convert_amount
