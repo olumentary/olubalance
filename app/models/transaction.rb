@@ -33,6 +33,7 @@ class Transaction < ApplicationRecord
   scope :desc, -> { order("pending DESC, trx_date DESC, id DESC") }
   scope :recent, -> { where("created_at > ?", 3.days.ago).order("trx_date, id") }
   scope :pending, -> { where(pending: true).order("trx_date, id") }
+  scope :non_pending, -> { where(pending: false).order("trx_date DESC, id DESC") }
 
   scope :search, lambda { |query|
     query = sanitize_sql_like(query)

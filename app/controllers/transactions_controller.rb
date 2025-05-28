@@ -14,7 +14,15 @@ class TransactionsController < ApplicationController
     session["filters"] ||= {}
     session["filters"].merge!(filter_params)
 
-    @transactions = @account.transactions.with_attached_attachment.includes(:transaction_balance)
+    @pending_transactions = @account.transactions.pending.with_attached_attachment.includes(:transaction_balance)
+                                    .then { search_by_description _1 }
+                                    .then { apply_pending_order _1 }
+                                    .then { apply_order _1 }
+                                    .then { apply_id_order _1 }
+    @pagy, @pending_transactions = pagy(@pending_transactions)
+    @pending_transactions = @pending_transactions.decorate
+
+    @transactions = @account.transactions.non_pending.with_attached_attachment.includes(:transaction_balance)
                             .then { search_by_description _1 }
                             .then { apply_pending_order _1 }
                             .then { apply_order _1 }

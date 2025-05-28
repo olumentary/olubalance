@@ -1,8 +1,8 @@
-<tr class="is-hidden-mobile">
+<tr class="is-hidden-mobile <%= transaction.reviewed_color %>">
   <td class="has-text-centered">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="ob-cell-content has-text-grey">
-        <%= transaction.trx_date_decorated %>
+        <%= transaction.trx_date_display %>
       </div>
     <% end %>
   </td>
