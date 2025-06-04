@@ -13,12 +13,7 @@
     </th>
     <th class="has-text-right is-hidden-mobile">
       <div class="ob-cell-content">
-        Credit
-      </div>
-    </th>
-    <th class="has-text-right is-hidden-mobile">
-      <div class="ob-cell-content">
-        Debit
+        Amount
       </div>
     </th>
     <th class="has-text-right is-hidden-mobile" id="trx-balance">
@@ -32,10 +27,8 @@
     </th>
   </thead>
   <tbody>
-    <tr class="has-background-primary-light"><td colspan="5"><span class="has-text-weight-bold">Pending</span></td></tr>
     <%= render partial: "transactions/components/transactionLineDesktop", collection: @pending_transactions, as: :transaction %>
     <%= render partial: "transactions/components/transactionLineMobile", collection: @pending_transactions, as: :transaction %>
-    <tr><td colspan="5" class="has-background-primary-light"><span class="has-text-weight-bold">Reviewed</span></td></tr>
     <%= render partial: "transactions/components/transactionLineDesktop", collection: @transactions, as: :transaction %>
     <%= render partial: "transactions/components/transactionLineMobile", collection: @transactions, as: :transaction %>
   </tbody>

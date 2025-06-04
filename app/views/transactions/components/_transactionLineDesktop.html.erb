@@ -1,5 +1,5 @@
 <tr class="is-hidden-mobile <%= transaction.reviewed_color %>">
-  <td class="has-text-centered">
+  <td class="has-text-centered <%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="ob-cell-content has-text-grey">
         <%= transaction.trx_date_display %>
@@ -7,7 +7,7 @@
     <% end %>
   </td>
 
-  <td class="">
+  <td class="<%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="ob-cell-content">
         <%= transaction.trx_desc_display %>
@@ -20,23 +20,15 @@
     <% end %>
   </td>
 
-  <td class="has-text-right">
+  <td class="has-text-right <%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="ob-cell-content <%= transaction.amount_color %>">
-        <%= transaction.credit %>
+        <%= transaction.amount_decorated %>
       </div>
     <% end %>
   </td>
 
-  <td class="has-text-right">
-    <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-      <div class="ob-cell-content <%= transaction.amount_color %>">
-        <%= transaction.debit %>
-      </div>
-    <% end %>
-  </td>
-
-  <td class="has-text-right">
+  <td class="has-text-right <%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="has-text-weight-semibold has-text-grey">
         <%= transaction.running_balance_display %>

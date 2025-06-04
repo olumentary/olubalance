@@ -1,6 +1,6 @@
 <!-- Mobile Row -->
-<tr class="is-hidden-tablet">
-  <td class="is-hidden-tablet">
+<tr class="is-hidden-tablet <%= transaction.reviewed_color %>">
+  <td class="is-hidden-tablet <%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="level ob-mobile-level is-mobile">
         <div class="level-left">
