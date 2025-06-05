@@ -1,38 +1,64 @@
-<tr class="is-hidden-mobile <%= transaction.reviewed_color %>">
-  <td class="has-text-centered <%= transaction.reviewed_weight %>">
-    <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-      <div class="ob-cell-content has-text-grey">
-        <%= transaction.trx_date_display %>
-      </div>
-    <% end %>
-  </td>
+<%= turbo_frame_tag "transaction_#{transaction.id}" do %>
+  <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %>">
+    <td class="has-text-centered <%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+        <div class="ob-cell-content has-text-grey">
+          <%= transaction.trx_date_display %>
+        </div>
+      <% end %>
+    </td>
 
-  <td class="<%= transaction.reviewed_weight %>">
-    <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-      <div class="ob-cell-content">
-        <%= transaction.trx_desc_display %>
-        <% if transaction.attachment.attached? then %>
-          <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
-            <i class="fas fa-sm fa-paperclip"></i>
+    <td class="<%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+        <div class="ob-cell-content">
+          <%= transaction.trx_desc_display %>
+          <% if transaction.attachment.attached? then %>
+            <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+              <i class="fas fa-sm fa-paperclip"></i>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+    </td>
+
+    <td class="has-text-right <%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+        <div class="ob-cell-content <%= transaction.amount_color %>">
+          <%= transaction.amount_decorated %>
+        </div>
+      <% end %>
+    </td>
+
+    <td class="has-text-right <%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+        <div class="has-text-weight-semibold has-text-grey">
+          <%= transaction.running_balance_display %>
+        </div>
+      <% end %>
+    </td>
+
+    <td class="has-text-right">
+      <% if transaction.pending? %>
+        <button type="button"
+                data-controller="transaction-review"
+                data-action="click->transaction-review#markReviewed"
+                data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                class="button is-small is-light">
+          <span class="icon has-text-success">
+            <i class="fas fa-check"></i>
           </span>
-        <% end %>
-      </div>
-    <% end %>
-  </td>
-
-  <td class="has-text-right <%= transaction.reviewed_weight %>">
-    <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-      <div class="ob-cell-content <%= transaction.amount_color %>">
-        <%= transaction.amount_decorated %>
-      </div>
-    <% end %>
-  </td>
-
-  <td class="has-text-right <%= transaction.reviewed_weight %>">
-    <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-      <div class="has-text-weight-semibold has-text-grey">
-        <%= transaction.running_balance_display %>
-      </div>
-    <% end %>
-  </td>
-</tr>
+        </button>
+      <% else %>
+        <button type="button"
+                data-controller="transaction-review"
+                data-action="click->transaction-review#markPending"
+                data-transaction-review-url-value="<%= mark_pending_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                class="button is-small is-light">
+          <span class="icon has-text-grey">
+            <i class="fas fa-check-square"></i>
+          </span>
+        </button>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

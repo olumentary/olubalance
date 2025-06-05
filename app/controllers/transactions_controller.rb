@@ -14,15 +14,7 @@ class TransactionsController < ApplicationController
     session["filters"] ||= {}
     session["filters"].merge!(filter_params)
 
-    @pending_transactions = @account.transactions.pending.with_attached_attachment.includes(:transaction_balance)
-                                    .then { search_by_description _1 }
-                                    .then { apply_pending_order _1 }
-                                    .then { apply_order _1 }
-                                    .then { apply_id_order _1 }
-    @pagy, @pending_transactions = pagy(@pending_transactions)
-    @pending_transactions = @pending_transactions.decorate
-
-    @transactions = @account.transactions.non_pending.with_attached_attachment.includes(:transaction_balance)
+    @transactions = @account.transactions.with_attached_attachment.includes(:transaction_balance)
                             .then { search_by_description _1 }
                             .then { apply_pending_order _1 }
                             .then { apply_order _1 }
@@ -94,6 +86,20 @@ class TransactionsController < ApplicationController
       format.html { redirect_to(account_transactions_url) }
       format.xml { head :ok }
     end
+  end
+
+  def mark_reviewed
+    @transaction = Transaction.find(params[:id])
+    @transaction.update_column(:pending, false)
+    @transaction = @transaction.decorate
+    head :ok
+  end
+
+  def mark_pending
+    @transaction = Transaction.find(params[:id])
+    @transaction.update_column(:pending, true)
+    @transaction = @transaction.decorate
+    head :ok
   end
 
   private

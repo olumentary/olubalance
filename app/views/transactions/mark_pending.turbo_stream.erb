@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "transaction_#{@transaction.id}" do %>
+  <%= render "transactions/components/transactionLineDesktop", transaction: @transaction %>
+<% end %> 
