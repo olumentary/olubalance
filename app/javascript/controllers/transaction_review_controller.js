@@ -5,9 +5,7 @@ export default class extends Controller {
     url: String,
   };
 
-  connect() {
-    console.log('Transaction review controller connected');
-  }
+  connect() {}
 
   async markReviewed() {
     try {
