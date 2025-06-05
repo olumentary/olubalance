@@ -88,6 +88,20 @@ class TransactionsController < ApplicationController
     end
   end
 
+  def mark_reviewed
+    @transaction = Transaction.find(params[:id])
+    @transaction.update_column(:pending, false)
+    @transaction = @transaction.decorate
+    head :ok
+  end
+
+  def mark_pending
+    @transaction = Transaction.find(params[:id])
+    @transaction.update_column(:pending, true)
+    @transaction = @transaction.decorate
+    head :ok
+  end
+
   private
 
   def filter_params
@@ -97,7 +111,7 @@ class TransactionsController < ApplicationController
 
   def transaction_params
     params.require(:transaction) \
-          .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :pending, :locked, :transfer, :account_id)
+          .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
   end
 
   def search_by_description(scope)

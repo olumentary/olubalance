@@ -1,38 +1,36 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
-<table class="table is-hoverable is-fullwidth ob-table">
-  <thead class="ob-table-phead">
-    <th class="has-text-centered is-hidden-mobile" id="trx-date">
-      <div class="ob-cell-content">
-        Date
-      </div>
-    </th>
-    <th class="is-hidden-mobile">
-      <div class="ob-cell-content">
-        Description
-      </div>
-    </th>
-    <th class="has-text-right is-hidden-mobile">
-      <div class="ob-cell-content">
-        Credit
-      </div>
-    </th>
-    <th class="has-text-right is-hidden-mobile">
-      <div class="ob-cell-content">
-        Debit
-      </div>
-    </th>
-    <th class="has-text-right is-hidden-mobile" id="trx-balance">
-      <div>
-        Balance
-      </div>
-    </th>
-    <th class="is-hidden-tablet" id="trx-header-mobile">
-      <div>
-      </div>
-    </th>
-  </thead>
-  <tbody>
-    <%= render partial: "transactions/components/transactionLineDesktop", collection: @transactions, as: :transaction %>
-    <%= render partial: "transactions/components/transactionLineMobile", collection: @transactions, as: :transaction %>
-  </tbody>
-</table>
+<%= turbo_frame_tag "transactions_table" do %>
+  <table class="table is-hoverable is-fullwidth ob-table">
+    <thead class="ob-table-phead">
+      <th class="has-text-centered is-hidden-mobile" id="trx-date">
+        <div class="ob-cell-content">
+          Date
+        </div>
+      </th>
+      <th class="is-hidden-mobile">
+        <div class="ob-cell-content">
+          Description
+        </div>
+      </th>
+      <th class="has-text-right is-hidden-mobile">
+        <div class="ob-cell-content">
+          Amount
+        </div>
+      </th>
+      <th class="has-text-right is-hidden-mobile" id="trx-balance">
+        <div>
+          Balance
+        </div>
+      </th>
+      <th class="has-text-right is-hidden-mobile" id="trx-header-mobile">
+        <div>
+          Actions
+        </div>
+      </th>
+    </thead>
+    <tbody>
+      <%= render partial: "transactions/components/transactionLineDesktop", collection: @transactions, as: :transaction %>
+      <%= render partial: "transactions/components/transactionLineMobile", collection: @transactions, as: :transaction %>
+    </tbody>
+  </table>
+<% end %>

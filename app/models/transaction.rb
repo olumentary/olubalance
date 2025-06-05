@@ -10,7 +10,7 @@ class Transaction < ApplicationRecord
   # Link running_balance to view
   delegate :running_balance, to: :transaction_balance
 
-  attr_accessor :trx_type
+  attr_accessor :trx_type, :skip_pending_default
 
   # default_scope { order('trx_date, id DESC') }
   validates :trx_type, presence: { message: "Please select debit or credit" },
@@ -22,6 +22,7 @@ class Transaction < ApplicationRecord
 
   # before_post_process :rename_file
 
+  before_create :set_pending
   before_save :convert_amount
   before_save :set_account
   after_create :update_account_balance_create
@@ -32,6 +33,7 @@ class Transaction < ApplicationRecord
   scope :desc, -> { order("pending DESC, trx_date DESC, id DESC") }
   scope :recent, -> { where("created_at > ?", 3.days.ago).order("trx_date, id") }
   scope :pending, -> { where(pending: true).order("trx_date, id") }
+  scope :non_pending, -> { where(pending: false).order("trx_date DESC, id DESC") }
 
   scope :search, lambda { |query|
     query = sanitize_sql_like(query)
@@ -49,6 +51,11 @@ class Transaction < ApplicationRecord
   end
 
   private
+
+  def set_pending
+    return if skip_pending_default
+    self.pending = true if new_record?
+  end
 
   def convert_amount
     self.amount = -amount.abs if trx_type == "debit"

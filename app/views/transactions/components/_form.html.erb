@@ -122,21 +122,6 @@
           <span data-trxform-target="newreceipt" class="has-text-weight-bold has-text-danger"></span>
           <span data-trxform-target="filename"><%= @transaction.filename_form %></span>
         </div>
-
-        <!-- Pending -->
-        <% if @transaction.description != 'Starting Balance' %>
-          <div class="field is-grouped mt-10">
-            <%= f.check_box :pending, id: "pending", class: "is-checkradio is-square is-primary" %>
-            <label class="label has-text-grey"
-                  for="pending">
-              <span class="tooltip has-tooltip has-tooltip-top"
-                    data-tooltip="If this transaction has not yet posted, checking this box will make it appear at the top of your transactions list."
-              >
-                Pending?
-              </span>
-            </label>
-          </div>
-        <% end %>
       </div>
     </div> <!-- /columns -->
 

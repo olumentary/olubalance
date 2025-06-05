@@ -17,7 +17,12 @@ Rails.application.routes.draw do
   post "accounts/summary/mail" => "summary#send_mail"
 
   resources :accounts, except: %i[show] do
-    resources :transactions
+    resources :transactions do
+      member do
+        patch :mark_reviewed
+        patch :mark_pending
+      end
+    end
     resources :stashes do
       scope except: %i[index show edit update destroy] do
         resources :stash_entries

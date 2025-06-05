@@ -26,6 +26,14 @@ class TransactionDecorator < ApplicationDecorator
     amount.negative? ? "has-text-danger" : "has-text-success"
   end
 
+  def reviewed_color
+    transaction.pending ? "has-background-white" : "has-background-text-90"
+  end
+
+  def reviewed_weight
+    transaction.pending ? "has-text-weight-bold" : "has-text-weight-normal"
+  end
+
   def trx_type_value_form
     if object.new_record?
       "debit"

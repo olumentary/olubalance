@@ -2,34 +2,38 @@
 // Run that command whenever you add a new controller or create them with
 // ./bin/rails generate stimulus controllerName
 
-import { application } from "./application"
+import { application } from './application';
 
-import AcctformController from "./acctform_controller"
-application.register("acctform", AcctformController)
+import AcctformController from './acctform_controller';
+application.register('acctform', AcctformController);
 
-import ApplicationController from "./application_controller"
-application.register("application", ApplicationController)
+import ApplicationController from './application_controller';
+application.register('application', ApplicationController);
 
-import DropdownController from "./dropdown_controller"
-application.register("dropdown", DropdownController)
+import DropdownController from './dropdown_controller';
+application.register('dropdown', DropdownController);
 
-import HelloController from "./hello_controller"
-application.register("hello", HelloController)
+import HelloController from './hello_controller';
+application.register('hello', HelloController);
 
-import NavController from "./nav_controller"
-application.register("nav", NavController)
+import NavController from './nav_controller';
+application.register('nav', NavController);
 
-import SharedController from "./shared_controller"
-application.register("shared", SharedController)
+import SharedController from './shared_controller';
+application.register('shared', SharedController);
 
-import StashlistController from "./stashlist_controller"
-application.register("stashlist", StashlistController)
+import StashlistController from './stashlist_controller';
+application.register('stashlist', StashlistController);
 
-import TrxformController from "./trxform_controller"
-application.register("trxform", TrxformController)
+import TrxformController from './trxform_controller';
+application.register('trxform', TrxformController);
 
-import TrxsearchController from "./trxsearch_controller"
-application.register("trxsearch", TrxsearchController)
+import TrxsearchController from './trxsearch_controller';
+application.register('trxsearch', TrxsearchController);
 
-import TrxtypeRadioButtonsController from "./trxtype_radio_buttons_controller"
-application.register("trxtype-radio-buttons", TrxtypeRadioButtonsController)
+import TrxtypeRadioButtonsController from './trxtype_radio_buttons_controller';
+application.register('trxtype-radio-buttons', TrxtypeRadioButtonsController);
+
+// Register the transaction review controller
+import TransactionReviewController from './transaction_review_controller';
+application.register('transaction-review', TransactionReviewController);

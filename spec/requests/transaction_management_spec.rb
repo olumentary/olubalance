@@ -40,7 +40,7 @@ RSpec.describe "Transaction management", type: :request do
     @balance = @starting_balance - @trx_amount
     @pending_trx_amount = 100
     sign_in @user
-    FactoryBot.create(:transaction, trx_date: Date.today, description: "Pending Transaction", amount: @pending_trx_amount, trx_type:'debit', pending: true, account: @account)
+    FactoryBot.create(:transaction, trx_date: Date.today, description: "Pending Transaction", amount: @pending_trx_amount, trx_type:'debit', skip_pending_default: false, account: @account)
     get account_transactions_path(@account)
     expect(response).to be_successful
     expect(response.body).to include('PENDING')

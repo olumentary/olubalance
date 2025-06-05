@@ -204,6 +204,7 @@ accounts.each do |account|
       description: trx_debit_desc.sample,
       amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
       trx_type: 'debit',
+      skip_pending_default: true,
       account: account
     )
   end
@@ -215,6 +216,7 @@ accounts.each do |account|
       description: trx_credit_desc.sample,
       amount: Faker::Number.between(from: 1.00, to: 5.00).to_f.round(2),
       trx_type: 'credit',
+      skip_pending_default: true,
       account: account
     )
   end
@@ -226,6 +228,7 @@ accounts.each do |account|
           description: 'Attachment Test Transaction',
           amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
           trx_type: 'debit',
+          skip_pending_default: true,
           account: account
         )
     t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png', content_type: 'image/png')
