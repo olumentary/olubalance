@@ -68,12 +68,19 @@
         <!-- Description -->
         <div class="field">
           <label class="label has-text-grey">Description</label>
-          <div class="control has-icons-left">
+          <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>">
             <%= f.text_field :description, class: "input is-primary",
-                                          placeholder: "Description" %>
+                                          placeholder: "Description",
+                                          data: { 
+                                            typeahead_target: "input",
+                                            action: "input->typeahead#search blur->typeahead#hideSuggestions"
+                                          } %>
             <span class="icon is-small is-left has-text-primary">
               <i class="fas fa-file-alt"></i>
             </span>
+            <div class="dropdown-menu is-hidden" data-typeahead-target="suggestions" style="position: absolute; top: 100%; left: 0; right: 0;">
+              <div class="dropdown-content"></div>
+            </div>
           </div>
         </div>
 

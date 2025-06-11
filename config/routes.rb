@@ -22,6 +22,9 @@ Rails.application.routes.draw do
         patch :mark_reviewed
         patch :mark_pending
       end
+      collection do
+        get :descriptions
+      end
     end
     resources :stashes do
       scope except: %i[index show edit update destroy] do

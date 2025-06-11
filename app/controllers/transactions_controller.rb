@@ -102,6 +102,18 @@ class TransactionsController < ApplicationController
     head :ok
   end
 
+  # GET /transactions/descriptions
+  def descriptions
+    query = params[:query].to_s.strip
+    descriptions = @account.transactions
+                         .where("description ILIKE ?", "%#{query}%")
+                         .distinct
+                         .pluck(:description)
+                         .first(10)
+
+    render json: descriptions
+  end
+
   private
 
   def filter_params

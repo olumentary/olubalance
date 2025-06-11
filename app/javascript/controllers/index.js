@@ -37,3 +37,6 @@ application.register('trxtype-radio-buttons', TrxtypeRadioButtonsController);
 // Register the transaction review controller
 import TransactionReviewController from './transaction_review_controller';
 application.register('transaction-review', TransactionReviewController);
+
+import TypeaheadController from './typeahead_controller';
+application.register('typeahead', TypeaheadController);
