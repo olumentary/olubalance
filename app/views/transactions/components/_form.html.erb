@@ -23,6 +23,21 @@
     <div class="columns">
       <!-- Fields -->
       <div class="column">
+        <!-- Account Selection -->
+        <div class="field">
+          <label class="label has-text-grey">Account</label>
+          <div class="control has-icons-left">
+            <div class="select is-fullwidth is-primary">
+              <%= f.select :account_id,
+                          @user_accounts.map { |a| [a.name, a.id] },
+                          { selected: @account.id },
+                          { data: { action: "change->trxform#accountChanged" } } %>
+            </div>
+            <div class="icon is-small is-left has-text-primary">
+              <i class="fas fa-piggy-bank"></i>
+            </div>
+          </div>
+        </div>
 
         <!-- Transaction Type -->
         <div class="field">
@@ -68,7 +83,7 @@
         <!-- Description -->
         <div class="field">
           <label class="label has-text-grey">Description</label>
-          <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>">
+          <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>" style="position: relative;">
             <%= f.text_field :description, class: "input is-primary",
                                           placeholder: "Description",
                                           data: { 
@@ -78,8 +93,8 @@
             <span class="icon is-small is-left has-text-primary">
               <i class="fas fa-file-alt"></i>
             </span>
-            <div class="dropdown-menu is-hidden" data-typeahead-target="suggestions" style="position: absolute; top: 100%; left: 0; right: 0;">
-              <div class="dropdown-content"></div>
+            <div class="dropdown-menu is-hidden" data-typeahead-target="suggestions" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100;">
+              <div class="dropdown-content" style="max-height: 200px; overflow-y: auto;" data-typeahead-target="content"></div>
             </div>
           </div>
         </div>

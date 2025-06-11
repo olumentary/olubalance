@@ -8,6 +8,7 @@ class TransactionsController < ApplicationController
   before_action :find_transaction, only: %i[edit update show destroy]
   before_action :transfer_accounts, only: %i[index]
   before_action :check_account_change, only: [ :index ]
+  before_action :load_user_accounts, only: [:new, :create, :edit, :update]
 
   # Index action to render all transactions
   def index
@@ -115,6 +116,10 @@ class TransactionsController < ApplicationController
   end
 
   private
+
+  def load_user_accounts
+    @user_accounts = current_user.accounts.where(active: true).order(:name).decorate
+  end
 
   def filter_params
     # params.permit(:description, :column, :direction)
