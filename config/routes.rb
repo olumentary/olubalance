@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       member do
         patch :mark_reviewed
         patch :mark_pending
+        post :update_date
       end
       collection do
         get :descriptions

@@ -1,11 +1,20 @@
 <%= turbo_frame_tag "transaction_#{transaction.id}" do %>
-  <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %>">
-    <td class="has-text-centered <%= transaction.reviewed_weight %>">
-      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-        <div class="ob-cell-content has-text-grey">
+  <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %> <%= 'is-pending' if transaction.pending? %>">
+    <td class="has-text-centered <%= transaction.reviewed_weight %>"
+        data-controller="inline-date"
+        data-inline-date-url-value="<%= account_transaction_path(id: transaction.id) %>"
+        data-inline-date-date-value="<%= transaction.trx_date %>"
+        data-action="click->inline-date#showInput">
+      <div class="ob-cell-content has-text-grey" style="cursor: pointer;">
+        <span data-inline-date-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
           <%= transaction.trx_date_display %>
-        </div>
-      <% end %>
+        </span>
+        <input type="date"
+               class="input is-small is-hidden"
+               data-inline-date-target="input"
+               value="<%= transaction.trx_date %>"
+               data-action="blur->inline-date#updateDate keydown->inline-date#handleKeydown">
+      </div>
     </td>
 
     <td class="<%= transaction.reviewed_weight %>">

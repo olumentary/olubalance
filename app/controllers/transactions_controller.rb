@@ -5,7 +5,7 @@ class TransactionsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :find_account
-  before_action :find_transaction, only: %i[edit update show destroy]
+  before_action :find_transaction, only: %i[edit update show destroy update_date]
   before_action :transfer_accounts, only: %i[index]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [:new, :create, :edit, :update]
@@ -60,13 +60,26 @@ class TransactionsController < ApplicationController
 
   # Update action updates the transaction with the new information
   def update
-    respond_to do |format|
-      if @transaction.update(transaction_params)
+    if @transaction.update(transaction_params)
+      respond_to do |format|
         format.html { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
-        format.xml { head :ok }
-      else
+        format.json { 
+          render json: {
+            id: @transaction.id,
+            trx_date: @transaction.trx_date,
+            success: true
+          }, content_type: 'application/json'
+        }
+      end
+    else
+      respond_to do |format|
         format.html { render action: "edit" }
-        format.xml { render xml: @transaction.errors, status: :unprocessable_entity }
+        format.json { 
+          render json: {
+            success: false,
+            errors: @transaction.errors.full_messages
+          }, status: :unprocessable_entity, content_type: 'application/json'
+        }
       end
     end
   end
@@ -115,6 +128,21 @@ class TransactionsController < ApplicationController
     render json: descriptions
   end
 
+  def update_date
+    Rails.logger.info "Updating date for transaction #{@transaction.id} with params: #{params.inspect}"
+    
+    # Skip validations for other fields when updating just the date
+    @transaction.assign_attributes(trx_date: params[:date])
+    
+    if @transaction.save(validate: false)
+      Rails.logger.info "Date updated successfully"
+      render json: { success: true, trx_date: @transaction.trx_date }
+    else
+      Rails.logger.error "Failed to update date: #{@transaction.errors.full_messages}"
+      render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def load_user_accounts
@@ -127,8 +155,13 @@ class TransactionsController < ApplicationController
   end
 
   def transaction_params
-    params.require(:transaction) \
-          .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
+    if request.format.json?
+      # For JSON requests, we expect a date parameter
+      { trx_date: params[:date] }
+    else
+      params.require(:transaction) \
+            .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
+    end
   end
 
   def search_by_description(scope)
