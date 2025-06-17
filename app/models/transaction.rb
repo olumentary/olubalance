@@ -50,6 +50,10 @@ class Transaction < ApplicationRecord
     %w[Debit debit]
   end
 
+  def update_date_only(date)
+    update_columns(trx_date: date, updated_at: Time.current)
+  end
+
   private
 
   def set_pending
@@ -62,6 +66,7 @@ class Transaction < ApplicationRecord
   end
 
   def set_account
+    return if trx_date_changed? && !amount_changed? && !description_changed?
     @account = Account.find(account_id)
   end
 
@@ -70,6 +75,7 @@ class Transaction < ApplicationRecord
   end
 
   def update_account_balance_edit
+    return if trx_date_changed? && !amount_changed?
     @account = Account.find(account_id)
     @account.update(current_balance: @account.current_balance - amount_before_last_save + amount) \
       if saved_change_to_amount?

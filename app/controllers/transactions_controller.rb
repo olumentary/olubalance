@@ -129,9 +129,7 @@ class TransactionsController < ApplicationController
   end
 
   def update_date
-    @transaction.assign_attributes(trx_date: params[:date])
-    
-    if @transaction.save(validate: false)
+    if @transaction.update_date_only(params[:date])
       render json: { success: true, trx_date: @transaction.trx_date }
     else
       render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
@@ -145,8 +143,7 @@ class TransactionsController < ApplicationController
   end
 
   def filter_params
-    # params.permit(:description, :column, :direction)
-    params.permit(:description)
+    params.permit(:description, :account_id)
   end
 
   def transaction_params
