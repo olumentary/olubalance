@@ -129,16 +129,11 @@ class TransactionsController < ApplicationController
   end
 
   def update_date
-    Rails.logger.info "Updating date for transaction #{@transaction.id} with params: #{params.inspect}"
-    
-    # Skip validations for other fields when updating just the date
     @transaction.assign_attributes(trx_date: params[:date])
     
     if @transaction.save(validate: false)
-      Rails.logger.info "Date updated successfully"
       render json: { success: true, trx_date: @transaction.trx_date }
     else
-      Rails.logger.error "Failed to update date: #{@transaction.errors.full_messages}"
       render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
     end
   end
