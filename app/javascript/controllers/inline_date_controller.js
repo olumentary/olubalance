@@ -57,9 +57,11 @@ export default class extends Controller {
       const data = await response.json();
 
       if (data.success) {
-        this.dateValue = data.trx_date;
-        const displayDate = new Date(data.trx_date);
+        // Create date in local timezone
+        const [year, month, day] = data.trx_date.split('-');
+        const displayDate = new Date(year, month - 1, day);
         this.displayTarget.textContent = displayDate.toLocaleDateString();
+        this.dateValue = data.trx_date;
         this.hideInput();
 
         // Refresh the page to update the transaction list
