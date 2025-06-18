@@ -29,13 +29,19 @@
       </th>
     </thead>
     <tbody>
+      <tr class="is-hidden-tablet has-background-link">
+        <td colspan="1" class="has-text-weight-bold has-text-white py-2">
+          Transactions
+        </td>
+      </tr>
+
       <% 
         pending_transactions = @transactions.select(&:pending?)
         non_pending_transactions = @transactions.reject(&:pending?)
       %>
 
       <% if pending_transactions.any? %>
-        <tr class="has-background-light">
+        <tr class="has-background-light is-hidden-mobile">
           <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
             Pending Transactions
           </td>
@@ -49,7 +55,7 @@
           sorted_transactions = transactions.sort_by(&:id).reverse
           end_of_day_balance = sorted_transactions.first.running_balance
         %>
-        <tr class="has-background-light">
+        <tr class="has-background-light is-hidden-mobile">
           <td colspan="3" class="has-text-weight-bold has-text-grey py-3">
             <%= date.strftime("%A, %B %d, %Y") %>
           </td>
