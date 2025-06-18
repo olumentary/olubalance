@@ -1,0 +1,160 @@
+<%= form_for([@transaction.account, @transaction]) do |f| %>
+  <% if @transaction.errors.any? %>
+    <article id="error_explanation" class="message is-danger">
+      <div class="message-header">
+        Something went wrong!
+      </div>
+      <div class="message-body content">
+        Please correct the following <span class="has-text-weight-bold"><%= pluralize(@transaction.errors.count, "error") %></span>:
+        <ul>
+          <% @transaction.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    </article>
+  <% end %>
+
+  <div class="columns">
+    <!-- Fields -->
+    <div class="column">
+      <!-- Account Selection -->
+      <div class="field">
+        <label class="label has-text-grey">Account</label>
+        <div class="control has-icons-left">
+          <div class="select is-fullwidth is-primary">
+            <%= f.select :account_id,
+                        @user_accounts.map { |a| [a.name, a.id] },
+                        { selected: @account.id },
+                        { data: { action: "change->trxform#accountChanged" } } %>
+          </div>
+          <div class="icon is-small is-left has-text-primary">
+            <i class="fas fa-piggy-bank"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Type -->
+      <div class="field">
+        <%= f.label :trx_type, class: "label has-text-grey" do %>Transaction Type<% end %>
+
+        <div class="control" data-controller="trxtype-radio-buttons">
+          <div class="buttons are-small">
+            <button
+              type="button"
+              class="button is-success is-outlined"
+              data-trxtype-radio-buttons-target="button"
+              data-value="credit"
+              id="creditType"
+            >
+              Credit
+            </button>
+            <button
+              type="button"
+              class="button is-danger is-outlined"
+              data-trxtype-radio-buttons-target="button"
+              data-value="debit"
+              id="debitType"
+            >
+              Debit
+            </button>
+          </div>
+
+          <%= f.hidden_field :trx_type, 
+                value: @transaction.trx_type_value_form,
+                data: { trxtype_radio_buttons_target: "input" }
+          %>
+        </div>
+      </div>
+
+      <!-- Transaction Type -->
+      <div class="field">
+        <label class="label has-text-grey">Date</label>
+        <div class="control">
+          <%= f.date_field :trx_date, class: "input is-primary", type: "date", value: @transaction.trx_date_form_value %>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="field">
+        <label class="label has-text-grey">Description</label>
+        <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>" style="position: relative;">
+          <%= f.text_field :description, class: "input is-primary",
+                                        placeholder: "Description",
+                                        data: { 
+                                          typeahead_target: "input",
+                                          action: "input->typeahead#search blur->typeahead#hideSuggestions"
+                                        } %>
+          <span class="icon is-small is-left has-text-primary">
+            <i class="fas fa-file-alt"></i>
+          </span>
+          <div class="dropdown-menu is-hidden" data-typeahead-target="suggestions" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100;">
+            <div class="dropdown-content" style="max-height: 200px; overflow-y: auto;" data-typeahead-target="content"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amount -->
+      <div class="field">
+        <label class="label has-text-grey">Amount</label>
+        <div class="control has-icons-left">
+          <%= f.text_field :amount, class: "input is-primary",
+                                    placeholder: "5.00",
+                                    value: @transaction.amount_form %>
+          <span class="icon is-small is-left has-text-primary">
+            <i class="fas fa-dollar-sign"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Memo -->
+      <div class="field">
+        <label class="label has-text-grey">Memo</label>
+        <div class="control has-icons-left">
+          <%= f.text_field :memo, class: "input is-primary",
+                                  placeholder: "Memo" %>
+          <span class="icon is-small is-left has-text-primary">
+            <i class="fas fa-info-circle"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Attachment -->
+      <label class="label has-text-grey">Receipt</label>
+      <div class="file">
+        <label class="file-label">
+          <%= f.file_field :attachment, class: "file-input is-primary", data: { action: 'change->trxform#attachmentSelected', 'trxform-target': 'attachment' } %>
+          <span class="file-cta has-background-primary">
+            <span class="file-icon has-text-white">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label has-text-white">
+              <%= @transaction.add_receipt_button_label %>
+            </span>
+          </span>
+        </label>
+      </div>
+      
+      <div class="ob-file-name has-text-grey">
+        <span data-trxform-target="newreceipt" class="has-text-weight-bold has-text-danger"></span>
+        <span data-trxform-target="filename"><%= @transaction.filename_form %></span>
+      </div>
+    </div>
+  </div> <!-- /columns -->
+
+  <div class="field is-grouped">
+    <div class="control">
+      <%= link_to "Cancel", account_transactions_path, class: "button is-link is-outlined" %>
+    </div>
+    <div class="control">
+      <%= f.button @transaction.button_label,
+          type: 'submit',
+          class: "button is-link",
+          data: {
+            action: 'click->trxform#create',
+            'trxform-target': 'submit'
+          }
+      %>
+    </div>
+  </div>
+<% end %> 

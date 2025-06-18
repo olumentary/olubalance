@@ -50,7 +50,10 @@ class TransactionsController < ApplicationController
     if @transaction.save
       redirect_to account_transactions_path, notice: "Transaction was successfully created."
     else
-      render action: "new"
+      respond_to do |format|
+        format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -183,12 +186,8 @@ class TransactionsController < ApplicationController
 
   def find_account
     @account = current_user.accounts.find(params[:account_id]).decorate
-    respond_to do |format|
-      if @account.active?
-        format.html
-      else
-        format.html { redirect_to accounts_inactive_path, notice: "Account is inactive" }
-      end
+    unless @account.active?
+      redirect_to accounts_inactive_path, notice: "Account is inactive"
     end
   end
 

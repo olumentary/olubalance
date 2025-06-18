@@ -15,6 +15,7 @@ class TransactionDecorator < ApplicationDecorator
   end
 
   def amount_decorated
+    return "Pending" if amount.nil?
     amount.negative? ? number_to_currency(amount.abs) : number_to_currency(amount)
   end
 
@@ -23,6 +24,7 @@ class TransactionDecorator < ApplicationDecorator
   end
 
   def amount_color
+    return "has-text-grey" if amount.nil?
     amount.negative? ? "has-text-danger" : "has-text-success"
   end
 
@@ -84,11 +86,20 @@ class TransactionDecorator < ApplicationDecorator
     created_at.in_time_zone(User.new.decorate.h.controller.current_user.timezone).strftime("%b %d, %Y @ %I:%M %p %Z")
   end
 
-  def name_too_long
-    description.length > 35
+  def trx_desc_display
+    return "Pending Receipt" if description.nil?
+    name_too_long ? "#{description[0..20]}..." : description
   end
 
-  def trx_desc_display
-    name_too_long ? description[0..35] + "..." : description
+  def name_too_long
+    return false if description.nil?
+    description.length > 20
+  end
+
+  private
+
+  def name_too_long
+    return false if description.nil?
+    description.length > 20
   end
 end

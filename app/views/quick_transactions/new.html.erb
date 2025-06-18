@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="columns is-centered">
+    <div class="column is-half">
+      <div class="box">
+        <h1 class="title is-4">Quick Receipt Upload</h1>
+        
+        <%= form_with(model: @transaction, url: quick_transactions_path, local: true, multipart: true) do |f| %>
+          <div class="field">
+            <%= f.label :account_id, "Account", class: "label" %>
+            <div class="control">
+              <div class="select is-fullwidth">
+                <%= f.collection_select :account_id, @user_accounts, :id, :name %>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <%= f.label :attachment, "Receipt", class: "label" %>
+            <div class="control">
+              <%= f.file_field :attachment, class: "input", accept: "image/*,.pdf" %>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="control">
+              <%= f.submit "Upload Receipt", class: "button is-primary is-fullwidth" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div> 

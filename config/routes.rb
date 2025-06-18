@@ -41,6 +41,8 @@ Rails.application.routes.draw do
 
   resources :transfers, only: %i[create]
 
+  resources :quick_transactions, only: [:new, :create]
+
   authenticated do
     root to: "accounts#index", as: :authenticated_root
   end

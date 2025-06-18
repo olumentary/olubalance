@@ -14,10 +14,11 @@ class Transaction < ApplicationRecord
 
   # default_scope { order('trx_date, id DESC') }
   validates :trx_type, presence: { message: "Please select debit or credit" },
-                       inclusion: { in: %w[credit debit] }
+                       inclusion: { in: %w[credit debit] },
+                       unless: :pending?
   validates :trx_date, presence: true
-  validates :description, presence: true, length: { maximum: 150 }
-  validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :description, presence: true, length: { maximum: 150 }, unless: :pending?
+  validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }, unless: :pending?
   validates :memo, length: { maximum: 500 }
 
   # before_post_process :rename_file
@@ -71,11 +72,13 @@ class Transaction < ApplicationRecord
   end
 
   def update_account_balance_create
+    return if amount.nil?
+    @account = Account.find(account_id)
     @account.update(current_balance: @account.current_balance + amount)
   end
 
   def update_account_balance_edit
-    return if trx_date_changed? && !amount_changed?
+    return if amount.nil?
     @account = Account.find(account_id)
     @account.update(current_balance: @account.current_balance - amount_before_last_save + amount) \
       if saved_change_to_amount?
