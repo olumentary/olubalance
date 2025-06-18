@@ -16,6 +16,9 @@ application.register('dropdown', DropdownController);
 import HelloController from './hello_controller';
 application.register('hello', HelloController);
 
+import InlineDateController from './inline_date_controller';
+application.register('inline-date', InlineDateController);
+
 import NavController from './nav_controller';
 application.register('nav', NavController);
 

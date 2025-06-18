@@ -29,7 +29,38 @@
       </th>
     </thead>
     <tbody>
-      <%= render partial: "transactions/components/transactionLineDesktop", collection: @transactions, as: :transaction %>
+      <% 
+        pending_transactions = @transactions.select(&:pending?)
+        non_pending_transactions = @transactions.reject(&:pending?)
+      %>
+
+      <% if pending_transactions.any? %>
+        <tr class="has-background-light">
+          <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+            Pending Transactions
+          </td>
+        </tr>
+        <%= render partial: "transactions/components/transactionLineDesktop", collection: pending_transactions, as: :transaction %>
+      <% end %>
+
+      <% non_pending_transactions.group_by(&:trx_date).each do |date, transactions| %>
+        <% 
+          # Sort transactions by ID in descending order
+          sorted_transactions = transactions.sort_by(&:id).reverse
+          end_of_day_balance = sorted_transactions.first.running_balance
+        %>
+        <tr class="has-background-light">
+          <td colspan="3" class="has-text-weight-bold has-text-grey py-3">
+            <%= date.strftime("%A, %B %d, %Y") %>
+          </td>
+          <td class="has-text-right has-text-weight-bold has-text-grey py-3">
+            <%= number_to_currency(end_of_day_balance) %>
+          </td>
+          <td></td>
+        </tr>
+        <%= render partial: "transactions/components/transactionLineDesktop", collection: sorted_transactions, as: :transaction %>
+      <% end %>
+
       <%= render partial: "transactions/components/transactionLineMobile", collection: @transactions, as: :transaction %>
     </tbody>
   </table>

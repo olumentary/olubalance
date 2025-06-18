@@ -5,9 +5,10 @@ class TransactionsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :find_account
-  before_action :find_transaction, only: %i[edit update show destroy]
+  before_action :find_transaction, only: %i[edit update show destroy update_date]
   before_action :transfer_accounts, only: %i[index]
   before_action :check_account_change, only: [ :index ]
+  before_action :load_user_accounts, only: [:new, :create, :edit, :update]
 
   # Index action to render all transactions
   def index
@@ -49,7 +50,10 @@ class TransactionsController < ApplicationController
     if @transaction.save
       redirect_to account_transactions_path, notice: "Transaction was successfully created."
     else
-      render action: "new"
+      respond_to do |format|
+        format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -59,13 +63,28 @@ class TransactionsController < ApplicationController
 
   # Update action updates the transaction with the new information
   def update
-    respond_to do |format|
-      if @transaction.update(transaction_params)
+    if @transaction.update(transaction_params)
+      respond_to do |format|
         format.html { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
-        format.xml { head :ok }
-      else
+        format.turbo_stream { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
+        format.json { 
+          render json: {
+            id: @transaction.id,
+            trx_date: @transaction.trx_date,
+            success: true
+          }, content_type: 'application/json'
+        }
+      end
+    else
+      respond_to do |format|
         format.html { render action: "edit" }
-        format.xml { render xml: @transaction.errors, status: :unprocessable_entity }
+        format.turbo_stream { render action: "edit" }
+        format.json { 
+          render json: {
+            success: false,
+            errors: @transaction.errors.full_messages
+          }, status: :unprocessable_entity, content_type: 'application/json'
+        }
       end
     end
   end
@@ -114,16 +133,32 @@ class TransactionsController < ApplicationController
     render json: descriptions
   end
 
+  def update_date
+    if @transaction.update_date_only(params[:date])
+      render json: { success: true, trx_date: @transaction.trx_date }
+    else
+      render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
   private
 
+  def load_user_accounts
+    @user_accounts = current_user.accounts.where(active: true).order(:name).decorate
+  end
+
   def filter_params
-    # params.permit(:description, :column, :direction)
-    params.permit(:description)
+    params.permit(:description, :account_id)
   end
 
   def transaction_params
-    params.require(:transaction) \
-          .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
+    if request.format.json?
+      # For JSON requests, we expect a date parameter
+      { trx_date: params[:date] }
+    else
+      params.require(:transaction) \
+            .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
+    end
   end
 
   def search_by_description(scope)
@@ -153,12 +188,8 @@ class TransactionsController < ApplicationController
 
   def find_account
     @account = current_user.accounts.find(params[:account_id]).decorate
-    respond_to do |format|
-      if @account.active?
-        format.html
-      else
-        format.html { redirect_to accounts_inactive_path, notice: "Account is inactive" }
-      end
+    unless @account.active?
+      redirect_to accounts_inactive_path, notice: "Account is inactive"
     end
   end
 

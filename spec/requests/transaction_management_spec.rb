@@ -105,6 +105,7 @@ RSpec.describe "Transaction management", type: :request do
     get edit_account_transaction_path(@account.id, @transaction.id)
     expect(response.body).to include("Edit Transaction")
 
+    # Update the transaction
     patch "/accounts/#{@account.id}/transactions/#{@transaction.id}", params: { 
       transaction: { 
         description: "Test Create Transaction Edited",
@@ -112,14 +113,21 @@ RSpec.describe "Transaction management", type: :request do
         trx_type: 'debit'
       }
     }
+    
+    # Verify the redirect
     expect(response).to redirect_to(account_transactions_path(@account))
+    
+    # Follow the redirect
     follow_redirect!
-
+    
+    # Verify the transaction was updated
+    @transaction.reload
+    expect(@transaction.description).to eq("Test Create Transaction Edited")
+    expect(@transaction.amount).to eq(-100) # Amount is negative for debit transactions
+    
+    # Verify the balance
     @balance = @starting_balance - 100
-
-    expect(response.body).to include("Test Create Transaction Edited")
     expect(response.body).to include(number_to_currency(@balance))
-    # expect(response.body).to include("1111")
   end
 
   it "fails when making an invalid update to a transaction" do

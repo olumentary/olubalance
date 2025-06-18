@@ -21,6 +21,7 @@ Rails.application.routes.draw do
       member do
         patch :mark_reviewed
         patch :mark_pending
+        post :update_date
       end
       collection do
         get :descriptions
@@ -39,6 +40,8 @@ Rails.application.routes.draw do
   end
 
   resources :transfers, only: %i[create]
+
+  resources :quick_transactions, only: [:new, :create]
 
   authenticated do
     root to: "accounts#index", as: :authenticated_root

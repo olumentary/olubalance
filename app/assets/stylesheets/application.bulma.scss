@@ -175,33 +175,36 @@ a.has-text-white.sortable {
 }
 
 // Typeahead styles
-.dropdown-menu {
-  position: absolute;
-  z-index: 30;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #dbdbdb;
-  border-radius: 4px;
-  box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
-  margin-top: 4px;
-  display: block !important; // Override Bulma's display: none
+[data-controller='typeahead'] {
+  .dropdown-menu {
+    position: absolute;
+    z-index: 30;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+    margin-top: 4px;
+    display: block !important; // Override Bulma's display: none
 
-  &.is-hidden {
-    display: none !important;
-  }
+    &.is-hidden {
+      display: none !important;
+    }
 
-  .dropdown-content {
-    padding: 0.5rem 0;
-  }
+    .dropdown-content {
+      padding: 0.5rem 0;
+    }
 
-  .dropdown-item {
-    padding: 0.5rem 1rem;
-    cursor: pointer;
+    .dropdown-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
 
-    &:hover {
-      background-color: #f5f5f5;
+      &:hover,
+      &.is-active {
+        background-color: #f5f5f5;
+      }
     }
   }
 }
