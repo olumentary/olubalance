@@ -66,6 +66,7 @@ class TransactionsController < ApplicationController
     if @transaction.update(transaction_params)
       respond_to do |format|
         format.html { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
+        format.turbo_stream { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
         format.json { 
           render json: {
             id: @transaction.id,
@@ -77,6 +78,7 @@ class TransactionsController < ApplicationController
     else
       respond_to do |format|
         format.html { render action: "edit" }
+        format.turbo_stream { render action: "edit" }
         format.json { 
           render json: {
             success: false,
