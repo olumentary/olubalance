@@ -270,7 +270,8 @@ CREATE TABLE public.transactions (
     memo character varying,
     pending boolean DEFAULT false,
     locked boolean DEFAULT false,
-    transfer boolean DEFAULT false
+    transfer boolean DEFAULT false,
+    quick_receipt boolean
 );
 
 
@@ -649,6 +650,7 @@ ALTER TABLE ONLY public.active_storage_attachments
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250619000235'),
 ('20240125144637'),
 ('20210104203329'),
 ('20210104203328'),

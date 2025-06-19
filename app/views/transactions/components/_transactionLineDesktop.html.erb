@@ -1,44 +1,81 @@
 <%= turbo_frame_tag "transaction_#{transaction.id}" do %>
   <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %> <%= 'is-pending' if transaction.pending? %>">
     <td class="has-text-centered <%= transaction.reviewed_weight %>"
-        data-controller="inline-date"
-        data-inline-date-url-value="<%= account_transaction_path(id: transaction.id) %>"
-        data-inline-date-date-value="<%= transaction.trx_date %>"
-        data-action="click->inline-date#showInput">
-      <div class="ob-cell-content has-text-grey" style="cursor: pointer;">
-        <span data-inline-date-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
+        <% if transaction.pending? %>
+        data-controller="inline-edit"
+        data-inline-edit-url-value="<%= account_transaction_path(id: transaction.id) %>"
+        data-inline-edit-field-value="trx_date"
+        data-inline-edit-value-value="<%= transaction.trx_date %>"
+        data-action="click->inline-edit#showInput"
+        <% end %>>
+      <div class="ob-cell-content has-text-grey" style="<%= 'cursor: pointer;' if transaction.pending? %>">
+        <span data-inline-edit-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
           <%= transaction.trx_date_display %>
         </span>
+        <% if transaction.pending? %>
         <input type="date"
                class="input is-small is-hidden"
-               data-inline-date-target="input"
+               style="width: 120px; text-align: right;"
+               data-inline-edit-target="input"
                value="<%= transaction.trx_date %>"
-               data-action="blur->inline-date#updateDate keydown->inline-date#handleKeydown">
+               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        <% end %>
       </div>
     </td>
 
-    <td class="<%= transaction.reviewed_weight %>">
-      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-        <div class="ob-cell-content">
+    <td class="<%= transaction.reviewed_weight %>"
+        <% if transaction.pending? %>
+        data-controller="inline-edit"
+        data-inline-edit-url-value="<%= account_transaction_path(id: transaction.id) %>"
+        data-inline-edit-field-value="description"
+        data-inline-edit-value-value="<%= transaction.description %>"
+        data-action="click->inline-edit#showInput"
+        <% end %>>
+      <div class="ob-cell-content" style="<%= 'cursor: pointer;' if transaction.pending? %>">
+        <span data-inline-edit-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
           <%= transaction.trx_desc_display %>
           <% if transaction.attachment.attached? then %>
             <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
               <i class="fas fa-sm fa-paperclip"></i>
             </span>
           <% end %>
-        </div>
-      <% end %>
+        </span>
+        <% if transaction.pending? %>
+        <input type="text"
+               class="input is-small is-hidden"
+               data-inline-edit-target="input"
+               value="<%= transaction.description %>"
+               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        <% end %>
+      </div>
     </td>
 
-    <td class="has-text-right <%= transaction.reviewed_weight %>">
-      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-        <div class="ob-cell-content <%= transaction.amount_color %>">
+    <td class="has-text-right <%= transaction.reviewed_weight %>"
+        <% if transaction.pending? %>
+        data-controller="inline-edit"
+        data-inline-edit-url-value="<%= account_transaction_path(id: transaction.id) %>"
+        data-inline-edit-field-value="amount"
+        data-inline-edit-value-value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
+        data-action="click->inline-edit#showInput"
+        <% end %>>
+      <div class="ob-cell-content" style="<%= 'cursor: pointer;' if transaction.pending? %>">
+        <span data-inline-edit-target="display" class="<%= transaction.amount_color %> <%= 'is-clickable' if transaction.pending? %>">
           <%= transaction.amount_decorated %>
-        </div>
-      <% end %>
+        </span>
+        <% if transaction.pending? %>
+        <input type="number"
+               step="0.01"
+               min="0"
+               class="input is-small is-hidden"
+               style="width: 100px; text-align: right;"
+               data-inline-edit-target="input"
+               value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
+               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        <% end %>
+      </div>
     </td>
 
-    <td class="has-text-right <%= transaction.reviewed_weight %>">
+    <td class="has-text-right <%= transaction.reviewed_weight %> <%= 'is-hidden' if transaction.quick_receipt? %>">
       <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
         <div class="has-text-weight-semibold has-text-grey">
           <%= transaction.running_balance_display %>
@@ -46,28 +83,41 @@
       <% end %>
     </td>
 
-    <td class="has-text-right">
-      <% if transaction.pending? %>
-        <button type="button"
-                data-controller="transaction-review"
-                data-action="click->transaction-review#markReviewed"
-                data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
-                class="button is-small is-light">
-          <span class="icon has-text-success">
-            <i class="fas fa-check"></i>
-          </span>
-        </button>
-      <% else %>
-        <button type="button"
-                data-controller="transaction-review"
-                data-action="click->transaction-review#markPending"
-                data-transaction-review-url-value="<%= mark_pending_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
-                class="button is-small is-light">
-          <span class="icon has-text-grey">
-            <i class="fas fa-check-square"></i>
-          </span>
-        </button>
-      <% end %>
+    <td class="has-text-right <%= 'is-hidden' if transaction.quick_receipt? %>">
+      <div class="buttons are-small" style="justify-content: flex-end;">
+        <% if transaction.pending? %>
+          <button type="button"
+                  data-controller="transaction-type-toggle"
+                  data-transaction-type-toggle-url-value="<%= account_transaction_path(id: transaction.id) %>"
+                  data-transaction-type-toggle-current-type-value="<%= transaction.amount&.negative? ? 'debit' : 'credit' %>"
+                  data-transaction-type-toggle-current-amount-value="<%= transaction.amount&.abs %>"
+                  data-action="click->transaction-type-toggle#toggleType"
+                  class="button is-light">
+            <span class="tag <%= transaction.amount&.negative? ? 'is-danger' : 'is-success' %> is-small">
+              <%= transaction.amount&.negative? ? 'D' : 'C' %>
+            </span>
+          </button>
+          <button type="button"
+                  data-controller="transaction-review"
+                  data-action="click->transaction-review#markReviewed"
+                  data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                  class="button is-light">
+            <span class="icon has-text-success">
+              <i class="fas fa-check"></i>
+            </span>
+          </button>
+        <% else %>
+          <button type="button"
+                  data-controller="transaction-review"
+                  data-action="click->transaction-review#markPending"
+                  data-transaction-review-url-value="<%= mark_pending_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                  class="button is-light">
+            <span class="icon has-text-grey">
+              <i class="fas fa-check-square"></i>
+            </span>
+          </button>
+        <% end %>
+      </div>
     </td>
   </tr>
 <% end %>

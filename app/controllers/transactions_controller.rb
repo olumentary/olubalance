@@ -68,11 +68,23 @@ class TransactionsController < ApplicationController
         format.html { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
         format.turbo_stream { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
         format.json { 
-          render json: {
+          response_data = {
             id: @transaction.id,
-            trx_date: @transaction.trx_date,
             success: true
-          }, content_type: 'application/json'
+          }
+          
+          # Add the updated field to the response
+          if params[:transaction]&.key?(:description)
+            response_data[:description] = @transaction.description
+          elsif params[:transaction]&.key?(:amount)
+            response_data[:amount] = @transaction.amount
+          elsif params[:transaction]&.key?(:trx_type)
+            response_data[:trx_type] = @transaction.trx_type
+          elsif params[:date]
+            response_data[:trx_date] = @transaction.trx_date
+          end
+          
+          render json: response_data, content_type: 'application/json'
         }
       end
     else
@@ -153,8 +165,21 @@ class TransactionsController < ApplicationController
 
   def transaction_params
     if request.format.json?
-      # For JSON requests, we expect a date parameter
-      { trx_date: params[:date] }
+      # For JSON requests, handle different field types
+      if params[:transaction]&.key?(:description)
+        { description: params[:transaction][:description] }
+      elsif params[:transaction]&.key?(:amount) && params[:transaction]&.key?(:trx_type)
+        # Handle both amount and trx_type together for type toggle
+        { amount: params[:transaction][:amount], trx_type: params[:transaction][:trx_type] }
+      elsif params[:transaction]&.key?(:amount)
+        { amount: params[:transaction][:amount] }
+      elsif params[:transaction]&.key?(:trx_type)
+        { trx_type: params[:transaction][:trx_type] }
+      elsif params[:date]
+        { trx_date: params[:date] }
+      else
+        {}
+      end
     else
       params.require(:transaction) \
             .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)

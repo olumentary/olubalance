@@ -26,7 +26,7 @@
             <%= transaction.trx_date_display %>
           </div>
         </div>
-        <div class="level-right">
+        <div class="level-right <%= 'is-hidden' if transaction.quick_receipt? %>">
           <div class="level-item ">
             Balance <%= transaction.running_balance_display %>
           </div>

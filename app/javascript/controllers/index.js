@@ -16,8 +16,8 @@ application.register('dropdown', DropdownController);
 import HelloController from './hello_controller';
 application.register('hello', HelloController);
 
-import InlineDateController from './inline_date_controller';
-application.register('inline-date', InlineDateController);
+import InlineEditController from './inline_edit_controller';
+application.register('inline-edit', InlineEditController);
 
 import NavController from './nav_controller';
 application.register('nav', NavController);
@@ -27,6 +27,9 @@ application.register('shared', SharedController);
 
 import StashlistController from './stashlist_controller';
 application.register('stashlist', StashlistController);
+
+import TransactionTypeToggleController from './transaction_type_toggle_controller';
+application.register('transaction-type-toggle', TransactionTypeToggleController);
 
 import TrxformController from './trxform_controller';
 application.register('trxform', TrxformController);

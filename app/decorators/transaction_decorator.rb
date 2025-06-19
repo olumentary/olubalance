@@ -16,7 +16,8 @@ class TransactionDecorator < ApplicationDecorator
 
   def amount_decorated
     return "Pending" if amount.nil?
-    amount.negative? ? number_to_currency(amount.abs) : number_to_currency(amount)
+    formatted_amount = sprintf("%.2f", amount.abs)
+    amount.negative? ? number_to_currency(formatted_amount, precision: 2) : number_to_currency(formatted_amount, precision: 2)
   end
 
   def amount_form

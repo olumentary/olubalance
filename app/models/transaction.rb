@@ -26,6 +26,7 @@ class Transaction < ApplicationRecord
   before_create :set_pending
   before_save :convert_amount
   before_save :set_account
+  before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
   after_create :update_account_balance_create
   after_update :update_account_balance_edit
   after_destroy :update_account_balance_destroy
@@ -63,12 +64,33 @@ class Transaction < ApplicationRecord
   end
 
   def convert_amount
-    self.amount = -amount.abs if trx_type == "debit"
+    return if amount.nil?
+
+    # If trx_type is set, use it to determine the sign
+    if trx_type.present?
+      self.amount = -amount.abs if trx_type == "debit"
+    else
+      # If no trx_type is set, preserve the existing sign or determine from current amount
+      if !new_record? && amount_was.present?
+        # Preserve the sign of the existing amount
+        self.amount = amount_was < 0 ? -amount.abs : amount.abs
+      else
+        # For new records without trx_type, assume positive (will be handled by validations)
+        self.amount = amount.abs
+      end
+    end
   end
 
   def set_account
     return if trx_date_changed? && !amount_changed? && !description_changed?
     @account = Account.find(account_id)
+  end
+
+  def clear_quick_receipt_when_complete
+    # Set quick_receipt to false if both description and amount are present
+    if description.present? && amount.present?
+      self.quick_receipt = false
+    end
   end
 
   def update_account_balance_create
@@ -80,11 +102,19 @@ class Transaction < ApplicationRecord
   def update_account_balance_edit
     return if amount.nil?
     @account = Account.find(account_id)
-    @account.update(current_balance: @account.current_balance - amount_before_last_save + amount) \
-      if saved_change_to_amount?
+
+    if amount_before_last_save.nil?
+      # First time setting an amount (e.g., from quick receipt)
+      @account.update(current_balance: @account.current_balance + amount)
+    else
+      # Updating an existing amount
+      @account.update(current_balance: @account.current_balance - amount_before_last_save + amount) \
+        if saved_change_to_amount?
+    end
   end
 
   def update_account_balance_destroy
+    return if amount_was.nil?
     @account = Account.find(account_id)
     # Rails 5.2 - amount_was is still valid in after_destroy callbacks
     @account.update(current_balance: @account.current_balance - amount_was)

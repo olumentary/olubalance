@@ -35,10 +35,21 @@
         </td>
       </tr>
 
-      <% 
-        pending_transactions = @transactions.select(&:pending?)
-        non_pending_transactions = @transactions.reject(&:pending?)
-      %>
+      <% quick_receipts = @transactions.select { |trx| trx.quick_receipt? } %>
+      <% other_transactions = @transactions.reject { |trx| trx.quick_receipt? } %>
+
+      <% if quick_receipts.any? %>
+        <tr class="has-background-light is-hidden-mobile">
+          <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+            Quick Receipt Uploads
+          </td>
+        </tr>
+        <%= render partial: "transactions/components/transactionLineDesktop", collection: quick_receipts, as: :transaction %>
+        <%= render partial: "transactions/components/transactionLineMobile", collection: quick_receipts, as: :transaction %>
+      <% end %>
+
+      <% pending_transactions = other_transactions.select(&:pending?) %>
+      <% non_pending_transactions = other_transactions.reject(&:pending?) %>
 
       <% if pending_transactions.any? %>
         <tr class="has-background-light is-hidden-mobile">
@@ -67,7 +78,7 @@
         <%= render partial: "transactions/components/transactionLineDesktop", collection: sorted_transactions, as: :transaction %>
       <% end %>
 
-      <%= render partial: "transactions/components/transactionLineMobile", collection: @transactions, as: :transaction %>
+      <%= render partial: "transactions/components/transactionLineMobile", collection: other_transactions, as: :transaction %>
     </tbody>
   </table>
 <% end %>
