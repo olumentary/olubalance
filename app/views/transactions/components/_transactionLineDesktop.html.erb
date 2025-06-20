@@ -8,8 +8,8 @@
         data-inline-edit-value-value="<%= transaction.trx_date %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content has-text-grey" style="<%= 'cursor: pointer;' if transaction.pending? %>">
-        <span data-inline-edit-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
+      <div class="ob-cell-content has-text-grey" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
+        <span data-inline-edit-target="display" class="<%= transaction.pending? ? 'is-clickable' : '' %>">
           <%= transaction.trx_date_display %>
         </span>
         <% if transaction.pending? %>
@@ -31,8 +31,8 @@
         data-inline-edit-value-value="<%= transaction.description %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content" style="<%= 'cursor: pointer;' if transaction.pending? %>">
-        <span data-inline-edit-target="display" class="<%= 'is-clickable' if transaction.pending? %>">
+      <div class="ob-cell-content" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
+        <span data-inline-edit-target="display" class="<%= transaction.pending? ? 'is-clickable' : '' %>">
           <%= transaction.trx_desc_display %>
           <% if transaction.attachment.attached? then %>
             <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
@@ -58,8 +58,8 @@
         data-inline-edit-value-value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content" style="<%= 'cursor: pointer;' if transaction.pending? %>">
-        <span data-inline-edit-target="display" class="<%= transaction.amount_color %> <%= 'is-clickable' if transaction.pending? %>">
+      <div class="ob-cell-content" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
+        <span data-inline-edit-target="display" class="<%= transaction.amount_color %> <%= transaction.pending? ? 'is-clickable' : '' %>">
           <%= transaction.amount_decorated %>
         </span>
         <% if transaction.pending? %>
