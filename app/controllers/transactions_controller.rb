@@ -121,16 +121,30 @@ class TransactionsController < ApplicationController
 
   def mark_reviewed
     @transaction = Transaction.find(params[:id])
-    @transaction.update_column(:pending, false)
-    @transaction = @transaction.decorate
-    head :ok
+    
+    if @transaction.update(pending: false)
+      @transaction = @transaction.decorate
+      render json: { success: true }
+    else
+      render json: { 
+        success: false, 
+        errors: @transaction.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
   end
 
   def mark_pending
     @transaction = Transaction.find(params[:id])
-    @transaction.update_column(:pending, true)
-    @transaction = @transaction.decorate
-    head :ok
+    
+    if @transaction.update(pending: true)
+      @transaction = @transaction.decorate
+      render json: { success: true }
+    else
+      render json: { 
+        success: false, 
+        errors: @transaction.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
   end
 
   # GET /transactions/descriptions

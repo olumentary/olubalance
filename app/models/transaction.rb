@@ -18,13 +18,16 @@ class Transaction < ApplicationRecord
                        unless: :pending?
   validates :trx_date, presence: true
   validates :description, presence: true, length: { maximum: 150 }, unless: :pending?
-  validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }, unless: :pending?
+  validates :amount, presence: true, unless: :pending?
   validates :memo, length: { maximum: 500 }
   validate :attachment_required_for_quick_receipt
+  validate :require_fields_when_reviewed
+  validate :validate_amount_for_reviewed_transactions
 
   # before_post_process :rename_file
 
   before_create :set_pending
+  before_validation :set_trx_type_for_existing_records
   before_save :convert_amount
   before_save :set_account
   before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
@@ -64,12 +67,27 @@ class Transaction < ApplicationRecord
     self.pending = true if new_record?
   end
 
+  def set_trx_type_for_existing_records
+    if !new_record? && amount.present? && trx_type.blank?
+      if quick_receipt?
+        self.trx_type = 'debit'
+      else
+        self.trx_type = amount >= 0 ? 'credit' : 'debit'
+      end
+    end
+  end
+
   def convert_amount
     return if amount.nil?
 
     # If trx_type is set, use it to determine the sign
     if trx_type.present?
-      self.amount = -amount.abs if trx_type == "debit"
+      # Convert amount based on trx_type
+      if trx_type == "debit"
+        self.amount = -amount.abs
+      else
+        self.amount = amount.abs
+      end
     else
       # If no trx_type is set, preserve the existing sign or determine from current amount
       if !new_record? && amount_was.present?
@@ -124,6 +142,26 @@ class Transaction < ApplicationRecord
   def attachment_required_for_quick_receipt
     if quick_receipt? && attachment.blank?
       errors.add(:attachment, "is required for quick receipt transactions")
+    end
+  end
+
+  def require_fields_when_reviewed
+    # Only run if being marked as reviewed (pending: false or changed from true to false)
+    if (!pending? || (will_save_change_to_pending? && !pending))
+      errors.add(:trx_date, "can't be blank") if trx_date.blank?
+      errors.add(:description, "can't be blank") if description.blank?
+      errors.add(:amount, "can't be blank") if amount.blank?
+      errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
+    end
+  end
+
+  def validate_amount_for_reviewed_transactions
+    return if pending? || amount.blank?
+    
+    if trx_type == 'debit' && amount > 0
+      errors.add(:amount, "must be negative for debit transactions")
+    elsif trx_type == 'credit' && amount < 0
+      errors.add(:amount, "must be positive for credit transactions")
     end
   end
 end
