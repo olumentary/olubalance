@@ -12,6 +12,9 @@ table.ob-table {
     background-color: ob.$link;
     border-top-left-radius: $ob-table-border-radius;
     border-top-right-radius: $ob-table-border-radius;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 
     .level-left + .level-right {
       margin-top: 0;
