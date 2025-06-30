@@ -71,7 +71,9 @@
             <%= date.strftime("%A, %B %d, %Y") %>
           </td>
           <td class="has-text-right has-text-weight-bold has-text-grey py-3">
-            <%= number_to_currency(end_of_day_balance) %>
+            <div class="ob-cell-content">
+              <%= number_to_currency(end_of_day_balance) %>
+            </div>
           </td>
           <td></td>
         </tr>
