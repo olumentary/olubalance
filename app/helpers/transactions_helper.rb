@@ -32,4 +32,41 @@ module TransactionsHelper
 
     sort_indicator_default
   end
+
+  def inline_edit_attributes(transaction, field, value)
+    return {} unless transaction.pending?
+    {
+      controller: "inline-edit",
+      "inline-edit-url-value": account_transaction_path(id: transaction.id),
+      "inline-edit-field-value": field,
+      "inline-edit-value-value": value,
+      action: "click->inline-edit#showInput"
+    }
+  end
+
+  def inline_edit_input_attributes(transaction, input_type, value, options = {})
+    return unless transaction.pending?
+    input_attrs = {
+      type: input_type,
+      class: "input is-small is-hidden",
+      "data-inline-edit-target": "input",
+      value: value,
+      "data-action": "blur->inline-edit#updateValue keydown->inline-edit#handleKeydown"
+    }
+    input_attrs.merge!(options)
+    input_attrs
+  end
+
+  def cell_style(transaction)
+    transaction.pending? ? "cursor: pointer;" : ""
+  end
+
+  def clickable_class(transaction)
+    transaction.pending? ? "is-clickable" : ""
+  end
+
+  def formatted_amount_value(transaction)
+    return "" unless transaction.amount
+    sprintf('%.2f', transaction.amount.abs)
+  end
 end

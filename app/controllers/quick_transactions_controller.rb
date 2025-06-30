@@ -15,7 +15,8 @@ class QuickTransactionsController < ApplicationController
     if @transaction.save
       redirect_to account_transactions_path(@transaction.account), notice: "Receipt uploaded successfully. You can now fill in the details."
     else
-      render :new
+      load_user_accounts
+      render :new, status: :unprocessable_entity
     end
   end
 

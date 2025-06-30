@@ -1,6 +1,6 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
 <%= turbo_frame_tag "transactions_table" do %>
-  <table class="table is-hoverable is-fullwidth ob-table">
+  <table class="table is-hoverable is-fullwidth ob-table mb-4">
     <thead class="ob-table-phead">
       <th class="has-text-centered is-hidden-mobile" id="trx-date">
         <div class="ob-cell-content">
@@ -18,7 +18,7 @@
         </div>
       </th>
       <th class="has-text-right is-hidden-mobile" id="trx-balance">
-        <div>
+        <div class="ob-cell-content">
           Balance
         </div>
       </th>
@@ -71,7 +71,9 @@
             <%= date.strftime("%A, %B %d, %Y") %>
           </td>
           <td class="has-text-right has-text-weight-bold has-text-grey py-3">
-            <%= number_to_currency(end_of_day_balance) %>
+            <div class="ob-cell-content">
+              <%= number_to_currency(end_of_day_balance) %>
+            </div>
           </td>
           <td></td>
         </tr>
@@ -81,4 +83,9 @@
       <%= render partial: "transactions/components/transactionLineMobile", collection: other_transactions, as: :transaction %>
     </tbody>
   </table>
+
+  <!-- Attachment Upload Modals -->
+  <% @transactions.select(&:pending?).each do |transaction| %>
+    <%= render partial: "transactions/components/attachmentModal", locals: { transaction: transaction } %>
+  <% end %>
 <% end %>

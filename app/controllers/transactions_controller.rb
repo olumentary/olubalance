@@ -5,7 +5,7 @@ class TransactionsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :find_account
-  before_action :find_transaction, only: %i[edit update show destroy update_date]
+  before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment]
   before_action :transfer_accounts, only: %i[index]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [:new, :create, :edit, :update]
@@ -121,16 +121,30 @@ class TransactionsController < ApplicationController
 
   def mark_reviewed
     @transaction = Transaction.find(params[:id])
-    @transaction.update_column(:pending, false)
-    @transaction = @transaction.decorate
-    head :ok
+    
+    if @transaction.update(pending: false)
+      @transaction = @transaction.decorate
+      render json: { success: true }
+    else
+      render json: { 
+        success: false, 
+        errors: @transaction.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
   end
 
   def mark_pending
     @transaction = Transaction.find(params[:id])
-    @transaction.update_column(:pending, true)
-    @transaction = @transaction.decorate
-    head :ok
+    
+    if @transaction.update(pending: true)
+      @transaction = @transaction.decorate
+      render json: { success: true }
+    else
+      render json: { 
+        success: false, 
+        errors: @transaction.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
   end
 
   # GET /transactions/descriptions
@@ -151,6 +165,28 @@ class TransactionsController < ApplicationController
     else
       render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  def update_attachment
+    if @transaction.update(attachment: params[:transaction][:attachment])
+      render json: { 
+        success: true, 
+        filename: @transaction.attachment.filename.to_s,
+        has_attachment: @transaction.attachment.attached?
+      }
+    else
+      render json: { 
+        success: false, 
+        errors: @transaction.errors.full_messages 
+      }, status: :unprocessable_entity
+    end
+  rescue => e
+    Rails.logger.error "Error in update_attachment: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    render json: { 
+      success: false, 
+      errors: ["An error occurred while updating the attachment: #{e.message}"]
+    }, status: :internal_server_error
   end
 
   private

@@ -89,17 +89,20 @@ class TransactionDecorator < ApplicationDecorator
 
   def trx_desc_display
     return "Pending Receipt" if description.nil?
-    name_too_long ? "#{description[0..20]}..." : description
+    name_too_long ? "#{description[0..50]}..." : description
+  end
+
+  def trx_desc_display_mobile
+    return "Pending Receipt" if description.nil?
+    name_too_long_mobile ? "#{description[0..20]}..." : description
   end
 
   def name_too_long
     return false if description.nil?
-    description.length > 20
+    description.length > 50
   end
 
-  private
-
-  def name_too_long
+  def name_too_long_mobile
     return false if description.nil?
     description.length > 20
   end
