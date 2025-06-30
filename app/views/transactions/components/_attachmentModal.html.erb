@@ -1,0 +1,98 @@
+<!-- Modal for Attachment Upload -->
+<div 
+  id="attachment-modal-<%= transaction.id %>" 
+  class="modal"
+  style="z-index: 9999" 
+  data-shared-target="modal"
+  data-controller="attachment-upload"
+  data-attachment-upload-url-value="<%= update_attachment_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+>
+  <div 
+    class="modal-background"
+    data-action="click->shared#toggleModal"
+    data-id="attachment-modal-<%= transaction.id %>"
+  ></div>
+  <div class="modal-content ob-modal-card">
+    <div class="card">
+      <header class="card-header has-background-primary">
+        <p class="card-header-title has-text-white">
+          <span class="icon">
+            <i class="fas fa-paperclip"></i>
+          </span>
+          <span>Upload Attachment</span>
+        </p>
+        <button 
+          class="delete" 
+          aria-label="close"
+          data-action="click->shared#toggleModal"
+          data-id="attachment-modal-<%= transaction.id %>"
+          style="margin: 0.75rem;"
+        ></button>
+      </header>
+      <section class="card-content">
+        <div class="content">
+          <p class="mb-4">
+            Upload a receipt or document for transaction: <strong><%= transaction.description %></strong>
+          </p>
+          
+          <form data-attachment-upload-target="form">
+            <div class="field">
+              <label class="label">Receipt/Attachment</label>
+              <div class="control">
+                <div class="file has-name is-fullwidth">
+                  <label class="file-label">
+                    <input 
+                      class="file-input" 
+                      type="file" 
+                      accept="image/*,.pdf"
+                      data-attachment-upload-target="fileInput"
+                      data-action="change->attachment-upload#fileSelected"
+                    >
+                    <span class="file-cta">
+                      <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                      </span>
+                      <span class="file-label">
+                        Choose a file…
+                      </span>
+                    </span>
+                    <span class="file-name" data-attachment-upload-target="fileName">
+                      No file selected
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="notification is-danger is-hidden" data-attachment-upload-target="error">
+              <button class="delete" data-action="click->attachment-upload#hideError"></button>
+              <span data-attachment-upload-target="errorMessage"></span>
+            </div>
+
+            <div class="notification is-success is-hidden" data-attachment-upload-target="success">
+              <button class="delete" data-action="click->attachment-upload#hideSuccess"></button>
+              <span data-attachment-upload-target="successMessage"></span>
+            </div>
+          </form>
+        </div>
+      </section>
+      <footer class="card-footer">
+        <button 
+          class="card-footer-item has-text-weight-bold has-text-grey"
+          data-action="click->shared#toggleModal"
+          data-id="attachment-modal-<%= transaction.id %>"
+        >
+          Cancel
+        </button>
+        <button 
+          class="card-footer-item has-text-weight-bold has-text-primary"
+          data-action="click->attachment-upload#uploadFile"
+          data-attachment-upload-target="uploadButton"
+          disabled
+        >
+          Upload
+        </button>
+      </footer>
+    </div>
+  </div>
+</div> 

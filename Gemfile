@@ -33,7 +33,7 @@ gem "turbo-rails"
 
 group :development, :test do
   gem "brakeman", require: false
-  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+  gem "debug", platforms: %i[mri mingw x64_mingw], require: "debug/prelude"
   gem "factory_bot_rails"
   gem 'rails-controller-testing'
   gem 'rspec-rails', '~> 7.0.0'

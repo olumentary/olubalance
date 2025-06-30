@@ -126,6 +126,17 @@
               <%= transaction.amount&.negative? ? 'D' : 'C' %>
             </span>
           </button>
+          <% unless transaction.attachment.attached? %>
+            <button type="button"
+                    data-action="click->shared#toggleModal"
+                    data-id="attachment-modal-<%= transaction.id %>"
+                    class="button is-primary is-small"
+                    title="Upload attachment">
+              <span class="icon has-text-white">
+                <i class="fas fa-paperclip"></i>
+              </span>
+            </button>
+          <% end %>
           <button type="button"
                   data-controller="transaction-review"
                   data-action="click->transaction-review#markReviewed"

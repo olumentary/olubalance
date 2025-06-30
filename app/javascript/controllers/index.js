@@ -2,50 +2,55 @@
 // Run that command whenever you add a new controller or create them with
 // ./bin/rails generate stimulus controllerName
 
-import { application } from './application';
+import { application } from "./application"
 
-import AcctformController from './acctform_controller';
-application.register('acctform', AcctformController);
+import AcctformController from "./acctform_controller"
+application.register("acctform", AcctformController)
 
-import ApplicationController from './application_controller';
-application.register('application', ApplicationController);
+import ApplicationController from "./application_controller"
+application.register("application", ApplicationController)
 
-import DropdownController from './dropdown_controller';
-application.register('dropdown', DropdownController);
+import AttachmentUploadController from "./attachment_upload_controller"
+application.register("attachment-upload", AttachmentUploadController)
 
-import HelloController from './hello_controller';
-application.register('hello', HelloController);
+import DropdownController from "./dropdown_controller"
+application.register("dropdown", DropdownController)
 
-import InlineEditController from './inline_edit_controller';
-application.register('inline-edit', InlineEditController);
+import HelloController from "./hello_controller"
+application.register("hello", HelloController)
 
-import NavController from './nav_controller';
-application.register('nav', NavController);
+import InlineEditController from "./inline_edit_controller"
+application.register("inline-edit", InlineEditController)
 
-import SharedController from './shared_controller';
-application.register('shared', SharedController);
+import NavController from "./nav_controller"
+application.register("nav", NavController)
 
-import StashlistController from './stashlist_controller';
-application.register('stashlist', StashlistController);
+import QuickReceiptController from "./quick_receipt_controller"
+application.register("quick-receipt", QuickReceiptController)
 
-import TransactionTypeToggleController from './transaction_type_toggle_controller';
-application.register('transaction-type-toggle', TransactionTypeToggleController);
+import SharedController from "./shared_controller"
+application.register("shared", SharedController)
 
-import TrxformController from './trxform_controller';
-application.register('trxform', TrxformController);
+import StashlistController from "./stashlist_controller"
+application.register("stashlist", StashlistController)
 
-import TrxsearchController from './trxsearch_controller';
-application.register('trxsearch', TrxsearchController);
+import TransactionListController from "./transaction_list_controller"
+application.register("transaction-list", TransactionListController)
 
-import TrxtypeRadioButtonsController from './trxtype_radio_buttons_controller';
-application.register('trxtype-radio-buttons', TrxtypeRadioButtonsController);
+import TransactionReviewController from "./transaction_review_controller"
+application.register("transaction-review", TransactionReviewController)
 
-// Register the transaction review controller
-import TransactionReviewController from './transaction_review_controller';
-application.register('transaction-review', TransactionReviewController);
+import TransactionTypeToggleController from "./transaction_type_toggle_controller"
+application.register("transaction-type-toggle", TransactionTypeToggleController)
 
-import TypeaheadController from './typeahead_controller';
-application.register('typeahead', TypeaheadController);
+import TrxformController from "./trxform_controller"
+application.register("trxform", TrxformController)
 
-import QuickReceiptController from './quick_receipt_controller';
-application.register('quick-receipt', QuickReceiptController);
+import TrxsearchController from "./trxsearch_controller"
+application.register("trxsearch", TrxsearchController)
+
+import TrxtypeRadioButtonsController from "./trxtype_radio_buttons_controller"
+application.register("trxtype-radio-buttons", TrxtypeRadioButtonsController)
+
+import TypeaheadController from "./typeahead_controller"
+application.register("typeahead", TypeaheadController)

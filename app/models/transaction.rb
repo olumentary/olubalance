@@ -151,12 +151,15 @@ class Transaction < ApplicationRecord
       errors.add(:trx_date, "can't be blank") if trx_date.blank?
       errors.add(:description, "can't be blank") if description.blank?
       errors.add(:amount, "can't be blank") if amount.blank?
-      errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
+      # Only require attachment when marking as reviewed (not when creating new transactions)
+      if will_save_change_to_pending? && !pending?
+        errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
+      end
     end
   end
 
   def validate_amount_for_reviewed_transactions
-    return if pending? || amount.blank?
+    return if pending? || amount.blank? || new_record?
     
     if trx_type == 'debit' && amount > 0
       errors.add(:amount, "must be negative for debit transactions")
