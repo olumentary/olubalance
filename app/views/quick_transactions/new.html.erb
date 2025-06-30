@@ -4,26 +4,53 @@
       <div class="box">
         <h1 class="title is-4">Quick Receipt Upload</h1>
         
-        <%= form_with(model: @transaction, url: quick_transactions_path, local: true, multipart: true) do |f| %>
+        <%= form_with(model: @transaction, url: quick_transactions_path, local: true, multipart: true, data: { controller: "quick-receipt" }) do |f| %>
+          <% if @transaction.errors.any? %>
+            <div class="notification is-danger">
+              <div class="content">
+                <ul>
+                  <% @transaction.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+
           <div class="field">
             <%= f.label :account_id, "Account", class: "label" %>
             <div class="control">
-              <div class="select is-fullwidth">
+              <div class="select is-fullwidth <%= 'is-danger' if @transaction.errors[:account_id].any? %>">
                 <%= f.collection_select :account_id, @user_accounts, :id, :name %>
               </div>
+              <% if @transaction.errors[:account_id].any? %>
+                <p class="help is-danger"><%= @transaction.errors[:account_id].join(', ') %></p>
+              <% end %>
             </div>
           </div>
 
           <div class="field">
             <%= f.label :attachment, "Receipt", class: "label" %>
             <div class="control">
-              <%= f.file_field :attachment, class: "input", accept: "image/*,.pdf" %>
+              <%= f.file_field :attachment, 
+                              class: "input #{'is-danger' if @transaction.errors[:attachment].any?}", 
+                              accept: "image/*,.pdf",
+                              data: { 
+                                quick_receipt_target: "attachment",
+                                action: "change->quick-receipt#attachmentSelected"
+                              } %>
+              <% if @transaction.errors[:attachment].any? %>
+                <p class="help is-danger"><%= @transaction.errors[:attachment].join(', ') %></p>
+              <% end %>
+              <p class="help is-danger is-hidden" data-quick-receipt-target="error"></p>
             </div>
           </div>
 
           <div class="field">
             <div class="control">
-              <%= f.submit "Upload Receipt", class: "button is-primary is-fullwidth" %>
+              <%= f.submit "Upload Receipt", 
+                          class: "button is-primary is-fullwidth",
+                          data: { quick_receipt_target: "submit" } %>
             </div>
           </div>
         <% end %>

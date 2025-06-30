@@ -46,3 +46,6 @@ application.register('transaction-review', TransactionReviewController);
 
 import TypeaheadController from './typeahead_controller';
 application.register('typeahead', TypeaheadController);
+
+import QuickReceiptController from './quick_receipt_controller';
+application.register('quick-receipt', QuickReceiptController);

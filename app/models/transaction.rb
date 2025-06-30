@@ -20,6 +20,7 @@ class Transaction < ApplicationRecord
   validates :description, presence: true, length: { maximum: 150 }, unless: :pending?
   validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }, unless: :pending?
   validates :memo, length: { maximum: 500 }
+  validate :attachment_required_for_quick_receipt
 
   # before_post_process :rename_file
 
@@ -118,5 +119,11 @@ class Transaction < ApplicationRecord
     @account = Account.find(account_id)
     # Rails 5.2 - amount_was is still valid in after_destroy callbacks
     @account.update(current_balance: @account.current_balance - amount_was)
+  end
+
+  def attachment_required_for_quick_receipt
+    if quick_receipt? && attachment.blank?
+      errors.add(:attachment, "is required for quick receipt transactions")
+    end
   end
 end
