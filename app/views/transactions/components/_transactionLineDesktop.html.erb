@@ -113,7 +113,8 @@
     </td>
 
     <td class="has-text-right <%= 'is-hidden' if transaction.quick_receipt? %>">
-      <div class="buttons are-small" style="justify-content: flex-end;">
+      <div class="ob-cell-content" style="border-right: none;">
+        <div class="buttons are-small" style="justify-content: flex-end; margin-right: -0.5rem;">
         <% if transaction.pending? %>
           <button type="button"
                   data-controller="transaction-type-toggle"
@@ -157,6 +158,7 @@
             </span>
           </button>
         <% end %>
+        </div>
       </div>
     </td>
   </tr>
