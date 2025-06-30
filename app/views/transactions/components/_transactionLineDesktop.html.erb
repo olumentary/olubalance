@@ -1,5 +1,5 @@
 <%= turbo_frame_tag "transaction_#{transaction.id}" do %>
-  <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %> <%= 'is-pending' if transaction.pending? %>">
+  <tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile <%= transaction.reviewed_color %> <%= 'is-pending' if transaction.pending? %> <%= 'is-clickable' unless transaction.pending? %>">
     <td class="has-text-centered <%= transaction.reviewed_weight %>"
         <% if transaction.pending? %>
         data-controller="inline-edit"
@@ -8,19 +8,25 @@
         data-inline-edit-value-value="<%= transaction.trx_date %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content has-text-grey" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
-        <span data-inline-edit-target="display" class="<%= transaction.pending? ? 'is-clickable' : '' %>">
-          <%= transaction.trx_date_display %>
-        </span>
-        <% if transaction.pending? %>
-        <input type="date"
-               class="input is-small is-hidden"
-               style="width: 120px; text-align: right;"
-               data-inline-edit-target="input"
-               value="<%= transaction.trx_date %>"
-               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+      <% if transaction.pending? %>
+        <div class="ob-cell-content has-text-grey" style="cursor: pointer;">
+          <span data-inline-edit-target="display" class="is-clickable">
+            <%= transaction.trx_date_display %>
+          </span>
+          <input type="date"
+                 class="input is-small is-hidden"
+                 style="width: 120px; text-align: right;"
+                 data-inline-edit-target="input"
+                 value="<%= transaction.trx_date %>"
+                 data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        </div>
+      <% else %>
+        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+          <div class="ob-cell-content has-text-grey">
+            <%= transaction.trx_date_display %>
+          </div>
         <% end %>
-      </div>
+      <% end %>
     </td>
 
     <td class="<%= transaction.reviewed_weight %>"
@@ -31,23 +37,34 @@
         data-inline-edit-value-value="<%= transaction.description %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
-        <span data-inline-edit-target="display" class="<%= transaction.pending? ? 'is-clickable' : '' %>">
-          <%= transaction.trx_desc_display %>
-          <% if transaction.attachment.attached? then %>
-            <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
-              <i class="fas fa-sm fa-paperclip"></i>
-            </span>
-          <% end %>
-        </span>
-        <% if transaction.pending? %>
-        <input type="text"
-               class="input is-small is-hidden"
-               data-inline-edit-target="input"
-               value="<%= transaction.description %>"
-               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+      <% if transaction.pending? %>
+        <div class="ob-cell-content" style="cursor: pointer;">
+          <span data-inline-edit-target="display" class="is-clickable">
+            <%= transaction.trx_desc_display %>
+            <% if transaction.attachment.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+                <i class="fas fa-sm fa-paperclip"></i>
+              </span>
+            <% end %>
+          </span>
+          <input type="text"
+                 class="input is-small is-hidden"
+                 data-inline-edit-target="input"
+                 value="<%= transaction.description %>"
+                 data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        </div>
+      <% else %>
+        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+          <div class="ob-cell-content">
+            <%= transaction.trx_desc_display %>
+            <% if transaction.attachment.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+                <i class="fas fa-sm fa-paperclip"></i>
+              </span>
+            <% end %>
+          </div>
         <% end %>
-      </div>
+      <% end %>
     </td>
 
     <td class="has-text-right <%= transaction.reviewed_weight %>"
@@ -58,28 +75,40 @@
         data-inline-edit-value-value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
         data-action="click->inline-edit#showInput"
         <% end %>>
-      <div class="ob-cell-content" style="<%= transaction.pending? ? 'cursor: pointer;' : '' %>">
-        <span data-inline-edit-target="display" class="<%= transaction.amount_color %> <%= transaction.pending? ? 'is-clickable' : '' %>">
-          <%= transaction.amount_decorated %>
-        </span>
-        <% if transaction.pending? %>
-        <input type="number"
-               step="0.01"
-               min="0"
-               class="input is-small is-hidden"
-               style="width: 100px; text-align: right;"
-               data-inline-edit-target="input"
-               value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
-               data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+      <% if transaction.pending? %>
+        <div class="ob-cell-content" style="cursor: pointer;">
+          <span data-inline-edit-target="display" class="<%= transaction.amount_color %> is-clickable">
+            <%= transaction.amount_decorated %>
+          </span>
+          <input type="number"
+                 step="0.01"
+                 min="0"
+                 class="input is-small is-hidden"
+                 style="width: 100px; text-align: right;"
+                 data-inline-edit-target="input"
+                 value="<%= transaction.amount ? sprintf('%.2f', transaction.amount.abs) : '' %>"
+                 data-action="blur->inline-edit#updateValue keydown->inline-edit#handleKeydown">
+        </div>
+      <% else %>
+        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+          <div class="ob-cell-content <%= transaction.amount_color %>">
+            <%= transaction.amount_decorated %>
+          </div>
         <% end %>
-      </div>
+      <% end %>
     </td>
 
     <td class="has-text-right <%= transaction.reviewed_weight %> <%= 'is-hidden' if transaction.quick_receipt? %>">
-      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+      <% if transaction.pending? %>
         <div class="ob-cell-content has-text-weight-semibold has-text-grey">
           <%= transaction.running_balance_display %>
         </div>
+      <% else %>
+        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
+          <div class="ob-cell-content has-text-weight-semibold has-text-grey">
+            <%= transaction.running_balance_display %>
+          </div>
+        <% end %>
       <% end %>
     </td>
 
