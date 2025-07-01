@@ -28,7 +28,7 @@ class Transaction < ApplicationRecord
 
   before_create :set_pending
   before_validation :set_trx_type_for_existing_records
-  before_save :convert_amount
+  before_validation :convert_amount
   before_save :set_account
   before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
   after_create :update_account_balance_create
@@ -68,10 +68,11 @@ class Transaction < ApplicationRecord
   end
 
   def set_trx_type_for_existing_records
-    if !new_record? && amount.present? && trx_type.blank?
+    # Only set trx_type if it's blank
+    if trx_type.blank?
       if quick_receipt?
         self.trx_type = 'debit'
-      else
+      elsif amount.present?
         self.trx_type = amount >= 0 ? 'credit' : 'debit'
       end
     end

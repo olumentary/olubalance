@@ -63,6 +63,9 @@ class TransactionsController < ApplicationController
 
   # Update action updates the transaction with the new information
   def update
+    # Preserve trx_type if not present in params
+    @transaction.trx_type = params.dig(:transaction, :trx_type) || (@transaction.amount.negative? ? 'debit' : 'credit')
+
     if @transaction.update(transaction_params)
       respond_to do |format|
         format.html { redirect_to account_transactions_path, notice: "Transaction was successfully updated." }
@@ -89,8 +92,8 @@ class TransactionsController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { render action: "edit" }
-        format.turbo_stream { render action: "edit" }
+        format.html { render action: "edit", status: :unprocessable_entity }
+        format.turbo_stream { render action: "edit", status: :unprocessable_entity }
         format.json { 
           render json: {
             success: false,
