@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Ensure to account for error handling in controllers especially with actions such as :create, :update, :destroy.
+- Ensure error messages are user-friendly.
+- Use strong parameters in controllers
+- Protect against common web vulnerabilities (XSS, CSRF, SQL injection)
+

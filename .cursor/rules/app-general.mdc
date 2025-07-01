@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Follow Ruby on Rails and Hotwire conventions and best practices.
+- Use Ruby 3.x features when appropriate.
+- Use Ruby on Rails 8 features.
+- Use descriptive variable and method names (e.g., user_signed_in?, calculate_total).
+- Scaleability and readability is more important than performance optimization unless specified otherwise.
+- Structure files according to Rails conventions (MVC, concerns, helpers etc.)

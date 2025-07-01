@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- All styling should happen with Bulma styling classes, and any customization needed can be added in [application.bulma.scss](mdc:app/assets/stylesheets/application.bulma.scss) or its imported CSS files where appropriate
+- Add the `required: true` on the field in the form partial if the validation also exists in the model or in the database. 

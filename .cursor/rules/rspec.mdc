@@ -1,0 +1,18 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+- Follow RSpec conventions and structure (spec/models, spec/controllers, etc.)
+- Focus on unit tests. Avoid full integration/system specs unless explicitly required
+- Tests should be loosely coupled, fast, and isolated. Prefer pure unit specs over feature specs or request specs unless necessary.
+- Use FactoryBot to create test data. Avoid let! unless required; prefer let to keep tests lazy.
+- Use descriptive test names using describe, context, and it blocks for clarity.
+- Test only the public interface of a class or module.
+- Keep factories lean; use traits for variations.
+- Ensure that test coverage includes:
+  - All model validations and associations
+  - All service or PORO behavior
+  - All controller actions with both success and failure paths
+- Tests must be deterministic—ensure they pass consistently regardless of order.
+- Prefer expect(...).to change { ... } for verifying side effects. 
