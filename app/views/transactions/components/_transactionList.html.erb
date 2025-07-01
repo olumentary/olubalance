@@ -37,6 +37,10 @@
 
       <% quick_receipts = @transactions.select { |trx| trx.quick_receipt? } %>
       <% other_transactions = @transactions.reject { |trx| trx.quick_receipt? } %>
+      
+      <%# Debug: Log the counts %>
+      <% pending_quick_receipts = quick_receipts.select(&:pending?) %>
+      <% Rails.logger.info "TransactionList - Total: #{@transactions.count}, Quick receipts: #{quick_receipts.count} (pending: #{pending_quick_receipts.count}), Other: #{other_transactions.count}" %>
 
       <% if quick_receipts.any? %>
         <tr class="has-background-light is-hidden-mobile">
@@ -50,6 +54,9 @@
 
       <% pending_transactions = other_transactions.select(&:pending?) %>
       <% non_pending_transactions = other_transactions.reject(&:pending?) %>
+      
+      <%# Debug: Log pending counts %>
+      <% Rails.logger.info "TransactionList - Pending: #{pending_transactions.count}, Non-pending: #{non_pending_transactions.count}" %>
 
       <% if pending_transactions.any? %>
         <tr class="has-background-light is-hidden-mobile">

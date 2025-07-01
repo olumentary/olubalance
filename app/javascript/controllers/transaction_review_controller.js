@@ -20,17 +20,26 @@ export default class extends Controller {
         method: 'PATCH',
         headers: {
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-          Accept: 'application/json',
+          Accept: 'text/vnd.turbo-stream.html',
         },
         credentials: 'same-origin',
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        window.location.reload();
+      if (response.ok) {
+        // Turbo Stream response will automatically update the page
+        const html = await response.text();
+        Turbo.renderStreamMessage(html);
       } else {
-        this.showErrors(data.errors);
+        // Handle error response - check content type
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          this.showErrors(data.errors);
+        } else {
+          // Handle Turbo Stream error response
+          const html = await response.text();
+          Turbo.renderStreamMessage(html);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -44,17 +53,26 @@ export default class extends Controller {
         method: 'PATCH',
         headers: {
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-          Accept: 'application/json',
+          Accept: 'text/vnd.turbo-stream.html',
         },
         credentials: 'same-origin',
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        window.location.reload();
+      if (response.ok) {
+        // Turbo Stream response will automatically update the page
+        const html = await response.text();
+        Turbo.renderStreamMessage(html);
       } else {
-        this.showErrors(data.errors);
+        // Handle error response - check content type
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          this.showErrors(data.errors);
+        } else {
+          // Handle Turbo Stream error response
+          const html = await response.text();
+          Turbo.renderStreamMessage(html);
+        }
       }
     } catch (error) {
       console.error('Error:', error);

@@ -6,7 +6,7 @@ class TransactionsController < ApplicationController
   before_action :authenticate_user!
   before_action :find_account
   before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment]
-  before_action :transfer_accounts, only: %i[index]
+  before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [:new, :create, :edit, :update]
 
@@ -123,13 +123,40 @@ class TransactionsController < ApplicationController
     @transaction = Transaction.find(params[:id])
     
     if @transaction.update(pending: false)
+      # Reload the transaction to ensure we have the latest data
+      @transaction.reload
       @transaction = @transaction.decorate
-      render json: { success: true }
+      
+      # Force a complete reload of transactions for the updated table
+      @account.reload
+      # Force reload of the transactions association to ensure pending_balance calculation is fresh
+      @account.transactions.reload
+      @transactions = @account.transactions.with_attached_attachment.includes(:transaction_balance)
+                              .then { search_by_description _1 }
+                              .then { apply_pending_order _1 }
+                              .then { apply_order _1 }
+                              .then { apply_id_order _1 }
+      
+      @pagy, @transactions = pagy(@transactions)
+      @transactions = @transactions.decorate
+      
+      # Debug: Log the pending count
+      pending_count = @transactions.select(&:pending?).count
+      Rails.logger.info "Mark reviewed - Pending count: #{pending_count}, Total transactions: #{@transactions.count}"
+      
+      # Set required variables for partials
+      @stashes = @account.stashes.order(id: :asc).decorate
+      @stashed = @account.stashes.sum(:balance)
+      
+      respond_to do |format|
+        format.turbo_stream
+        format.json { render json: { success: true } }
+      end
     else
-      render json: { 
-        success: false, 
-        errors: @transaction.errors.full_messages 
-      }, status: :unprocessable_entity
+      respond_to do |format|
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("flash_messages", partial: "shared/error_messages", locals: { errors: @transaction.errors.full_messages }) }
+        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -137,13 +164,40 @@ class TransactionsController < ApplicationController
     @transaction = Transaction.find(params[:id])
     
     if @transaction.update(pending: true)
+      # Reload the transaction to ensure we have the latest data
+      @transaction.reload
       @transaction = @transaction.decorate
-      render json: { success: true }
+      
+      # Force a complete reload of transactions for the updated table
+      @account.reload
+      # Force reload of the transactions association to ensure pending_balance calculation is fresh
+      @account.transactions.reload
+      @transactions = @account.transactions.with_attached_attachment.includes(:transaction_balance)
+                              .then { search_by_description _1 }
+                              .then { apply_pending_order _1 }
+                              .then { apply_order _1 }
+                              .then { apply_id_order _1 }
+      
+      @pagy, @transactions = pagy(@transactions)
+      @transactions = @transactions.decorate
+      
+      # Debug: Log the pending count
+      pending_count = @transactions.select(&:pending?).count
+      Rails.logger.info "Mark pending - Pending count: #{pending_count}, Total transactions: #{@transactions.count}"
+      
+      # Set required variables for partials
+      @stashes = @account.stashes.order(id: :asc).decorate
+      @stashed = @account.stashes.sum(:balance)
+      
+      respond_to do |format|
+        format.turbo_stream
+        format.json { render json: { success: true } }
+      end
     else
-      render json: { 
-        success: false, 
-        errors: @transaction.errors.full_messages 
-      }, status: :unprocessable_entity
+      respond_to do |format|
+        format.turbo_stream { render turbo_stream: turbo_stream.replace("flash_messages", partial: "shared/error_messages", locals: { errors: @transaction.errors.full_messages }) }
+        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity }
+      end
     end
   end
 

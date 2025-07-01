@@ -1,81 +1,83 @@
-<div class="level-item has-text-centered is-hidden-tablet">
-  <div class="dropdown is-right" data-controller="dropdown" >
-    <div class="dropdown-trigger">
-      <button 
-        class="button is-white" 
-        aria-haspopup="true" 
-        aria-controls="balance-dropdown"
-        aria-expanded="false"
-        data-toggle="dropdown"
-        data-dropdown-target="button"
-        data-action="click->dropdown#toggle click@window->dropdown#hide touchend@window->dropdown#hide"
-      >
-        <span class="subtitle is-size-6 has-text-weight-bold <%= @account.balance_color %>">
-          <%= @account.current_balance_display %>
-        </span>
-        <span class="icon is-small">
-          <i class="fas fa-angle-down" aria-hidden="true"></i>
-        </span>
-      </button>
-    </div>
-    <div class="dropdown-menu" id="balance-dropdown" role="menu" data-dropdown-target="menu"> 
-      <div class="dropdown-content">
-        <div class="dropdown-item">
-          <div>
-            <p><strong>Account Details</strong></p>
+<div id="account-balances-mobile">
+  <div class="level-item has-text-centered is-hidden-tablet">
+    <div class="dropdown is-right" data-controller="dropdown" >
+      <div class="dropdown-trigger">
+        <button 
+          class="button is-white" 
+          aria-haspopup="true" 
+          aria-controls="balance-dropdown"
+          aria-expanded="false"
+          data-toggle="dropdown"
+          data-dropdown-target="button"
+          data-action="click->dropdown#toggle click@window->dropdown#hide touchend@window->dropdown#hide"
+        >
+          <span class="subtitle is-size-6 has-text-weight-bold <%= @account.balance_color %>">
+            <%= @account.current_balance_display %>
+          </span>
+          <span class="icon is-small">
+            <i class="fas fa-angle-down" aria-hidden="true"></i>
+          </span>
+        </button>
+      </div>
+      <div class="dropdown-menu" id="balance-dropdown" role="menu" data-dropdown-target="menu"> 
+        <div class="dropdown-content">
+          <div class="dropdown-item">
+            <div>
+              <p><strong>Account Details</strong></p>
+            </div>
           </div>
+          <hr class="dropdown-divider">
+          <div class="dropdown-item">
+            <div>
+              <span class="heading has-text-grey has-text-weight-semibold">
+                Pending
+              </span>
+              <p class="title tag is-warning is-6"><%= @account.pending_balance_display %></p>
+            </div>
+          </div>
+          <div class="dropdown-item">
+            <div>
+              <span class="heading has-text-grey has-text-weight-semibold">
+                Stashed
+              </span>
+              <p class="title tag is-success is-6"><%= number_to_currency(@stashed) %></p>
+            </div>
+          </div>
+          <% if @account.credit? %>
+            <div class="dropdown-item">
+              <div>
+                <span class="heading has-text-grey has-text-weight-semibold">
+                  Available
+                </span>
+                <p class="title tag is-white is-6"><%= number_to_currency(@account.available_credit) %></p>
+              </div>
+            </div>
+            <div class="dropdown-item">
+              <div>
+                <span class="heading has-text-grey has-text-weight-semibold">
+                  Credit Limit
+                </span>
+                <p class="title tag is-white is-6"><%= number_to_currency(@account.credit_limit) %></p>
+              </div>
+            </div>
+            <div class="dropdown-item">
+              <div>
+                <span class="heading has-text-grey has-text-weight-semibold">
+                  Utilization
+                </span>
+                <p class="title tag is-white is-6"><%= @account.credit_utilization %>%</p>
+              </div>
+            </div>
+            <div class="dropdown-item">
+              <div>
+                <span class="heading has-text-grey has-text-weight-semibold">
+                  Interest Rate
+                </span>
+                <p class="title tag is-white is-6"><%= @account.interest_rate %>%</p>
+              </div>
+            </div>
+          <% end %>
         </div>
-        <hr class="dropdown-divider">
-        <div class="dropdown-item">
-          <div>
-            <span class="heading has-text-grey has-text-weight-semibold">
-              Pending
-            </span>
-            <p class="title tag is-warning is-6"><%= @account.pending_balance_display %></p>
-          </div>
-        </div>
-        <div class="dropdown-item">
-          <div>
-            <span class="heading has-text-grey has-text-weight-semibold">
-              Stashed
-            </span>
-            <p class="title tag is-success is-6"><%= number_to_currency(@stashed) %></p>
-          </div>
-        </div>
-        <% if @account.credit? %>
-          <div class="dropdown-item">
-            <div>
-              <span class="heading has-text-grey has-text-weight-semibold">
-                Available
-              </span>
-              <p class="title tag is-white is-6"><%= number_to_currency(@account.available_credit) %></p>
-            </div>
-          </div>
-          <div class="dropdown-item">
-            <div>
-              <span class="heading has-text-grey has-text-weight-semibold">
-                Credit Limit
-              </span>
-              <p class="title tag is-white is-6"><%= number_to_currency(@account.credit_limit) %></p>
-            </div>
-          </div>
-          <div class="dropdown-item">
-            <div>
-              <span class="heading has-text-grey has-text-weight-semibold">
-                Utilization
-              </span>
-              <p class="title tag is-white is-6"><%= @account.credit_utilization %>%</p>
-            </div>
-          </div>
-          <div class="dropdown-item">
-            <div>
-              <span class="heading has-text-grey has-text-weight-semibold">
-                Interest Rate
-              </span>
-              <p class="title tag is-white is-6"><%= @account.interest_rate %>%</p>
-            </div>
-          </div>
-        <% end %>
       </div>
     </div>
   </div>

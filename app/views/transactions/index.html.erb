@@ -5,13 +5,18 @@
   param_back_text: "Accounts", 
   param_new_path: new_account_transaction_path
 } %>
-<%= render partial: "transactions/components/transactionLevel" %>
+
+<div id="transaction_level">
+  <%= render partial: "transactions/components/transactionLevel" %>
+</div>
 
 <% if !@account.credit? %>
-  <%= render partial: "stashes/components/stashList" %>
+  <div id="stash_list">
+    <%= render partial: "stashes/components/stashList" %>
+  </div>
 <% end %>
 
-<%= turbo_frame_tag "transactions_table", data: {turbo_action: "replace"} do %>
+<%= turbo_frame_tag "transactions_table" do %>
   <%= render partial: "transactions/components/transactionList" %>
   <%= render partial: "transactions/components/pagination" %>
 <% end %>
