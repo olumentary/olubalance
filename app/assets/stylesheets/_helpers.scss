@@ -3,13 +3,31 @@ $sizes: (-10, -5, 0, 5, 10, 15, 20, 25, 30, 50);
 $positions: ('top', 'left', 'bottom', 'right');
 
 @each $size in $sizes {
-    @each $position in $positions {
-        .m#{str-slice($position, 0, 1)}-#{$size} {
-            margin-#{$position}: $size + px !important;
-        }
-
-        .p#{str-slice($position, 0, 1)}-#{$size} {
-            padding-#{$position}: $size + px !important;
-        }
+  @each $position in $positions {
+    .m#{str-slice($position, 0, 1)}-#{$size} {
+      margin-#{$position}: $size + px !important;
     }
+
+    .p#{str-slice($position, 0, 1)}-#{$size} {
+      padding-#{$position}: $size + px !important;
+    }
+  }
+}
+
+// Turbo Stream balance wrapper styling
+#account-balances,
+#account-balances-mobile {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#account-balances .level-item,
+#account-balances-mobile .level-item {
+  margin-right: 0.75rem;
+}
+
+#account-balances .level-item:last-child,
+#account-balances-mobile .level-item:last-child {
+  margin-right: 0;
 }
