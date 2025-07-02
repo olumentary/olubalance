@@ -40,7 +40,7 @@ RSpec.describe Account, type: :model do
       end
 
       non_pending_amts.each do |amt|
-        FactoryBot.create(:transaction, :credit_transaction, account: account, amount: amt, skip_pending_default: true)
+        FactoryBot.create(:transaction, :credit_transaction, :non_pending, account: account, amount: amt)
       end
     end
 

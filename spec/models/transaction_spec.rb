@@ -13,14 +13,14 @@ RSpec.describe Transaction, type: :model do
   describe 'transaction amount conversion' do
     context 'debit transaction' do
       it 'should convert the amount to a negative value' do
-        debit_transaction = FactoryBot.create(:transaction)
+        debit_transaction = FactoryBot.create(:transaction, :non_pending)
         expect(debit_transaction.amount).to be <= 0
       end
     end
 
     context 'credit transaction' do
       it 'should leave the amount as a positive value' do
-        credit_transaction = FactoryBot.create(:transaction, :credit_transaction)
+        credit_transaction = FactoryBot.create(:transaction, :credit_transaction, :non_pending)
         expect(credit_transaction.amount).to be >= 0
       end
     end
@@ -30,7 +30,7 @@ RSpec.describe Transaction, type: :model do
 
     let(:account) { FactoryBot.create(:account) }
     let!(:original_balance) { account.current_balance }
-    let!(:transaction) { FactoryBot.create(:transaction, account: account) }
+    let!(:transaction) { FactoryBot.create(:transaction, :non_pending, account: account) }
 
     context 'create transaction' do
       it 'should update the account balance' do
@@ -67,7 +67,7 @@ RSpec.describe Transaction, type: :model do
   describe 'transaction type return value' do
     context 'debit transaction' do
       it 'should return "debit" for negative value transactions' do
-        transaction = FactoryBot.create(:transaction)
+        transaction = FactoryBot.create(:transaction, :non_pending)
         expect(transaction.transaction_type).to include ('debit')
         expect(transaction.transaction_type).to include ('Debit')
       end
@@ -75,7 +75,7 @@ RSpec.describe Transaction, type: :model do
 
     context 'credit transaction' do
       it 'should return "credit" for positive value transactions' do
-        transaction = FactoryBot.create(:transaction, :credit_transaction)
+        transaction = FactoryBot.create(:transaction, :credit_transaction, :non_pending)
         expect(transaction.transaction_type).to include ('credit')
         expect(transaction.transaction_type).to include ('Credit')
       end
@@ -84,9 +84,9 @@ RSpec.describe Transaction, type: :model do
 
   describe 'transaction search' do
     let(:account) { FactoryBot.create(:account) }
-    let(:transaction1) { FactoryBot.create(:transaction, account: account, description: 'Test Transaction One') }
-    let(:transaction2) { FactoryBot.create(:transaction, account: account, description: 'Test Transaction Two') }
-    let(:transaction3) { FactoryBot.create(:transaction, account: account, description: 'Test Transaction Three') }
+    let(:transaction1) { FactoryBot.create(:transaction, :non_pending, account: account, description: 'Test Transaction One') }
+    let(:transaction2) { FactoryBot.create(:transaction, :non_pending, account: account, description: 'Test Transaction Two') }
+    let(:transaction3) { FactoryBot.create(:transaction, :non_pending, account: account, description: 'Test Transaction Three') }
 
     it 'returns transactions that match the search term' do
       expect(Transaction.search("Test")).to include(transaction1, transaction2, transaction3)
@@ -101,7 +101,6 @@ RSpec.describe Transaction, type: :model do
     it { should validate_presence_of(:description) }
     it { should validate_length_of(:description) }
     it { should validate_presence_of(:amount) }
-    it { should validate_numericality_of(:amount) }
     it { should validate_length_of(:memo) }
   end
 

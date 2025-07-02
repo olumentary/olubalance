@@ -18,7 +18,7 @@ class Transaction < ApplicationRecord
                        unless: :pending?
   validates :trx_date, presence: true
   validates :description, presence: true, length: { maximum: 150 }, unless: :pending?
-  validates :amount, presence: true, unless: :pending?
+  validates :amount, presence: true, numericality: true, unless: :pending?
   validates :memo, length: { maximum: 500 }
   validate :attachment_required_for_quick_receipt
   validate :require_fields_when_reviewed
@@ -80,23 +80,29 @@ class Transaction < ApplicationRecord
 
   def convert_amount
     return if amount.nil?
+    
+    # Return early if amount is not numeric, let validation handle it
+    return unless amount.is_a?(Numeric) || amount.to_s.match?(/\A-?\d+(\.\d+)?\z/)
+
+    # Convert to numeric if it's a string
+    numeric_amount = amount.to_f
 
     # If trx_type is set, use it to determine the sign
     if trx_type.present?
       # Convert amount based on trx_type
       if trx_type == "debit"
-        self.amount = -amount.abs
+        self.amount = -numeric_amount.abs
       else
-        self.amount = amount.abs
+        self.amount = numeric_amount.abs
       end
     else
       # If no trx_type is set, preserve the existing sign or determine from current amount
       if !new_record? && amount_was.present?
         # Preserve the sign of the existing amount
-        self.amount = amount_was < 0 ? -amount.abs : amount.abs
+        self.amount = amount_was < 0 ? -numeric_amount.abs : numeric_amount.abs
       else
         # For new records without trx_type, assume positive (will be handled by validations)
-        self.amount = amount.abs
+        self.amount = numeric_amount.abs
       end
     end
   end
