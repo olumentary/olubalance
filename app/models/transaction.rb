@@ -140,7 +140,9 @@ class Transaction < ApplicationRecord
   end
 
   def attachment_required_for_quick_receipt
-    if quick_receipt? && attachment.blank?
+    # Only require attachment for quick receipts when creating new records
+    # or when the attachment is being explicitly removed
+    if quick_receipt? && attachment.blank? && (new_record? || attachment.attached? == false)
       errors.add(:attachment, "is required for quick receipt transactions")
     end
   end
