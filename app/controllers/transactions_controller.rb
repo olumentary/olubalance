@@ -64,7 +64,7 @@ class TransactionsController < ApplicationController
   # Update action updates the transaction with the new information
   def update
     # Preserve trx_type if not present in params
-    @transaction.trx_type = params.dig(:transaction, :trx_type) || (@transaction.amount.negative? ? 'debit' : 'credit')
+    @transaction.trx_type = params.dig(:transaction, :trx_type) || (@transaction.amount&.negative? ? 'debit' : 'credit')
 
     if @transaction.update(transaction_params)
       respond_to do |format|
