@@ -227,3 +227,27 @@ a.has-text-white.sortable {
     }
   }
 }
+
+// Mobile search field styling
+@media screen and (max-width: 768px) {
+  #transaction-search {
+    width: 100%;
+    
+    .field {
+      width: 100%;
+    }
+    
+    .control {
+      width: 100%;
+    }
+    
+    .input {
+      width: 100%;
+    }
+  }
+  
+  // Add bottom padding between mobile search and transactions table
+  nav.level.is-hidden-tablet {
+    margin-bottom: 1rem;
+  }
+}
