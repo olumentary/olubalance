@@ -48,7 +48,7 @@ export default class extends Controller {
       // Get selected radio button value
       const selectedRadio = this.inputTarget.querySelector('input[type="radio"]:checked');
       if (!selectedRadio) {
-        alert('Please select Credit or Debit');
+        this.showError('Please select Credit or Debit');
         return;
       }
       newValue = selectedRadio.value;
@@ -63,10 +63,32 @@ export default class extends Controller {
     }
 
     // Validate amount field
-    if (this.fieldValue === 'amount' && newValue !== '') {
+    if (this.fieldValue === 'amount') {
+      if (newValue === '') {
+        this.showError('Amount cannot be empty');
+        this.inputTarget.value = this.valueValue;
+        this.hideInput();
+        return;
+      }
+
       const amount = parseFloat(newValue);
-      if (isNaN(amount) || amount < 0) {
-        alert('Please enter a valid positive number');
+      if (isNaN(amount)) {
+        this.showError('Amount must be a valid number');
+        this.inputTarget.value = this.valueValue;
+        this.hideInput();
+        return;
+      }
+
+      if (amount < 0) {
+        this.showError('Amount must be a positive number');
+        this.inputTarget.value = this.valueValue;
+        this.hideInput();
+        return;
+      }
+
+      // Additional validation: ensure it's a reasonable number (not too large)
+      if (amount > 999999999.99) {
+        this.showError('Amount is too large. Please enter a smaller value.');
         this.inputTarget.value = this.valueValue;
         this.hideInput();
         return;
@@ -75,7 +97,7 @@ export default class extends Controller {
 
     // Validate description field
     if (this.fieldValue === 'description' && newValue === '') {
-      alert('Description cannot be empty');
+      this.showError('Description cannot be empty');
       this.inputTarget.value = this.valueValue;
       this.hideInput();
       return;
@@ -83,13 +105,52 @@ export default class extends Controller {
 
     // Validate date field
     if (this.fieldValue === 'trx_date' && newValue === '') {
-      alert('Date cannot be empty');
+      this.showError('Date cannot be empty');
       this.inputTarget.value = this.valueValue;
       this.hideInput();
       return;
     }
 
     this.sendUpdate(newValue);
+  }
+
+  showError(message) {
+    // Find existing flash container or create one
+    let flashContainer = document.getElementById('flash_messages');
+    if (!flashContainer) {
+      flashContainer = document.createElement('div');
+      flashContainer.id = 'flash_messages';
+      // Insert at the top of the page content, after the navbar if it exists
+      const navbar = document.querySelector('nav');
+      const content = document.querySelector('.container') || document.body;
+      if (navbar && navbar.nextSibling) {
+        content.insertBefore(flashContainer, navbar.nextSibling);
+      } else {
+        content.insertBefore(flashContainer, content.firstChild);
+      }
+    }
+
+    // Clear any existing messages
+    flashContainer.innerHTML = '';
+
+    // Create error message using the same pattern as Rails
+    const errorHtml = `
+      <div class="notification is-danger is-light mb-4">
+        <button class="delete" onclick="this.parentElement.remove()"></button>
+        <ul>
+          <li>${message}</li>
+        </ul>
+      </div>
+    `;
+
+    flashContainer.innerHTML = errorHtml;
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (flashContainer && flashContainer.innerHTML.trim() !== '') {
+        flashContainer.innerHTML = '';
+      }
+    }, 5000);
   }
 
   sendUpdate(newValue) {
@@ -118,7 +179,15 @@ export default class extends Controller {
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error('Update failed');
+          // Try to parse error response for better error messages
+          return response
+            .json()
+            .then(errorData => {
+              throw new Error(errorData.errors ? errorData.errors.join(', ') : 'Update failed');
+            })
+            .catch(() => {
+              throw new Error('Update failed');
+            });
         }
       })
       .then(data => {
@@ -136,7 +205,7 @@ export default class extends Controller {
       })
       .catch(error => {
         console.error('Error updating field:', error);
-        alert('Failed to update. Please try again.');
+        this.showError(error.message || 'Failed to update. Please try again.');
         if (this.fieldValue !== 'trx_type') {
           this.inputTarget.value = this.valueValue;
         }

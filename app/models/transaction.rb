@@ -23,6 +23,7 @@ class Transaction < ApplicationRecord
   validate :attachment_required_for_quick_receipt
   validate :require_fields_when_reviewed
   validate :validate_amount_for_reviewed_transactions
+  validate :validate_amount_is_numeric
 
   # before_post_process :rename_file
 
@@ -81,11 +82,18 @@ class Transaction < ApplicationRecord
   def convert_amount
     return if amount.nil?
     
-    # Return early if amount is not numeric, let validation handle it
-    return unless amount.is_a?(Numeric) || amount.to_s.match?(/\A-?\d+(\.\d+)?\z/)
-
-    # Convert to numeric if it's a string
-    numeric_amount = amount.to_f
+    # If amount is already numeric, just ensure it's a float
+    if amount.is_a?(Numeric)
+      numeric_amount = amount.to_f
+    else
+      # Try to convert string to numeric
+      string_amount = amount.to_s.strip
+      
+      # Return early if amount is not a valid numeric string, let validation handle it
+      return unless string_amount.match?(/\A-?\d+(\.\d+)?\z/)
+      
+      numeric_amount = string_amount.to_f
+    end
 
     # If trx_type is set, use it to determine the sign
     if trx_type.present?
@@ -121,26 +129,32 @@ class Transaction < ApplicationRecord
 
   def update_account_balance_create
     return if amount.nil?
+    return unless amount.is_a?(Numeric) # Ensure amount is numeric before proceeding
     @account = Account.find(account_id)
     @account.update(current_balance: @account.current_balance + amount)
   end
 
   def update_account_balance_edit
     return if amount.nil?
+    return unless amount.is_a?(Numeric) # Ensure amount is numeric before proceeding
+    
     @account = Account.find(account_id)
 
     if amount_before_last_save.nil?
       # First time setting an amount (e.g., from quick receipt)
       @account.update(current_balance: @account.current_balance + amount)
     else
-      # Updating an existing amount
-      @account.update(current_balance: @account.current_balance - amount_before_last_save + amount) \
-        if saved_change_to_amount?
+      # Updating an existing amount - ensure the previous amount was also numeric
+      # This prevents balance corruption when invalid amounts are entered during inline editing
+      if amount_before_last_save.is_a?(Numeric) && saved_change_to_amount?
+        @account.update(current_balance: @account.current_balance - amount_before_last_save + amount)
+      end
     end
   end
 
   def update_account_balance_destroy
     return if amount_was.nil?
+    return unless amount_was.is_a?(Numeric) # Ensure amount_was is numeric before proceeding
     @account = Account.find(account_id)
     # Rails 5.2 - amount_was is still valid in after_destroy callbacks
     @account.update(current_balance: @account.current_balance - amount_was)
@@ -173,5 +187,10 @@ class Transaction < ApplicationRecord
     elsif trx_type == 'credit' && amount < 0
       errors.add(:amount, "must be positive for credit transactions")
     end
+  end
+
+  def validate_amount_is_numeric
+    return if pending? || amount.blank? || new_record?
+    errors.add(:amount, "must be a number") unless amount.is_a?(Numeric)
   end
 end

@@ -106,4 +106,62 @@ RSpec.describe Transaction, type: :model do
 
   it { should belong_to(:account) }
   # it { is_expected.to have_one(:transaction_balance) }
+
+  describe 'amount validation and balance updates' do
+    let(:user) { FactoryBot.create(:user) }
+    let(:account) { FactoryBot.create(:account, user: user, starting_balance: 1000) }
+    let(:transaction) { FactoryBot.create(:transaction, account: account, amount: 100) }
+
+    it 'does not update account balance when amount is invalid' do
+      account.reload
+      initial_balance = account.current_balance
+      
+      # Try to update with invalid amount
+      transaction.amount = 'invalid_amount'
+      transaction.save
+      
+      # Account balance should remain unchanged
+      account.reload
+      expect(account.current_balance).to eq(initial_balance)
+    end
+
+    it 'does not update account balance when amount is not numeric' do
+      account.reload
+      initial_balance = account.current_balance
+      
+      # Try to update with non-numeric amount
+      transaction.amount = 'asdf'
+      transaction.save
+      
+      # Account balance should remain unchanged
+      account.reload
+      expect(account.current_balance).to eq(initial_balance)
+    end
+
+    it 'does not update account balance when amount is invalid string' do
+      account.reload
+      initial_balance = account.current_balance
+      
+      # Try to update with invalid string
+      transaction.amount = 'not_a_number'
+      transaction.save
+      
+      # Account balance should remain unchanged
+      account.reload
+      expect(account.current_balance).to eq(initial_balance)
+    end
+
+    it 'allows valid amount updates to proceed' do
+      account.reload
+      initial_balance = account.current_balance
+      
+      # Update with valid amount
+      transaction.amount = 200
+      result = transaction.save
+      
+      # The save should succeed (not fail validation)
+      expect(result).to be true
+      expect(transaction.errors).to be_empty
+    end
+  end
 end
