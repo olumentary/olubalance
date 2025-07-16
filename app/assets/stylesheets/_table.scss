@@ -31,8 +31,9 @@ table.ob-table {
     border-top-right-radius: $ob-table-border-radius;
   }
 
-  th#trx-actions,
+  th#trx-header-mobile,
   th#ob-stash-list {
+    border-top-left-radius: $ob-table-border-radius;
     border-top-right-radius: $ob-table-border-radius;
   }
 
