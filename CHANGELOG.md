@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.10.0] - 2025-07-17
+
+### New
+
+- Inline editing of transactions from the transactions table
+- Transactions will automatically be marked as pending when created
+- Transactions must be manually reviewed to remove the pending status
+- Quick receipt feature - upload a receipt from the home screen and create a shell transaction from mobile that can be updated and reviewed later
+- Transaction description typeahead search/autofill
+- Transaction UI improvements, including sticky header and grouping by transaction date
+
+### Chores
+
+- Upgrade to Rails 8.0
+- Upgrade to Ruby 3.3.5
+- Upgrade to Node 22.x
+- Upgrade to Bulma 1.0
+- Update gems and node packages
+
 ## [v1.9.0] - 2024-10-31
 
 ### Changed
@@ -374,7 +393,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.9.0...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.10.0...develop
+[v1.10.0]: https://github.com/odinsride/olubalance/compare/v1.9.0...1.10.0
 [v1.9.0]: https://github.com/odinsride/olubalance/compare/v1.8.5...v1.9.0
 [v1.8.5]: https://github.com/odinsride/olubalance/compare/v1.8.4...v1.8.5
 [v1.8.4]: https://github.com/odinsride/olubalance/compare/v1.8.3...v1.8.4
