@@ -1,11 +1,11 @@
 <!-- Mobile Row -->
-<tr class="is-hidden-tablet">
-  <td class="is-hidden-tablet">
+<tr id="transaction_mobile_<%= transaction.id %>" class="is-hidden-tablet <%= transaction.reviewed_color %>">
+  <td class="is-hidden-tablet <%= transaction.reviewed_weight %>">
     <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
       <div class="level ob-mobile-level is-mobile">
         <div class="level-left">
           <div class="level-item">
-            <%= transaction.trx_desc_display %>
+            <%= transaction.trx_desc_display_mobile %>
             <% if transaction.attachment.attached? then %>
               <span class="icon has-text-grey-light tooltip" data-tooltip="Transaction has attachment">
                 <i class="fas fa-sm fa-paperclip"></i>
@@ -23,10 +23,10 @@
       <div class="level ob-mobile-level is-mobile has-text-grey is-size-7">
         <div class="level-left">
           <div class="level-item">
-            <%= transaction.trx_date_decorated %>
+            <%= transaction.trx_date_display %>
           </div>
         </div>
-        <div class="level-right">
+        <div class="level-right <%= 'is-hidden' if transaction.quick_receipt? %>">
           <div class="level-item ">
             Balance <%= transaction.running_balance_display %>
           </div>

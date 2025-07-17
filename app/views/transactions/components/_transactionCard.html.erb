@@ -1,6 +1,6 @@
 <div class="card" id="transaction-card">
   <header class="card-header has-background-primary">
-    <%= content_tag :p, class: "card-header-title has-text-white", data: { tooltip: @transaction.name_too_long ? @transaction.description : nil } do -%>
+    <%= content_tag :p, class: "card-header-title has-text-white", data: { tooltip: @transaction.description } do -%>
       <%= @transaction.trx_desc_display %>      
     <% end %>
     <p class="card-header-icon has-text-white has-text-weight-bold">

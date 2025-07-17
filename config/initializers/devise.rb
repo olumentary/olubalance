@@ -277,4 +277,10 @@ Devise.setup do |config|
   # When using OmniAuth, Devise cannot automatically set OmniAuth path,
   # so you need to do it manually. For the users scope, it would be:
   # config.omniauth_path_prefix = '/my_engine/users/auth'
+
+
+  # Add this at the bottom if you're using Turbo
+  Warden::Manager.after_authentication do |user, auth, opts|
+    auth.session(opts[:scope])['turbo.flash.keep'] = true
+  end
 end

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -29,7 +29,7 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
 
-  <body>
+  <body data-controller="shared">
 
     <!--#####################################################################--
     #
@@ -52,6 +52,7 @@
       <main class="olubalance site-content">
         <section class="section">
           <div class="container">
+            <div id="flash_messages"></div>
             <%= yield %>
           </div>
 

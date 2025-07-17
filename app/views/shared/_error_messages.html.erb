@@ -1,0 +1,12 @@
+<% if errors.any? %>
+  <div id="flash_messages">
+    <div class="notification is-danger is-light mb-4">
+      <button class="delete" onclick="this.parentElement.remove()"></button>
+      <ul>
+        <% errors.each do |error| %>
+          <li><%= error %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+<% end %> 

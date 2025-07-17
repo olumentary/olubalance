@@ -4,20 +4,20 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.1",
     "@hotwired/stimulus": "^3.2.2",
-    "@hotwired/turbo-rails": "^8.0.12",
-    "@rails/activestorage": "^7.2.101",
+    "@hotwired/turbo-rails": "^8.0.13",
+    "@rails/activestorage": "^8.0.200",
     "animate.css": "^4.1.1",
-    "bulma": "^0.9.1",
+    "bulma": "^1.0.0",
     "bulma-toast": "^2.2.0",
     "esbuild": "^0.17.15",
-    "sass": "^1.80.6"
+    "sass": "^1.88.0"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets",
     "build:css": "sass ./app/assets/stylesheets/application.bulma.scss:./app/assets/builds/application.css --no-source-map --load-path=node_modules --quiet"
   },
   "engines": {
-    "node": "20.x",
+    "node": "22.x",
     "yarn": "1.22.x"
   }
 }

@@ -1,3 +1,5 @@
+@use 'obtheme' as ob;
+
 table.ob-table {
   $ob-table-border-radius: 4px;
   font-size: 0.9em;
@@ -7,24 +9,30 @@ table.ob-table {
 
   thead.ob-table-phead {
     // height: 4em;
-    background-color: $link;
+    background-color: ob.$link;
     border-top-left-radius: $ob-table-border-radius;
     border-top-right-radius: $ob-table-border-radius;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 
     .level-left + .level-right {
       margin-top: 0;
     }
   }
 
-  th#trx-date, th#stash-entry-date {
+  th#trx-date,
+  th#stash-entry-date {
     border-top-left-radius: $ob-table-border-radius;
   }
 
-  th#trx-balance, th#stash-entry-amount {
+  th#trx-balance,
+  th#stash-entry-amount {
     border-top-right-radius: $ob-table-border-radius;
   }
 
-  th#trx-header-mobile, th#ob-stash-list {
+  th#trx-header-mobile,
+  th#ob-stash-list {
     border-top-left-radius: $ob-table-border-radius;
     border-top-right-radius: $ob-table-border-radius;
   }
@@ -47,8 +55,10 @@ table.ob-table {
     }
   }
 
-  td, th {
-    padding: 0.80em 1.0em;
+  td,
+  th {
+    padding: 0.8em 1em;
+    vertical-align: middle;
 
     .ob-cell-content {
       border-right: 1px solid rgb(235, 235, 235);
@@ -59,15 +69,17 @@ table.ob-table {
     }
   }
 
-  td.has-text-centered, th.has-text-centered {
+  td.has-text-centered,
+  th.has-text-centered {
     .ob-cell-content {
       padding-right: 0 !important;
     }
   }
 
-  td.has-text-right, th.has-text-right {
+  td.has-text-right,
+  th.has-text-right {
     .ob-cell-content {
-      padding-right: 1.0em;
+      padding-right: 1em;
     }
   }
 }
@@ -84,4 +96,15 @@ table.ob-table {
   #transaction-search {
     display: block;
   }
+}
+
+/* Date group headers */
+.ob-table tr.has-background-light {
+  border-top: 2px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.ob-table tr.has-background-light td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }

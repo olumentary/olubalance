@@ -61,6 +61,7 @@ class StashEntry < ApplicationRecord
     transaction.account_id = @stash.account_id
     transaction.description = stash_action == "add" ? desc_add : desc_remove
     transaction.amount = amount.abs
+    transaction.skip_pending_default = true
     transaction.locked = true
     transaction.save
   end

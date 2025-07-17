@@ -1,6 +1,15 @@
 <%= render partial: "accounts/components/accountLevel" %>
 <%= render partial: "accounts/components/noAccounts", locals: { description: Account::NO_ACCOUNT_DESC } if @accounts.empty? %>
 
+<div class="is-hidden-desktop has-text-centered mb-4">
+  <%= link_to new_quick_transaction_path, class: "button is-primary is-fullwidth" do %>
+    <span class="icon">
+      <i class="fas fa-receipt"></i>
+    </span>
+    <span>Quick Receipt</span>
+  <% end %>
+</div>
+
 <% if !@accounts_checking.empty? %>
   <div class="container">
     <p class="title mb-10 is-size-5 has-text-link">Checking</p>

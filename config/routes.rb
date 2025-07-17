@@ -17,7 +17,17 @@ Rails.application.routes.draw do
   post "accounts/summary/mail" => "summary#send_mail"
 
   resources :accounts, except: %i[show] do
-    resources :transactions
+    resources :transactions do
+      member do
+        patch :mark_reviewed
+        patch :mark_pending
+        patch :update_attachment
+        post :update_date
+      end
+      collection do
+        get :descriptions
+      end
+    end
     resources :stashes do
       scope except: %i[index show edit update destroy] do
         resources :stash_entries
@@ -31,6 +41,8 @@ Rails.application.routes.draw do
   end
 
   resources :transfers, only: %i[create]
+
+  resources :quick_transactions, only: [:new, :create]
 
   authenticated do
     root to: "accounts#index", as: :authenticated_root

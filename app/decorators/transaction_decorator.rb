@@ -15,7 +15,9 @@ class TransactionDecorator < ApplicationDecorator
   end
 
   def amount_decorated
-    amount.negative? ? number_to_currency(amount.abs) : number_to_currency(amount)
+    return "Pending" if amount.nil?
+    formatted_amount = sprintf("%.2f", amount.abs)
+    amount.negative? ? number_to_currency(formatted_amount, precision: 2) : number_to_currency(formatted_amount, precision: 2)
   end
 
   def amount_form
@@ -23,22 +25,25 @@ class TransactionDecorator < ApplicationDecorator
   end
 
   def amount_color
+    return "has-text-grey" if amount.nil?
     amount.negative? ? "has-text-danger" : "has-text-success"
   end
 
-  # Used to specify default value of Transaction type on form
-  def trx_type_credit_form
-    amount.present? ? amount.positive? : false
+  def reviewed_color
+    transaction.pending ? "has-background-white" : "has-background-text-90"
   end
 
-  def trx_type_debit_form
+  def reviewed_weight
+    transaction.pending ? "has-text-weight-bold" : "has-text-weight-normal"
+  end
+
+  def trx_type_value_form
     if object.new_record?
-      true
+      "debit"
     else
-      amount.present? ? amount.negative? : false
+      amount.present? ? (amount.negative? ? "debit" : "credit") : nil
     end
   end
-  ###
 
   def memo_decorated
     memo? ? memo : "- None -"
@@ -82,11 +87,23 @@ class TransactionDecorator < ApplicationDecorator
     created_at.in_time_zone(User.new.decorate.h.controller.current_user.timezone).strftime("%b %d, %Y @ %I:%M %p %Z")
   end
 
-  def name_too_long
-    description.length > 35
+  def trx_desc_display
+    return "Pending Receipt" if description.nil?
+    name_too_long ? "#{description[0..50]}..." : description
   end
 
-  def trx_desc_display
-    name_too_long ? description[0..35] + "..." : description
+  def trx_desc_display_mobile
+    return "Pending Receipt" if description.nil?
+    name_too_long_mobile ? "#{description[0..20]}..." : description
+  end
+
+  def name_too_long
+    return false if description.nil?
+    description.length > 50
+  end
+
+  def name_too_long_mobile
+    return false if description.nil?
+    description.length > 20
   end
 end

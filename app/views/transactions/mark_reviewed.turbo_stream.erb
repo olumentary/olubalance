@@ -1,0 +1,27 @@
+<%# Debug: Log pending count in template %>
+<% pending_count = @transactions.select(&:pending?).count %>
+<% Rails.logger.info "Mark reviewed template - Pending count: #{pending_count}" %>
+
+<%= turbo_stream.replace "transactions_table" do %>
+  <!-- Cache bust: <%= Time.current.to_i %> -->
+  <%= render partial: "transactions/components/transactionList" %>
+  <%= render partial: "transactions/components/pagination" %>
+<% end %>
+
+<%= turbo_stream.replace "transaction_level" do %>
+  <%= render partial: "transactions/components/transactionLevel" %>
+<% end %>
+
+<%= turbo_stream.replace "account-balances" do %>
+  <%= render partial: "transactions/components/balances" %>
+<% end %>
+
+<%= turbo_stream.replace "account-balances-mobile" do %>
+  <%= render partial: "transactions/components/balancesMobile" %>
+<% end %>
+
+<% if !@account.credit? %>
+  <%= turbo_stream.replace "stash_list" do %>
+    <%= render partial: "stashes/components/stashList" %>
+  <% end %>
+<% end %> 

@@ -82,6 +82,7 @@ class Account < ApplicationRecord
     init_trx.description = "Starting Balance"
     init_trx.amount = starting_balance
     init_trx.memo = "This is the beginning transaction of the account."
+    init_trx.skip_pending_default = true
     init_trx.locked = true
     init_trx.save
     Transaction.set_callback(:create, :after, :update_account_balance_create)

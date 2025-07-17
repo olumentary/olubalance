@@ -122,18 +122,18 @@
   resolved "https://registry.yarnpkg.com/@hotwired/stimulus/-/stimulus-3.2.2.tgz#071aab59c600fed95b97939e605ff261a4251608"
   integrity sha512-eGeIqNOQpXoPAIP7tC1+1Yc1yl1xnwYqg+3mzqxyrbE5pg5YFBZcA6YoTiByJB6DKAEsiWtl6tjTJS4IYtbB7A==
 
-"@hotwired/turbo-rails@^8.0.12":
-  version "8.0.12"
-  resolved "https://registry.yarnpkg.com/@hotwired/turbo-rails/-/turbo-rails-8.0.12.tgz#6f1a2661122c0a2bf717f3bc68b5106638798c89"
-  integrity sha512-ZXwu9ez+Gd4RQNeHIitqOQgi/LyqY8J4JqsUN0nnYiZDBRq7IreeFdMbz29VdJpIsmYqwooE4cFzPU7QvJkQkA==
+"@hotwired/turbo-rails@^8.0.13":
+  version "8.0.13"
+  resolved "https://registry.yarnpkg.com/@hotwired/turbo-rails/-/turbo-rails-8.0.13.tgz#7016651f7144053992ce5096bb95495f8faa5854"
+  integrity sha512-6SCnnOSzhtaJ0pNkAjncZxjtKsK3sP/vPEkCnTXBXSHkr+vF7DTZkOlwjhms1DbbQNTsjCsBoKvzSMbh/omSCQ==
   dependencies:
-    "@hotwired/turbo" "^8.0.12"
+    "@hotwired/turbo" "^8.0.13"
     "@rails/actioncable" "^7.0"
 
-"@hotwired/turbo@^8.0.12":
-  version "8.0.12"
-  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.12.tgz#50aa8345d7f62402680c6d2d9814660761837001"
-  integrity sha512-l3BiQRkD7qrnQv6ms6sqPLczvwbQpXt5iAVwjDvX0iumrz6yEonQkNAzNjeDX25/OJMFDTxpHjkJZHGpM9ikWw==
+"@hotwired/turbo@^8.0.13":
+  version "8.0.13"
+  resolved "https://registry.yarnpkg.com/@hotwired/turbo/-/turbo-8.0.13.tgz#ab35fda9d358432c8a872a833844b38cccb8c25b"
+  integrity sha512-M7qXUqcGab6G5PKOiwhgbByTtrPgKPFCTMNQ52QhzUEXEqmp0/ApEguUesh/FPiUjrmFec+3lq98KsWnYY2C7g==
 
 "@parcel/watcher-android-arm64@2.5.0":
   version "2.5.0"
@@ -229,10 +229,10 @@
   resolved "https://registry.yarnpkg.com/@rails/actioncable/-/actioncable-7.2.200.tgz#7f56b3313762dbb85b64490aa33c5f431419aafd"
   integrity sha512-gVmi3MabEa+Bkatvw0/k1Y3WTidcIf3qNbb9L8qc+AmT2UmkVqUZhJpSLvKmH10twCYIGzn7yySW/lOpg81Duw==
 
-"@rails/activestorage@^7.2.101":
-  version "7.2.200"
-  resolved "https://registry.yarnpkg.com/@rails/activestorage/-/activestorage-7.2.200.tgz#087ff24e675f56b7abc19d29690876dd0f21df95"
-  integrity sha512-NJX7T1Z4LuoNLGGVOoMiEK24BXkpH5QNLYOTD1Ll3IzYu5eMs/mbDL+azJGsTig6WV20O16Pdkj9Fgl9Mo5qxA==
+"@rails/activestorage@^8.0.200":
+  version "8.0.200"
+  resolved "https://registry.yarnpkg.com/@rails/activestorage/-/activestorage-8.0.200.tgz#147c088e2b4167d6d49292431bdbdf10b118d5bd"
+  integrity sha512-V7GnZXsAMPDWVOBv4/XpHwj5sOw5bWjidWCuUbK3Zx1xt2pOfFaeJDUG7fEWb1MwP4aW1oVVlGkJBdXVyvru0A==
   dependencies:
     spark-md5 "^3.0.1"
 
@@ -253,10 +253,10 @@ bulma-toast@^2.2.0:
   resolved "https://registry.yarnpkg.com/bulma-toast/-/bulma-toast-2.4.4.tgz#6fd6ee66c5d0596b2f64acaa03e0fc92ce4df7b8"
   integrity sha512-frK7CiTE7sW6bgJFnWE4aL3Fga9O2U6O536gj6xox+52kqb5S5WaDUq37cArzjuvnSXY5mPIvzt5xNdBeOnShA==
 
-bulma@^0.9.1:
-  version "0.9.4"
-  resolved "https://registry.yarnpkg.com/bulma/-/bulma-0.9.4.tgz#0ca8aeb1847a34264768dba26a064c8be72674a1"
-  integrity sha512-86FlT5+1GrsgKbPLRRY7cGDg8fsJiP/jzTqXXVqiUZZ2aZT8uemEOHlU1CDU+TxklPEZ11HZNNWclRBBecP4CQ==
+bulma@^1.0.0:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/bulma/-/bulma-1.0.4.tgz#942dc017a3a201fa9f0e0c8db3dd52f3cff86712"
+  integrity sha512-Ffb6YGXDiZYX3cqvSbHWqQ8+LkX6tVoTcZuVB3lm93sbAVXlO0D6QlOTMnV6g18gILpAXqkG2z9hf9z4hCjz2g==
 
 chokidar@^4.0.0:
   version "4.0.1"
@@ -305,10 +305,10 @@ fill-range@^7.1.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-immutable@^4.0.0:
-  version "4.3.7"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.3.7.tgz#c70145fc90d89fb02021e65c84eb0226e4e5a381"
-  integrity sha512-1hqclzwYwjRDFLjcFxOM5AYkkG0rpFPpr1RLPMEuGczoS7YA8gLhy8SWXYRAA/XwfEHpfo3cw5JGioS32fnMRw==
+immutable@^5.0.2:
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-5.1.2.tgz#e8169476414505e5a4fa650107b65e1227d16d4b"
+  integrity sha512-qHKXW1q6liAk1Oys6umoaZbDRqjcjgSrbnrifHsfsttza7zcvRAsL7mMV6xWcyhwQy7Xj5v4hhbr6b+iDYwlmQ==
 
 is-extglob@^2.1.1:
   version "2.1.1"
@@ -350,13 +350,13 @@ readdirp@^4.0.1:
   resolved "https://registry.yarnpkg.com/readdirp/-/readdirp-4.0.2.tgz#388fccb8b75665da3abffe2d8f8ed59fe74c230a"
   integrity sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==
 
-sass@^1.80.6:
-  version "1.80.6"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.80.6.tgz#5d0aa55763984effe41e40019c9571ab73e6851f"
-  integrity sha512-ccZgdHNiBF1NHBsWvacvT5rju3y1d/Eu+8Ex6c21nHp2lZGLBEtuwc415QfiI1PJa1TpCo3iXwwSRjRpn2Ckjg==
+sass@^1.88.0:
+  version "1.88.0"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.88.0.tgz#cd1495749bebd9e4aca86e93ee60b3904a107789"
+  integrity sha512-sF6TWQqjFvr4JILXzG4ucGOLELkESHL+I5QJhh7CNaE+Yge0SI+ehCatsXhJ7ymU1hAFcIS3/PBpjdIbXoyVbg==
   dependencies:
     chokidar "^4.0.0"
-    immutable "^4.0.0"
+    immutable "^5.0.2"
     source-map-js ">=0.6.2 <2.0.0"
   optionalDependencies:
     "@parcel/watcher" "^2.4.1"

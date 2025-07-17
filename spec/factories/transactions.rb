@@ -12,5 +12,9 @@ FactoryBot.define do
     trait :credit_transaction do
       trx_type { 'credit' }
     end
+
+    trait :non_pending do
+      skip_pending_default { true }
+    end
   end
 end

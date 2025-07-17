@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Use database indexing effectively.
+- Optimise database queries using includes, joins, select etc.. 

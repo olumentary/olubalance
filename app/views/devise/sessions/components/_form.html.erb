@@ -1,5 +1,5 @@
 <h3 class="title is-4 has-text-link">Login to olubalance</h3>
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+<%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { data: { turbo: false } }) do |f| %>
   <%= render "devise/shared/error_messages", resource: resource %>
 
   <div class="columns">
