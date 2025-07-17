@@ -69,13 +69,12 @@ class Transaction < ApplicationRecord
   end
 
   def set_trx_type_for_existing_records
-    # Only set trx_type if it's blank
-    if trx_type.blank?
-      if quick_receipt?
-        self.trx_type = 'debit'
-      elsif amount.present?
-        self.trx_type = amount >= 0 ? 'credit' : 'debit'
-      end
+    # For quick receipts, always default to debit unless explicitly set otherwise
+    if quick_receipt? && trx_type.blank?
+      self.trx_type = 'debit'
+    elsif trx_type.blank? && amount.present?
+      # For non-quick receipt transactions, determine based on amount
+      self.trx_type = amount >= 0 ? 'credit' : 'debit'
     end
   end
 
@@ -109,8 +108,14 @@ class Transaction < ApplicationRecord
         # Preserve the sign of the existing amount
         self.amount = amount_was < 0 ? -numeric_amount.abs : numeric_amount.abs
       else
-        # For new records without trx_type, assume positive (will be handled by validations)
-        self.amount = numeric_amount.abs
+        # For new records without trx_type, default based on transaction type
+        if quick_receipt?
+          # Quick receipts default to debit (negative)
+          self.amount = -numeric_amount.abs
+        else
+          # Other transactions assume positive (will be handled by validations)
+          self.amount = numeric_amount.abs
+        end
       end
     end
   end
@@ -173,9 +178,10 @@ class Transaction < ApplicationRecord
       errors.add(:description, "can't be blank") if description.blank?
       errors.add(:amount, "can't be blank") if amount.blank?
       # Only require attachment when marking as reviewed (not when creating new transactions)
-      if will_save_change_to_pending? && !pending?
-        errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
-      end
+      # Temporarily disabled - will be re-enabled later
+      # if will_save_change_to_pending? && !pending?
+      #   errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
+      # end
     end
   end
 

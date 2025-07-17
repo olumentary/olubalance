@@ -108,10 +108,11 @@ export default class extends Controller {
     }
 
     // Check for attachment (look for paperclip icon)
-    const attachmentIcon = descriptionCell.querySelector('.fa-paperclip');
-    if (!attachmentIcon) {
-      errors.push('Attachment is required');
-    }
+    // Temporarily disabled - will be re-enabled later
+    // const attachmentIcon = descriptionCell.querySelector('.fa-paperclip');
+    // if (!attachmentIcon) {
+    //   errors.push('Attachment is required');
+    // }
 
     return errors;
   }

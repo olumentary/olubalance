@@ -63,8 +63,13 @@ class TransactionsController < ApplicationController
 
   # Update action updates the transaction with the new information
   def update
-    # Preserve trx_type if not present in params
-    @transaction.trx_type = params.dig(:transaction, :trx_type) || (@transaction.amount&.negative? ? 'debit' : 'credit')
+    # For quick receipt transactions, always default to debit unless explicitly set otherwise
+    if @transaction.quick_receipt? && !params.dig(:transaction, :trx_type)
+      @transaction.trx_type = 'debit'
+    else
+      # Preserve trx_type if not present in params
+      @transaction.trx_type = params.dig(:transaction, :trx_type) || (@transaction.amount&.negative? ? 'debit' : 'credit')
+    end
 
     if @transaction.update(transaction_params)
       respond_to do |format|
