@@ -71,26 +71,26 @@ class Transaction < ApplicationRecord
   def set_trx_type_for_existing_records
     # For quick receipts, always default to debit unless explicitly set otherwise
     if quick_receipt? && trx_type.blank?
-      self.trx_type = 'debit'
+      self.trx_type = "debit"
     elsif trx_type.blank? && amount.present?
       # For non-quick receipt transactions, determine based on amount
-      self.trx_type = amount >= 0 ? 'credit' : 'debit'
+      self.trx_type = amount >= 0 ? "credit" : "debit"
     end
   end
 
   def convert_amount
     return if amount.nil?
-    
+
     # If amount is already numeric, just ensure it's a float
     if amount.is_a?(Numeric)
       numeric_amount = amount.to_f
     else
       # Try to convert string to numeric
       string_amount = amount.to_s.strip
-      
+
       # Return early if amount is not a valid numeric string, let validation handle it
       return unless string_amount.match?(/\A-?\d+(\.\d+)?\z/)
-      
+
       numeric_amount = string_amount.to_f
     end
 
@@ -142,7 +142,7 @@ class Transaction < ApplicationRecord
   def update_account_balance_edit
     return if amount.nil?
     return unless amount.is_a?(Numeric) # Ensure amount is numeric before proceeding
-    
+
     @account = Account.find(account_id)
 
     if amount_before_last_save.nil?
@@ -173,7 +173,7 @@ class Transaction < ApplicationRecord
 
   def require_fields_when_reviewed
     # Only run if being marked as reviewed (pending: false or changed from true to false)
-    if (!pending? || (will_save_change_to_pending? && !pending))
+    if !pending? || (will_save_change_to_pending? && !pending)
       errors.add(:trx_date, "can't be blank") if trx_date.blank?
       errors.add(:description, "can't be blank") if description.blank?
       errors.add(:amount, "can't be blank") if amount.blank?
@@ -187,10 +187,10 @@ class Transaction < ApplicationRecord
 
   def validate_amount_for_reviewed_transactions
     return if pending? || amount.blank? || new_record?
-    
-    if trx_type == 'debit' && amount > 0
+
+    if trx_type == "debit" && amount > 0
       errors.add(:amount, "must be negative for debit transactions")
-    elsif trx_type == 'credit' && amount < 0
+    elsif trx_type == "credit" && amount < 0
       errors.add(:amount, "must be positive for credit transactions")
     end
   end

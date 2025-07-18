@@ -67,6 +67,6 @@ module TransactionsHelper
 
   def formatted_amount_value(transaction)
     return "" unless transaction.amount
-    sprintf('%.2f', transaction.amount.abs)
+    sprintf("%.2f", transaction.amount.abs)
   end
 end

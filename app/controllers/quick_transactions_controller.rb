@@ -29,4 +29,4 @@ class QuickTransactionsController < ApplicationController
   def transaction_params
     params.require(:transaction).permit(:account_id, :attachment)
   end
-end 
+end
