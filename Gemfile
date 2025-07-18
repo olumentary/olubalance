@@ -11,6 +11,7 @@ ruby "3.4.5"
 
 gem "aws-sdk-s3"
 gem "bootsnap", require: false
+gem "bundler", "~> 2.7.0"
 gem "cssbundling-rails"
 gem "devise", "~> 4.9.0"
 gem "draper", "~> 4.0.2"
