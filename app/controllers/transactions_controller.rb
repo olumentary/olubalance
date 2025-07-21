@@ -8,7 +8,7 @@ class TransactionsController < ApplicationController
   before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment]
   before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
-  before_action :load_user_accounts, only: [ :new, :create, :edit, :update ]
+  before_action :load_user_accounts, only: [ :new, :create, :edit, :update, :index ]
 
   # Index action to render all transactions
   def index
@@ -264,7 +264,17 @@ class TransactionsController < ApplicationController
   def transaction_params
     if request.format.json?
       # For JSON requests, handle different field types
-      if params[:transaction]&.key?(:description)
+      if params[:transaction]&.key?(:description) && params[:transaction]&.key?(:amount) && params[:transaction]&.key?(:trx_type) && params[:transaction]&.key?(:trx_date)
+        # Handle full form submission (like from Quick Receipt review modal)
+        { 
+          description: params[:transaction][:description],
+          amount: params[:transaction][:amount],
+          trx_type: params[:transaction][:trx_type],
+          trx_date: params[:transaction][:trx_date],
+          memo: params[:transaction][:memo],
+          account_id: params[:transaction][:account_id]
+        }
+      elsif params[:transaction]&.key?(:description)
         { description: params[:transaction][:description] }
       elsif params[:transaction]&.key?(:amount) && params[:transaction]&.key?(:trx_type)
         # Handle both amount and trx_type together for type toggle
@@ -280,7 +290,7 @@ class TransactionsController < ApplicationController
       end
     else
       params.require(:transaction) \
-            .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id)
+            .permit(:trx_date, :description, :amount, :trx_type, :memo, :attachment, :page, :locked, :transfer, :account_id, :pending)
     end
   end
 

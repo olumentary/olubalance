@@ -110,41 +110,55 @@
       <% end %>
     </td>
 
-    <td class="has-text-right <%= 'is-hidden' if transaction.quick_receipt? %>">
+    <td class="has-text-right">
       <div class="ob-cell-content" style="border-right: none;">
         <div class="buttons are-small" style="justify-content: flex-end; margin-right: -0.5rem;">
         <% if transaction.pending? %>
-          <button type="button"
-                  data-controller="transaction-type-toggle"
-                  data-transaction-type-toggle-url-value="<%= account_transaction_path(id: transaction.id) %>"
-                  data-transaction-type-toggle-current-type-value="<%= transaction.amount&.negative? ? 'debit' : 'credit' %>"
-                  data-transaction-type-toggle-current-amount-value="<%= transaction.amount&.abs %>"
-                  data-action="click->transaction-type-toggle#toggleType"
-                  class="button is-light">
-            <span class="tag <%= transaction.amount&.negative? ? 'is-danger' : 'is-success' %> is-small">
-              <%= transaction.amount&.negative? ? 'D' : 'C' %>
-            </span>
-          </button>
-          <% unless transaction.attachment.attached? %>
+          <% if transaction.quick_receipt? %>
+            <!-- Quick Receipt Review Button -->
             <button type="button"
                     data-action="click->shared#toggleModal"
-                    data-id="attachment-modal-<%= transaction.id %>"
+                    data-id="quick-receipt-review-modal-<%= transaction.id %>"
                     class="button is-primary is-small"
-                    title="Upload attachment">
+                    title="Review Quick Receipt">
               <span class="icon has-text-white">
-                <i class="fas fa-paperclip"></i>
+                <i class="fas fa-receipt"></i>
+              </span>
+            </button>
+          <% else %>
+            <!-- Regular transaction buttons -->
+            <button type="button"
+                    data-controller="transaction-type-toggle"
+                    data-transaction-type-toggle-url-value="<%= account_transaction_path(id: transaction.id) %>"
+                    data-transaction-type-toggle-current-type-value="<%= transaction.amount&.negative? ? 'debit' : 'credit' %>"
+                    data-transaction-type-toggle-current-amount-value="<%= transaction.amount&.abs %>"
+                    data-action="click->transaction-type-toggle#toggleType"
+                    class="button is-light">
+              <span class="tag <%= transaction.amount&.negative? ? 'is-danger' : 'is-success' %> is-small">
+                <%= transaction.amount&.negative? ? 'D' : 'C' %>
+              </span>
+            </button>
+            <% unless transaction.attachment.attached? %>
+              <button type="button"
+                      data-action="click->shared#toggleModal"
+                      data-id="attachment-modal-<%= transaction.id %>"
+                      class="button is-primary is-small"
+                      title="Upload attachment">
+                <span class="icon has-text-white">
+                  <i class="fas fa-paperclip"></i>
+                </span>
+              </button>
+            <% end %>
+            <button type="button"
+                    data-controller="transaction-review"
+                    data-action="click->transaction-review#markReviewed"
+                    data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                    class="button is-light">
+              <span class="icon has-text-success">
+                <i class="fas fa-check"></i>
               </span>
             </button>
           <% end %>
-          <button type="button"
-                  data-controller="transaction-review"
-                  data-action="click->transaction-review#markReviewed"
-                  data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
-                  class="button is-light">
-            <span class="icon has-text-success">
-              <i class="fas fa-check"></i>
-            </span>
-          </button>
         <% else %>
           <button type="button"
                   data-controller="transaction-review"

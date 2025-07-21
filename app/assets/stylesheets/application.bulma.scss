@@ -98,8 +98,53 @@ a.navbar-link {
   left: 50%;
   transform: translateX(-50%);
   font-size: calc(1rem / 1.5);
-  line-height: 1rem;
-  font-weight: bold;
+}
+
+// Quick Receipt Review Modal Styles
+.quick-receipt-modal {
+  width: 90%;
+  max-width: 1200px;
+}
+
+.quick-receipt-columns {
+  .column:first-child {
+    padding-right: 1rem;
+  }
+
+  .column:last-child {
+    padding-left: 1rem;
+  }
+}
+
+.quick-receipt-container {
+  width: 100%;
+  height: 70vh;
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f5f5f5;
+}
+
+.quick-receipt-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.quick-receipt-notification {
+  margin: 1rem;
+}
+
+.quick-receipt-button-container {
+  margin: 1rem;
+}
+
+.quick-receipt-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
 }
 
 .progress.is-small + .progress-value {
@@ -232,20 +277,20 @@ a.has-text-white.sortable {
 @media screen and (max-width: 768px) {
   #transaction-search {
     width: 100%;
-    
+
     .field {
       width: 100%;
     }
-    
+
     .control {
       width: 100%;
     }
-    
+
     .input {
       width: 100%;
     }
   }
-  
+
   // Add bottom padding between mobile search and transactions table
   nav.level.is-hidden-tablet {
     margin-bottom: 1rem;

@@ -61,6 +61,10 @@ class TransactionDecorator < ApplicationDecorator
     attachment.attached? ? "Change receipt..." : "Add receipt..."
   end
 
+  def button_label
+    new_record? ? "Create Transaction" : "Update Transaction"
+  end
+
   def running_balance_display
     number_to_currency(running_balance)
   end

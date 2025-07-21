@@ -1,0 +1,258 @@
+<!-- Modal for Quick Receipt Review -->
+<div 
+  id="quick-receipt-review-modal-<%= transaction.id %>" 
+  class="modal"
+  style="z-index: 9999" 
+  data-shared-target="modal"
+  data-controller="quick-receipt-review"
+  data-quick-receipt-review-url-value="<%= account_transaction_path(id: transaction.id) %>"
+>
+  <div 
+    class="modal-background"
+    data-action="click->shared#toggleModal"
+    data-id="quick-receipt-review-modal-<%= transaction.id %>"
+  ></div>
+  <div class="modal-content quick-receipt-modal">
+    <div class="card">
+      <header class="card-header has-background-primary">
+        <p class="card-header-title has-text-white">
+          <span class="icon">
+            <i class="fas fa-receipt"></i>
+          </span>
+          <span>Review Quick Receipt</span>
+        </p>
+        <button 
+          class="delete" 
+          aria-label="close"
+          data-action="click->shared#toggleModal"
+          data-id="quick-receipt-review-modal-<%= transaction.id %>"
+          style="margin: 0.75rem;"
+        ></button>
+      </header>
+      <section class="card-content">
+        <div class="columns quick-receipt-columns">
+          <!-- Left Column - Transaction Form -->
+          <div class="column is-6">
+            <div class="content">
+              <h4 class="title is-5 mb-4">Transaction Details</h4>
+              
+              <%= form_for([transaction.account, transaction], 
+                          html: { 
+                            data: { 
+                              "quick-receipt-review-target": "form",
+                              controller: "trxform"
+                            }
+                          }) do |f| %>
+                
+                <% if transaction.errors.any? %>
+                  <article class="message is-danger">
+                    <div class="message-header">
+                      Something went wrong!
+                    </div>
+                    <div class="message-body content">
+                      Please correct the following <span class="has-text-weight-bold"><%= pluralize(transaction.errors.count, "error") %></span>:
+                      <ul>
+                        <% transaction.errors.full_messages.each do |msg| %>
+                          <li><%= msg %></li>
+                        <% end %>
+                      </ul>
+                    </div>
+                  </article>
+                <% end %>
+
+                <!-- Account Selection -->
+                <div class="field">
+                  <label class="label has-text-grey">Account</label>
+                  <div class="control has-icons-left">
+                    <div class="select is-fullwidth is-primary">
+                      <%= f.select :account_id,
+                                  @user_accounts.map { |a| [a.name, a.id] },
+                                  { selected: transaction.account_id },
+                                  { data: { action: "change->trxform#accountChanged" } } %>
+                    </div>
+                    <div class="icon is-small is-left has-text-primary">
+                      <i class="fas fa-piggy-bank"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Transaction Type -->
+                <div class="field">
+                  <%= f.label :trx_type, class: "label has-text-grey" do %>Transaction Type<% end %>
+                  <div class="control" data-controller="trxtype-radio-buttons">
+                    <div class="buttons are-small">
+                      <button
+                        type="button"
+                        class="button is-success is-outlined"
+                        data-trxtype-radio-buttons-target="button"
+                        data-value="credit"
+                        id="creditType-<%= transaction.id %>"
+                      >
+                        Credit
+                      </button>
+                      <button
+                        type="button"
+                        class="button is-danger is-outlined"
+                        data-trxtype-radio-buttons-target="button"
+                        data-value="debit"
+                        id="debitType-<%= transaction.id %>"
+                      >
+                        Debit
+                      </button>
+                    </div>
+                    <%= f.hidden_field :trx_type, 
+                          value: transaction.trx_type_value_form,
+                          data: { trxtype_radio_buttons_target: "input" }
+                    %>
+                  </div>
+                </div>
+
+                <!-- Date -->
+                <div class="field">
+                  <label class="label has-text-grey">Date</label>
+                  <div class="control">
+                    <%= f.date_field :trx_date, class: "input is-primary", type: "date", value: transaction.trx_date_form_value %>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <div class="field">
+                  <label class="label has-text-grey">Description</label>
+                  <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>" style="position: relative;">
+                    <%= f.text_field :description, class: "input is-primary",
+                                                placeholder: "Description",
+                                                data: { 
+                                                  typeahead_target: "input",
+                                                  action: "input->typeahead#search blur->typeahead#hideSuggestions"
+                                                } %>
+                    <span class="icon is-small is-left has-text-primary">
+                      <i class="fas fa-file-alt"></i>
+                    </span>
+                    <div class="dropdown-menu is-hidden" data-typeahead-target="suggestions" style="position: absolute; top: 100%; left: 0; right: 0; z-index: 100;">
+                      <div class="dropdown-content" style="max-height: 200px; overflow-y: auto;" data-typeahead-target="content"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="field">
+                  <label class="label has-text-grey">Amount</label>
+                  <div class="control has-icons-left">
+                    <%= f.text_field :amount, class: "input is-primary",
+                                            placeholder: "5.00",
+                                            value: transaction.amount_form %>
+                    <span class="icon is-small is-left has-text-primary">
+                      <i class="fas fa-dollar-sign"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Memo -->
+                <div class="field">
+                  <label class="label has-text-grey">Memo</label>
+                  <div class="control has-icons-left">
+                    <%= f.text_field :memo, class: "input is-primary",
+                                            placeholder: "Memo" %>
+                    <span class="icon is-small is-left has-text-primary">
+                      <i class="fas fa-info-circle"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="notification is-info is-light">
+                  <span class="icon">
+                    <i class="fas fa-info-circle"></i>
+                  </span>
+                  <span>Fill in the transaction details based on the receipt image shown on the right.</span>
+                </div>
+
+                <!-- Hidden submit button for form submission -->
+                <%= f.submit "Save Transaction", 
+                            type: 'submit',
+                            class: "button is-primary is-hidden",
+                            data: { "quick-receipt-review-target": "submitButton" } %>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Right Column - Attachment Preview -->
+          <div class="column is-6">
+            <div class="content">
+              <h4 class="title is-5 mb-4">Receipt Preview</h4>
+              
+              <% if transaction.attachment.attached? %>
+                <div class="receipt-container quick-receipt-container">
+                  <% if transaction.attachment.content_type.start_with?('image/') %>
+                    <!-- Loading indicator -->
+                    <div class="quick-receipt-loading" data-quick-receipt-review-target="loadingIndicator">
+                      <div class="has-text-centered">
+                        <span class="icon is-large">
+                          <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                        <p class="mt-2">Loading receipt...</p>
+                      </div>
+                    </div>
+                    
+                    <%= image_tag transaction.attachment, 
+                                  class: "receipt-preview quick-receipt-image is-hidden", 
+                                  data: { 
+                                    "quick-receipt-review-target": "receiptImage",
+                                    action: "load->quick-receipt-review#imageLoaded"
+                                  } %>
+                  <% elsif transaction.attachment.content_type == 'application/pdf' %>
+                    <div class="notification is-warning is-light quick-receipt-notification">
+                      <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                      </span>
+                      <span>PDF receipt attached. Please download to view.</span>
+                    </div>
+                    <div class="has-text-centered quick-receipt-button-container">
+                      <%= link_to "Download PDF", rails_blob_path(transaction.attachment, disposition: "attachment"), 
+                                  class: "button is-primary",
+                                  target: "_blank" %>
+                    </div>
+                  <% else %>
+                    <div class="notification is-warning is-light quick-receipt-notification">
+                      <span class="icon">
+                        <i class="fas fa-file"></i>
+                      </span>
+                      <span>File attached: <%= transaction.attachment.filename %></span>
+                    </div>
+                    <div class="has-text-centered quick-receipt-button-container">
+                      <%= link_to "Download File", rails_blob_path(transaction.attachment, disposition: "attachment"), 
+                                  class: "button is-primary",
+                                  target: "_blank" %>
+                    </div>
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="notification is-warning is-light">
+                  <span class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                  </span>
+                  <span>No receipt attached to this transaction.</span>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer class="card-footer">
+        <button 
+          class="card-footer-item has-text-weight-bold has-text-grey"
+          data-action="click->shared#toggleModal"
+          data-id="quick-receipt-review-modal-<%= transaction.id %>"
+        >
+          Cancel
+        </button>
+        <button 
+          class="card-footer-item has-text-weight-bold has-text-primary"
+          data-action="click->quick-receipt-review#saveTransaction"
+          data-quick-receipt-review-target="saveButton"
+        >
+          Save & Review
+        </button>
+      </footer>
+    </div>
+  </div>
+</div> 

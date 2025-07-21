@@ -95,4 +95,9 @@
   <% @transactions.select(&:pending?).each do |transaction| %>
     <%= render partial: "transactions/components/attachmentModal", locals: { transaction: transaction } %>
   <% end %>
+
+  <!-- Quick Receipt Review Modals -->
+  <% @transactions.select { |t| t.quick_receipt? && t.pending? }.each do |transaction| %>
+    <%= render partial: "transactions/components/quickReceiptReviewModal", locals: { transaction: transaction } %>
+  <% end %>
 <% end %>
