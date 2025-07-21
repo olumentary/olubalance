@@ -1,24 +1,28 @@
 $family-primary: 'Inter-Regular';
-$primary: #1e3a8a;
+$primary: #2e3d6b;
+$text: #2e3d6b;
 $danger: #f14668;
 $warning: hsl(44, 100%, 77%);
-$link: #1e3a8a;
+$link: #2e3d6b;
 $white-ter: hsl(45, 20%, 95%);
 $table-color: hsl(0, 0%, 35%);
 $modal-background-background-color: rgba(0, 0, 0, 0.5);
-$light: hsl(210, 20%, 96%);
-$background: hsl(45, 25%, 95%);
+$light: #eef2ff;
+$background: hsl(40, 75%, 97%);
+$footer-background-color: hsl(40, 75%, 97%);
 
 // Set Bulma Variables
 @use 'bulma/sass' with (
   $family-primary: $family-primary,
   $primary: $primary,
+  $text: $text,
   $danger: $danger,
   $warning: $warning,
   $link: $link,
   $light: $light,
   $white-ter: $white-ter,
   $background: $background,
+  $footer-background-color: $footer-background-color,
   $table-head-background-color: $primary,
   $table-head-cell-color: $white-ter,
   $table-color: $table-color,
