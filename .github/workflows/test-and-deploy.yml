@@ -84,4 +84,4 @@ jobs:
         with:
           git_remote_url: ${{ secrets.DOKKU_GIT_REMOTE_URL }}
           ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
-          ssh_known_hosts: ${{ secrets.DOKKU_SSH_KNOWN_HOSTS }}
+          ssh_host_key: ${{ secrets.DOKKU_SSH_HOST_KEY }}
