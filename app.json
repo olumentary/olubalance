@@ -2,6 +2,9 @@
   "name": "olubalance",
   "description": "olubalance",
   "keywords": [],
+  "scripts": {
+    "dokku": {}
+  },
   "release": {
     "command": "bundle exec rake db:migrate"
   },
@@ -13,6 +16,7 @@
       "url": "https://github.com/heroku/heroku-buildpack-ruby"
     }
   ],
+  "packages": ["imagemagick", "libmagickwand-dev"],
   "healthchecks": {
     "web": [
       {
