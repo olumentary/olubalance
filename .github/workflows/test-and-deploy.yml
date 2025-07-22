@@ -48,6 +48,11 @@ jobs:
           bundle install
           yarn install
 
+      - name: Build assets
+        run: |
+          yarn build:css
+          yarn build
+
       - name: Set up database
         env:
           RAILS_ENV: test
