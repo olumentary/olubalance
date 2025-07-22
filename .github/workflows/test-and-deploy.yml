@@ -79,16 +79,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DOKKU_SSH_HOST_KEY }}" >> ~/.ssh/known_hosts
-          echo "${{ secrets.DOKKU_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          eval $(ssh-agent -s)
-          echo "${{ secrets.DOKKU_SSH_PASSPHRASE }}" | ssh-add ~/.ssh/id_rsa
-
-      - name: Deploy to Dokku
-        run: |
-          git remote add dokku ${{ secrets.DOKKU_GIT_REMOTE_URL }}
-          git push dokku develop
+      - name: Deploy to Dokku Staging
+        uses: dokku/github-action@v1.0.0
+        with:
+          git_remote_url: ${{ secrets.DOKKU_GIT_REMOTE_URL }}
+          ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+          ssh_host_key: ${{ secrets.DOKKU_SSH_HOST_KEY }}
