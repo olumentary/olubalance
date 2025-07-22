@@ -13,7 +13,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
@@ -54,8 +54,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/olubalance_test
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
         run: |
-          bundle exec rails db:create
-          bundle exec rails db:schema:load
+          bundle exec rails db:reset
 
       - name: Run tests
         env:
