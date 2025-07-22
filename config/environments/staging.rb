@@ -23,10 +23,6 @@ Rails.application.configure do
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
 
-  # Add asset compression
-  config.assets.js_compressor = :esbuild
-  config.assets.css_compressor = :sass
-
   # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
@@ -65,7 +61,6 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   config.action_mailer.default_url_options = { host: 'olubalance.com' }
-
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.default :charset => "utf-8"
