@@ -11,3 +11,7 @@ amazon:
   secret_access_key: <%= ENV['AWS_SECRET_ACCESS_KEY'] %>
   region: <%= ENV['S3_REGION'] %>
   bucket: <%= ENV['S3_BUCKET_NAME'] %>
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
