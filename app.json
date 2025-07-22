@@ -3,10 +3,9 @@
   "description": "olubalance",
   "keywords": [],
   "scripts": {
-    "dokku": {}
-  },
-  "release": {
-    "command": "bundle exec rake db:migrate"
+    "dokku": {
+      "release": "bundle exec rake db:migrate"
+    }
   },
   "buildpacks": [
     {
@@ -23,20 +22,22 @@
         "type": "startup",
         "name": "web check",
         "description": "Checking if the web process is responding",
-        "path": "/",
+        "path": "/up",
         "attempts": 3,
         "timeout": 5,
         "interval": 10,
-        "grace": 30
+        "grace": 30,
+        "status": 200
       },
       {
         "type": "liveness",
         "name": "web check",
         "description": "Checking if the web process is still responding",
-        "path": "/",
+        "path": "/up",
         "attempts": 3,
         "timeout": 5,
-        "interval": 30
+        "interval": 30,
+        "status": 200
       }
     ]
   }

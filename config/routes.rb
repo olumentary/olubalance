@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Rails 7.1+ health check endpoint
+  get "up" => "rails/health#show", as: :rails_health_check
+
   devise_scope :user do
     get "/sign_in" => "devise/sessions#new"
   end
