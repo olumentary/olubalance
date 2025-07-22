@@ -4,7 +4,7 @@
   "keywords": [],
   "scripts": {
     "dokku": {
-      "release": "bundle exec rake db:migrate"
+      "postdeploy": "bundle exec rake db:migrate"
     }
   },
   "buildpacks": [
