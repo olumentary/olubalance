@@ -613,12 +613,22 @@ namespace :storage do
     puts "Switching to: #{target_service}"
     Rails.application.config.active_storage.service = target_service
     
-    # Create a test blob
+    # Create a test blob with a unique key
     puts "Creating test blob..."
     test_content = "This is a test file for Linode upload verification. Created at #{Time.current}"
+    test_key = "test-upload-linode-verification-#{Time.current.to_i}"
+    test_filename = "test-upload-linode-verification-#{Time.current.to_i}.txt"
+    
+    # Clean up any existing test blobs first
+    existing_test_blobs = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
+    if existing_test_blobs.any?
+      puts "Cleaning up #{existing_test_blobs.count} existing test blobs..."
+      existing_test_blobs.destroy_all
+    end
+    
     test_blob = ActiveStorage::Blob.create!(
-      key: "test-upload-linode-verification",
-      filename: "test-upload-linode-verification.txt",
+      key: test_key,
+      filename: test_filename,
       content_type: "text/plain",
       metadata: {},
       byte_size: test_content.bytesize,
@@ -795,16 +805,12 @@ namespace :storage do
     Rails.application.config.active_storage.service = target_service
     
     # Look for the test blob created by the upload task
-    test_key = "test-upload-linode-verification"
-    test_filename = "test-upload-linode-verification.txt"
-    
     puts "Looking for test blob created by upload task..."
-    puts "  Key: #{test_key}"
-    puts "  Filename: #{test_filename}"
-    puts ""
     
-    # Try to find the blob in the database
-    test_blob = ActiveStorage::Blob.find_by(key: test_key)
+    # Try to find the most recent test blob in the database
+    test_blob = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
+                                   .order(created_at: :desc)
+                                   .first
     
     if test_blob.nil?
       puts "✗ Test blob not found in database"
@@ -910,6 +916,33 @@ namespace :storage do
     puts "\nSwitched back to: #{original_service}"
     
     puts "\nDelete test completed!"
+  end
+  
+  desc 'Clean up test blobs created by the test tasks'
+  task cleanup_test_blobs: :environment do
+    puts "Cleaning up test blobs..."
+    
+    # Find all test blobs
+    test_blobs = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
+    
+    if test_blobs.any?
+      puts "Found #{test_blobs.count} test blobs to clean up:"
+      test_blobs.each do |blob|
+        puts "  - #{blob.key} (#{blob.filename})"
+      end
+      
+      print "Do you want to delete these test blobs? (y/N): "
+      confirmation = STDIN.gets.chomp
+      
+      if confirmation.downcase == 'y'
+        test_blobs.destroy_all
+        puts "✓ Test blobs cleaned up"
+      else
+        puts "Cleanup cancelled"
+      end
+    else
+      puts "No test blobs found"
+    end
   end
   
   desc 'Show current storage configuration and attachment counts'
