@@ -5,7 +5,8 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   devise_scope :user do
-    get "/sign_in" => "devise/sessions#new"
+    # Redirect old login path to home page for streamlined experience
+    get "/sign_in" => redirect("/")
   end
 
   devise_for :users, skip: [ :registrations ], controllers: { registrations: "registrations" }

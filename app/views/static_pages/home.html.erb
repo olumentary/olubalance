@@ -1,19 +1,61 @@
 <section class="hero is-large is-primary">
     <div class="hero-body">
-        <p class="title is-size-2 is-size-5-mobile has-text-centered has-text-white-ter has-text-shadow">
-            olubalance
-        </p>
-        <p class="title is-size-4 is-size-6-mobile has-text-centered has-text-white-ter has-text-shadow">
-            A personal finance tool designed to help balance and reconcile your accounts.
-        </p>
-        <p class="has-text-centered">
-            <%= link_to new_user_session_path, class: "button is-white has-text-link" do %>
-                <span class="icon">
-                    <i class="fas fa-sign-in-alt"></i>
-                </span>
-                <span>Login</span>
-            <% end %>
-        </p>
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-6-desktop is-8-tablet">
+                    <div class="box">
+                        <div class="has-text-centered mb-5">
+                            <p class="title is-size-2 is-size-4-mobile has-text-link">
+                                olubalance
+                            </p>
+                            <p class="subtitle is-size-5 is-size-6-mobile has-text-grey">
+                                A personal finance tool designed to help balance and reconcile your accounts.
+                            </p>
+                        </div>
+
+                        <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { data: { turbo: false } }) do |f| %>
+                            <%= render "devise/shared/error_messages", resource: resource %>
+
+                            <div class="field">
+                                <label class="label has-text-grey">Email Address</label>
+                                <div class="control has-icons-left">
+                                    <%= f.text_field :email, class: "input is-primary",
+                                                    placeholder: "john@gmail.com",
+                                                    autocomplete: "email" %>
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label has-text-grey">Password</label>
+                                <div class="control has-icons-left">
+                                    <%= f.password_field :password, class: "input is-primary",
+                                                        placeholder: "Password",
+                                                        autocomplete: "current-password" %>
+                                    <span class="icon is-small is-left">
+                                        <i class="fas fa-lock"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="control">
+                                    <%= f.button "Login", class: "button is-primary is-fullwidth is-medium" %>
+                                </div>
+                            </div>
+                        <% end %>
+
+                        <div class="has-text-centered mt-4">
+                            <%- if devise_mapping.recoverable? %>
+                                <%= link_to "Forgot your password?", new_password_path(resource_name), class: "has-text-link" %>
+                            <% end %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
