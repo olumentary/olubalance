@@ -102,5 +102,5 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.active_storage.service = :amazon
+  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'linode_dev').to_sym
 end
