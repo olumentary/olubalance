@@ -1,0 +1,26 @@
+<div class="container mobile-home">
+  <div class="columns is-centered">
+    <div class="column is-full-mobile is-half-tablet">
+      <div class="has-text-centered">
+        <h1 class="title is-3 mb-6">Welcome, <%= current_user.first_name %> 👋</h1>
+        
+        <!-- Large Upload Receipt Button -->
+        <div class="mb-6">
+          <%= link_to new_quick_transaction_path, class: "button is-primary is-large is-fullwidth has-text-weight-bold" do %>
+            <span class="icon is-large">
+              <i class="fas fa-receipt fa-2x"></i>
+            </span>
+            <span class="is-size-4">Upload Receipt</span>
+          <% end %>
+        </div>
+
+        <!-- View Accounts Link -->
+        <div class="mb-4 has-text-centered">
+          <%= link_to accounts_path, class: "has-text-link has-text-weight-bold is-underlined" do %>
+            <span>All Accounts</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

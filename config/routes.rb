@@ -42,8 +42,11 @@ Rails.application.routes.draw do
   resources :transfers, only: %i[create]
   resources :quick_transactions, only: [ :new, :create ]
 
+  # Mobile home page route
+  get "mobile_home" => "static_pages#mobile_home", as: :mobile_home
+
   authenticated do
-    root to: "accounts#index", as: :authenticated_root
+    root to: "static_pages#home", as: :authenticated_root
   end
 
   devise_scope :user do

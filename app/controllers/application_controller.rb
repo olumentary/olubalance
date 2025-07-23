@@ -4,7 +4,6 @@ class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
 
   before_action :set_timezone
-
   before_action :assign_navbar_content
   before_action :configure_permitted_parameters, if: :devise_controller?
 
@@ -15,6 +14,13 @@ class ApplicationController < ActionController::Base
   def assign_navbar_content
     @navbar_accounts = current_user.accounts if user_signed_in?
   end
+
+  # Helper method to detect mobile devices
+  def mobile_device?
+    request.user_agent =~ /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+  end
+
+  helper_method :mobile_device?
 
   protected
 

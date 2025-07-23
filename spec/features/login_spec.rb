@@ -9,7 +9,8 @@ RSpec.feature "Logins", type: :feature do
     fill_in "user_password", with: user.password
     click_button "Login"
 
-    expect(page).to have_content("Accounts")
+    # Check for either mobile home content or desktop accounts content
+    expect(page).to have_content(/Accounts|Upload Receipt/)
   end
 
   scenario "user logs in unsuccessfully" do

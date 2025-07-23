@@ -35,12 +35,12 @@
     #
     #########################################################################-->
 
-    <div id="app">
+    <div id="app" class="is-flex is-flex-direction-column min-vh-100">
       <header>
         <%= render "shared/navbar" %>
       </header>
 
-      <main class="olubalance site-content">
+      <main class="olubalance site-content is-flex-grow-1">
         <section class="section">
           <div class="container">
             <div id="flash_messages"></div>
@@ -60,7 +60,7 @@
         </section>
       </main>
 
-      <footer class="footer">
+      <footer class="footer mt-auto">
         <%= render "shared/footer" %>
       </footer>
     </div>
