@@ -9,7 +9,7 @@ RSpec.describe "Transaction management", type: :request do
     @transaction = FactoryBot.create(:transaction, :non_pending, trx_date: Date.today, description: "Transaction 1", amount: @trx_amount, trx_type: 'debit', memo: 'Memo 1', account: @account)
   end
 
-  it "redirects to login page if not logged in" do
+  it "redirects to login page when not authenticated" do
     get accounts_path
     expect(response).to redirect_to new_user_session_path
   end

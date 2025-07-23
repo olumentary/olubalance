@@ -7,7 +7,7 @@ RSpec.describe "Account management", type: :request do
     @account_starting_balance = "$5,000.00"
   end
 
-  it "redirects to login page if not logged in" do
+  it "redirects to login page when not authenticated" do
     get accounts_path
     expect(response).to redirect_to new_user_session_path
   end

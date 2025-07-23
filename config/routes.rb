@@ -4,10 +4,6 @@ Rails.application.routes.draw do
   # Rails 7.1+ health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
-  devise_scope :user do
-    get "/sign_in" => "devise/sessions#new"
-  end
-
   devise_for :users, skip: [ :registrations ], controllers: { registrations: "registrations" }
 
   as :user do
@@ -44,12 +40,13 @@ Rails.application.routes.draw do
   end
 
   resources :transfers, only: %i[create]
-
   resources :quick_transactions, only: [ :new, :create ]
 
   authenticated do
     root to: "accounts#index", as: :authenticated_root
   end
 
-  root to: "static_pages#home"
+  devise_scope :user do
+    root to: "devise/sessions#new"
+  end
 end
