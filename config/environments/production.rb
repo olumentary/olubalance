@@ -29,7 +29,9 @@ Rails.application.configure do
   config.assets.compile = false
 
   # Store uploaded files on Amazon S3 (see config/storage.yml for options).
-  config.active_storage.service = :amazon
+  # Use STORAGE_SERVICE environment variable to switch between services
+  # Options: :amazon, :linode
+  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'amazon').to_sym
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true

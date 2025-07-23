@@ -221,17 +221,19 @@ accounts.each do |account|
     )
   end
 
-  # Create 2 transactions with attachments for each Account
-  2.times do
-    t = Transaction.create!(
-          trx_date: Faker::Date.backward(days: 1),
-          description: 'Attachment Test Transaction',
-          amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
-          trx_type: 'debit',
-          skip_pending_default: true,
-          account: account
-        )
-    t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png', content_type: 'image/png')
+  # Create 10 transactions with attachments for the first account only (for migration testing)
+  if account == accounts.first
+    10.times do |i|
+      t = Transaction.create!(
+            trx_date: Faker::Date.backward(days: 1),
+            description: "Migration Test Transaction #{i + 1}",
+            amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
+            trx_type: 'debit',
+            skip_pending_default: true,
+            account: account
+          )
+      t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: "migration-test-#{i + 1}.png", content_type: 'image/png')
+    end
   end
 
   # Create 2 pending transactions
