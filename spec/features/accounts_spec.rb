@@ -5,14 +5,9 @@ RSpec.feature "Accounts", type: :feature do
     @user = FactoryBot.create(:user)
 
     visit root_path
-    within "header" do
-      click_link "Login"
-    end
     fill_in "user_email", with: @user.email
     fill_in "user_password", with: @user.password
-    within ".olubalance" do
-      click_button "Login"
-    end
+    click_button "Login"
   end 
 
   scenario "user creates a new account and renames it" do
