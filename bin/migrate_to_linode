@@ -5,6 +5,27 @@
 
 set -e
 
+# Load environment variables from application.yml if it exists
+if [ -f "config/application.yml" ]; then
+    echo "📁 Loading environment variables from config/application.yml..."
+    while IFS=': ' read -r key value; do
+        # Skip empty lines and comments
+        if [[ -n "$key" && ! "$key" =~ ^[[:space:]]*# ]]; then
+            # Remove leading/trailing whitespace
+            key=$(echo "$key" | xargs)
+            value=$(echo "$value" | xargs)
+            
+            # Export the variable
+            export "$key=$value"
+        fi
+    done < config/application.yml
+    echo "✅ Environment variables loaded"
+    echo ""
+else
+    echo "⚠️  config/application.yml not found - using existing environment variables"
+    echo ""
+fi
+
 echo "🚀 Starting Linode storage migration process..."
 echo ""
 
@@ -24,20 +45,39 @@ echo ""
 echo "🔧 Step 2: Verifying Linode configuration..."
 if [ -z "$LINODE_ACCESS_KEY_ID" ] || [ -z "$LINODE_SECRET_ACCESS_KEY" ] || [ -z "$LINODE_ENDPOINT" ]; then
     echo "❌ Error: Linode environment variables are not set"
-    echo "   Please ensure the following are set:"
+    echo "   Please ensure the following are set in config/application.yml or environment:"
     echo "   - LINODE_ACCESS_KEY_ID"
     echo "   - LINODE_SECRET_ACCESS_KEY"
     echo "   - LINODE_ENDPOINT"
     echo "   - LINODE_REGION"
     echo "   - LINODE_BUCKET_NAME (or LINODE_BUCKET_NAME_DEV for non-production)"
+    echo ""
+    echo "   You can copy config/application.yml.sample to config/application.yml and fill in your values"
     exit 1
 fi
 
 echo "✅ Linode configuration appears to be set"
+echo "   Access Key ID: ${LINODE_ACCESS_KEY_ID:0:8}..."
+echo "   Endpoint: $LINODE_ENDPOINT"
+echo "   Region: $LINODE_REGION"
+echo "   Bucket: $LINODE_BUCKET_NAME"
 echo ""
 
-# Step 3: Run the migration
-echo "🔄 Step 3: Running migration..."
+# Step 3: Test Linode configuration (optional)
+echo "🧪 Step 3: Test Linode configuration (optional)"
+echo "   This will test the Linode connection and upload a test file"
+echo ""
+
+read -p "Do you want to test the Linode configuration first? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Testing Linode configuration..."
+    bundle exec rails storage:test_linode_upload
+    echo ""
+fi
+
+# Step 4: Run the migration
+echo "🔄 Step 4: Running migration..."
 echo "   This will migrate all transaction attachments from AWS S3 to Linode"
 echo ""
 
@@ -65,6 +105,19 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo ""
 fi
 
+# Step 4.5: Validate files in Linode bucket
+echo "🔍 Step 4.5: Validating files in Linode bucket..."
+echo "   This will check that files actually exist in the Linode bucket"
+echo ""
+
+read -p "Do you want to validate the bucket contents? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Running bucket validation..."
+    bundle exec rails storage:validate_linode_bucket
+    echo ""
+fi
+
 # Step 5: Update storage configuration
 echo "⚙️  Step 5: Updating storage configuration..."
 echo "   This will switch the application to use Linode storage"
@@ -77,21 +130,54 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     
     # Update the environment configuration
     if [ "$RAILS_ENV" = "production" ]; then
-        # For production, you'll need to update the environment configuration
-        echo "   Please update your production environment to use :linode storage"
-        echo "   In config/environments/production.rb, change:"
-        echo "   config.active_storage.service = :linode"
+        echo "   For production, set the STORAGE_SERVICE environment variable:"
+        echo "   export STORAGE_SERVICE=linode"
+        echo ""
+        echo "   Or add to your application.yml or environment configuration:"
+        echo "   STORAGE_SERVICE: linode"
     else
-        # For development/staging
-        echo "   Please update your environment configuration to use :linode_dev storage"
-        echo "   In config/environments/development.rb, change:"
-        echo "   config.active_storage.service = :linode_dev"
+        echo "   For development/staging, set the STORAGE_SERVICE environment variable:"
+        echo "   export STORAGE_SERVICE=linode_dev"
+        echo ""
+        echo "   Or add to your application.yml or environment configuration:"
+        echo "   STORAGE_SERVICE: linode_dev"
     fi
+    echo ""
+    echo "   After setting the environment variable, restart your application."
+    echo "   No code deployment required!"
     echo ""
 fi
 
-# Step 6: Cleanup (optional)
-echo "🧹 Step 6: Cleanup (optional)"
+# Step 6: Recovery (if needed)
+echo "🔧 Step 6: Recovery (if needed)"
+echo "   This will attempt to recover missing files from AWS S3"
+echo "   Use this if files are missing from both AWS and Linode"
+echo ""
+
+read -p "Do you need to recover missing files? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Running recovery..."
+    bundle exec rails storage:recover_missing_files
+    echo ""
+fi
+
+# Step 7: Rollback (if needed)
+echo "🔄 Step 7: Rollback (if needed)"
+echo "   This will restore blobs back to AWS S3 if the migration failed"
+echo "   Only use this if you need to undo the migration"
+echo ""
+
+read -p "Do you need to rollback the migration? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Running rollback..."
+    bundle exec rails storage:rollback_migration
+    echo ""
+fi
+
+# Step 7: Cleanup (optional)
+echo "🧹 Step 7: Cleanup (optional)"
 echo "   This will permanently delete all attachments from AWS S3"
 echo "   Only run this after you're confident the migration was successful"
 echo ""
