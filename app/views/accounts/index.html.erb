@@ -1,1 +1,77 @@
-<%= render "accounts/index" %>
+<%= render partial: "accounts/components/accountLevel" %>
+<%= render partial: "accounts/components/noAccounts", locals: { description: Account::NO_ACCOUNT_DESC } if @accounts.empty? %>
+
+<div class="is-hidden-desktop has-text-centered mb-4">
+  <%= link_to new_quick_transaction_path, class: "button is-primary is-fullwidth" do %>
+    <span class="icon">
+      <i class="fas fa-receipt"></i>
+    </span>
+    <span>Quick Receipt</span>
+  <% end %>
+</div>
+
+<% if !@accounts_checking.empty? %>
+  <div class="container">
+    <p class="title mb-10 is-size-5 has-text-link">Checking</p>
+    <nav class="level is-mobile">
+      <div class="level-left">
+        <div class="level-item">
+          <div>
+            <p class="heading">Total</p>
+            <p class="title is-size-6"><%= number_to_currency(@checking_total) %></p>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="columns is-multiline" id="accounts" data-controller="shared">
+      <%= render partial: "accounts/components/accountCard", collection: @accounts_checking, as: :account, locals: { active: true } %>
+    </div>
+  </div>
+<% end %>
+
+<% if !@accounts_credit.empty? %>
+  <div class="container">
+    <hr/>
+    <p class="title mb-10 is-size-5 has-text-link">Credit Cards</p>
+    <nav class="level is-mobile">
+      <div class="level-left">
+        <div class="level-item">
+          <div>
+            <p class="heading">Total</p>
+            <p class="title is-size-6"><%= number_to_currency(@credit_total) %></p>
+          </div>
+        </div>
+        <div class="level-item ml-15">
+          <div>
+            <p class="heading">Utilization</p>
+            <p class="title is-size-6"><%= @credit_utilization_total %>%</p>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="columns is-multiline" id="accounts" data-controller="shared">
+      <%= render partial: "accounts/components/accountCard", collection: @accounts_credit, as: :account, locals: { active: true } %>
+    </div>
+  </div>
+<% end %>
+
+<% if !@accounts_savings_cash.empty? %>
+  <div class="container">
+    <hr/>
+    <p class="title mb-10 is-size-5 has-text-link">Savings & Cash</p>
+    <nav class="level is-mobile">
+      <div class="level-left">
+        <div class="level-item">
+          <div>
+            <p class="heading">Total</p>
+            <p class="title is-size-6"><%= number_to_currency(@savings_cash_total) %></p>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="columns is-multiline" id="accounts" data-controller="shared">
+      <%= render partial: "accounts/components/accountCard", collection: @accounts_savings_cash, as: :account, locals: { active: true } %>
+    </div>
+  </div>
+<% end %>

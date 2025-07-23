@@ -46,7 +46,27 @@
   </div>
 </div>
 
-<!-- Desktop Home Page (shows accounts as before) -->
+<!-- Desktop Home Page -->
 <div class="is-hidden-touch">
-  <%= render "accounts/index" %>
+  <div class="has-text-centered">
+    <h1 class="title is-4 mb-6">Welcome to OluBalance</h1>
+    
+    <div class="mb-6">
+      <%= link_to new_quick_transaction_path, class: "button is-primary is-large" do %>
+        <span class="icon is-large">
+          <i class="fas fa-camera"></i>
+        </span>
+        <span>Upload Receipt</span>
+      <% end %>
+    </div>
+    
+    <div class="mb-4">
+      <%= link_to accounts_path, class: "button is-outlined is-medium" do %>
+        <span class="icon">
+          <i class="fas fa-wallet"></i>
+        </span>
+        <span>View Accounts</span>
+      <% end %>
+    </div>
+  </div>
 </div>

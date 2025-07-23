@@ -24,6 +24,16 @@
     <%= render "shared/environment" if !Rails.env.production? %>
     
     <div class="navbar-end">
+      <% if user_signed_in? %>
+        <div class="navbar-item">
+          <%= link_to accounts_path, class: "button is-outlined" do %>
+            <span class="icon">
+              <i class="fas fa-wallet"></i>
+            </span>
+            <span>Accounts</span>
+          <% end %>
+        </div>
+      <% end %>
       <div class="navbar-item">
         <div class="buttons">
           <%= render "shared/guestlinks" if !user_signed_in? %>
