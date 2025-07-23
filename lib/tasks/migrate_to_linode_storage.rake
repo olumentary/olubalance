@@ -44,7 +44,7 @@ namespace :storage do
         downloaded_file = attachment.download
         
         # Temporarily switch to Linode storage
-        Rails.application.config.active_storage.service = Rails.env.production? ? :linode : :linode_dev
+        Rails.application.config.active_storage.service = :linode
         
         # Upload to Linode
         puts "  Uploading to Linode..."
@@ -110,7 +110,8 @@ namespace :storage do
     puts ""
     
     # Find all blobs that are currently stored on AWS
-    aws_service_name = Rails.env.production? ? 'amazon' : 'amazondev'
+    current_service = Rails.application.config.active_storage.service.to_s
+    aws_service_name = current_service
     puts "Looking for blobs with service_name: #{aws_service_name}"
     
     aws_blobs = ActiveStorage::Blob.joins(:attachments)
@@ -146,7 +147,7 @@ namespace :storage do
           metadata: blob.metadata,
           byte_size: blob.byte_size,
           checksum: blob.checksum,
-          service_name: Rails.env.production? ? 'linode' : 'linode_dev'
+          service_name: 'linode'
         )
         
         puts "    New blob created:"
@@ -160,7 +161,7 @@ namespace :storage do
         puts "    Blob key: #{new_blob.key}"
         puts "    Blob filename: #{new_blob.filename}"
         puts "    Blob size: #{downloaded_file.bytesize} bytes"
-        puts "    Target service: #{Rails.env.production? ? 'linode' : 'linode_dev'}"
+        puts "    Target service: 'linode'"
         
         begin
           new_blob.upload(StringIO.new(downloaded_file))
@@ -241,7 +242,7 @@ namespace :storage do
     
     # Switch to Linode storage
     original_service = Rails.application.config.active_storage.service
-    Rails.application.config.active_storage.service = Rails.env.production? ? :linode : :linode_dev
+    Rails.application.config.active_storage.service = :linode
     
     total_attachments = Transaction.joins(:attachment_attachment).count
     verified_count = 0
@@ -303,7 +304,7 @@ namespace :storage do
     
     # Switch to AWS storage
     original_service = Rails.application.config.active_storage.service
-    Rails.application.config.active_storage.service = Rails.env.production? ? :amazon : :amazondev
+    Rails.application.config.active_storage.service = :amazon
     
     cleaned_count = 0
     
@@ -336,8 +337,8 @@ namespace :storage do
     puts "Validating files in Linode bucket..."
     
     # Get Linode configuration
-    service_name = Rails.env.production? ? 'linode' : 'linode_dev'
-    bucket_name = Rails.env.production? ? ENV['LINODE_BUCKET_NAME'] : ENV['LINODE_BUCKET_NAME_DEV']
+    service_name = 'linode'
+    bucket_name = ENV['LINODE_BUCKET_NAME']
     
     puts "  Service: #{service_name}"
     puts "  Bucket: #{bucket_name}"
@@ -451,7 +452,7 @@ namespace :storage do
         puts "Recovering #{blob.filename}..."
         
         # Try to recover from AWS S3 first
-        Rails.application.config.active_storage.service = Rails.env.production? ? :amazon : :amazondev
+        Rails.application.config.active_storage.service = :amazon
         
         begin
           # Check if file exists on AWS
@@ -465,9 +466,9 @@ namespace :storage do
           downloaded_file = aws_blob.download
           
           # Switch to Linode and upload
-          Rails.application.config.active_storage.service = Rails.env.production? ? :linode : :linode_dev
+          Rails.application.config.active_storage.service = :linode
           blob.upload(StringIO.new(downloaded_file))
-          blob.update!(service_name: Rails.env.production? ? 'linode' : 'linode_dev')
+          blob.update!(service_name: 'linode')
           
           puts "  ✓ Successfully recovered and migrated to Linode"
           recovered_count += 1
@@ -520,8 +521,8 @@ namespace :storage do
     original_service = Rails.application.config.active_storage.service
     
     # Find all blobs that were migrated to Linode
-    linode_service_name = Rails.env.production? ? 'linode' : 'linode_dev'
-    aws_service_name = Rails.env.production? ? 'amazon' : 'amazondev'
+    linode_service_name = 'linode'
+    aws_service_name = 'amazon'
     
     linode_blobs = ActiveStorage::Blob.where(service_name: linode_service_name)
     
@@ -541,7 +542,7 @@ namespace :storage do
         puts "Rolling back blob #{blob.id} (#{blob.filename})"
         
         # Switch to AWS storage
-        Rails.application.config.active_storage.service = Rails.env.production? ? :amazon : :amazondev
+        Rails.application.config.active_storage.service = :amazon
         
         # Check if the file still exists on AWS
         begin
@@ -601,7 +602,6 @@ namespace :storage do
     puts "  LINODE_ENDPOINT: #{ENV['LINODE_ENDPOINT']}"
     puts "  LINODE_REGION: #{ENV['LINODE_REGION']}"
     puts "  LINODE_BUCKET_NAME: #{ENV['LINODE_BUCKET_NAME']}"
-    puts "  LINODE_BUCKET_NAME_DEV: #{ENV['LINODE_BUCKET_NAME_DEV']}"
     puts ""
     
     # Store original storage service
@@ -609,7 +609,7 @@ namespace :storage do
     puts "Original storage service: #{original_service}"
     
     # Switch to Linode storage
-    target_service = Rails.env.production? ? :linode : :linode_dev
+    target_service = :linode
     puts "Switching to: #{target_service}"
     Rails.application.config.active_storage.service = target_service
     
@@ -623,7 +623,7 @@ namespace :storage do
       metadata: {},
       byte_size: test_content.bytesize,
       checksum: Digest::MD5.hexdigest(test_content),
-      service_name: Rails.env.production? ? 'linode' : 'linode_dev'
+      service_name: 'linode'
     )
     
     puts "Test blob created:"
@@ -680,7 +680,7 @@ namespace :storage do
         force_path_style: true
       )
       
-      bucket_name = Rails.env.production? ? ENV['LINODE_BUCKET_NAME'] : ENV['LINODE_BUCKET_NAME_DEV']
+      bucket_name = ENV['LINODE_BUCKET_NAME']
       
       # Check if bucket exists
       begin
@@ -735,7 +735,7 @@ namespace :storage do
     puts ""
     
     # Check what the migration script is looking for
-    aws_service_name = Rails.env.production? ? 'amazon' : 'amazondev'
+    aws_service_name = 'amazon'
     puts "Migration script is looking for service_name: '#{aws_service_name}'"
     
     # Check if any blobs match this service name
@@ -783,7 +783,6 @@ namespace :storage do
     puts "  LINODE_ENDPOINT: #{ENV['LINODE_ENDPOINT']}"
     puts "  LINODE_REGION: #{ENV['LINODE_REGION']}"
     puts "  LINODE_BUCKET_NAME: #{ENV['LINODE_BUCKET_NAME']}"
-    puts "  LINODE_BUCKET_NAME_DEV: #{ENV['LINODE_BUCKET_NAME_DEV']}"
     puts ""
     
     # Store original storage service
@@ -791,7 +790,7 @@ namespace :storage do
     puts "Original storage service: #{original_service}"
     
     # Switch to Linode storage
-    target_service = Rails.env.production? ? :linode : :linode_dev
+    target_service = :linode
     puts "Switching to: #{target_service}"
     Rails.application.config.active_storage.service = target_service
     
@@ -845,7 +844,7 @@ namespace :storage do
         force_path_style: true
       )
       
-      bucket_name = Rails.env.production? ? ENV['LINODE_BUCKET_NAME'] : ENV['LINODE_BUCKET_NAME_DEV']
+      bucket_name = ENV['LINODE_BUCKET_NAME']
       
       # Check if file exists in bucket
       begin

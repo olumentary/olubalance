@@ -12,14 +12,6 @@ amazon:
   region: <%= ENV['S3_REGION'] %>
   bucket: <%= ENV['S3_BUCKET_NAME'] %>
 
-linode_dev:
-  service: S3
-  access_key_id: <%= ENV['LINODE_ACCESS_KEY_ID'] %>
-  secret_access_key: <%= ENV['LINODE_SECRET_ACCESS_KEY'] %>
-  region: <%= ENV['LINODE_REGION'] %>
-  bucket: <%= ENV['LINODE_BUCKET_NAME_DEV'] %>
-  endpoint: <%= ENV['LINODE_ENDPOINT'] %>
-
 linode:
   service: S3
   access_key_id: <%= ENV['LINODE_ACCESS_KEY_ID'] %>
