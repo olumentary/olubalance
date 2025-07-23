@@ -8,6 +8,8 @@ class ApplicationController < ActionController::Base
   before_action :assign_navbar_content
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  helper_method :mobile_device?
+
   def current_user
     UserDecorator.decorate(super) unless super.nil?
   end
@@ -30,5 +32,9 @@ class ApplicationController < ActionController::Base
   def set_timezone
     tz = current_user ? current_user.timezone : nil
     Time.zone = tz || ActiveSupport::TimeZone["UTC"]
+  end
+
+  def mobile_device?
+    request.user_agent =~ /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
   end
 end

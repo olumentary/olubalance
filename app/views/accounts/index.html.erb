@@ -10,6 +10,15 @@
   <% end %>
 </div>
 
+<div class="is-hidden-touch has-text-centered mb-4">
+  <%= link_to root_path, class: "button is-info is-small" do %>
+    <span class="icon">
+      <i class="fas fa-mobile-alt"></i>
+    </span>
+    <span>View Mobile Home</span>
+  <% end %>
+</div>
+
 <% if !@accounts_checking.empty? %>
   <div class="container">
     <p class="title mb-10 is-size-5 has-text-link">Checking</p>
