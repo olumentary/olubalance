@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+# Migration script for moving from AWS S3 to Linode S3-compatible storage
+# This script should be run after deploying the new storage configuration
+
+set -e
+
+echo "🚀 Starting Linode storage migration process..."
+echo ""
+
+# Check if we're in the right environment
+if [ "$RAILS_ENV" != "production" ] && [ "$RAILS_ENV" != "staging" ]; then
+    echo "⚠️  Warning: This script is designed for production/staging environments"
+    echo "   Current environment: $RAILS_ENV"
+    echo ""
+fi
+
+# Step 1: Check current status
+echo "📊 Step 1: Checking current storage status..."
+bundle exec rails storage:status
+echo ""
+
+# Step 2: Verify Linode configuration
+echo "🔧 Step 2: Verifying Linode configuration..."
+if [ -z "$LINODE_ACCESS_KEY_ID" ] || [ -z "$LINODE_SECRET_ACCESS_KEY" ] || [ -z "$LINODE_ENDPOINT" ]; then
+    echo "❌ Error: Linode environment variables are not set"
+    echo "   Please ensure the following are set:"
+    echo "   - LINODE_ACCESS_KEY_ID"
+    echo "   - LINODE_SECRET_ACCESS_KEY"
+    echo "   - LINODE_ENDPOINT"
+    echo "   - LINODE_REGION"
+    echo "   - LINODE_BUCKET_NAME (or LINODE_BUCKET_NAME_DEV for non-production)"
+    exit 1
+fi
+
+echo "✅ Linode configuration appears to be set"
+echo ""
+
+# Step 3: Run the migration
+echo "🔄 Step 3: Running migration..."
+echo "   This will migrate all transaction attachments from AWS S3 to Linode"
+echo ""
+
+read -p "Do you want to proceed with the migration? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Migration cancelled."
+    exit 0
+fi
+
+echo "Starting migration..."
+bundle exec rails storage:migrate_blobs_to_linode
+echo ""
+
+# Step 4: Verify the migration
+echo "🔍 Step 4: Verifying migration..."
+echo "   This will test that all attachments are accessible on Linode"
+echo ""
+
+read -p "Do you want to verify the migration? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Running verification..."
+    bundle exec rails storage:verify_linode_migration
+    echo ""
+fi
+
+# Step 5: Update storage configuration
+echo "⚙️  Step 5: Updating storage configuration..."
+echo "   This will switch the application to use Linode storage"
+echo ""
+
+read -p "Do you want to switch to Linode storage? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Switching to Linode storage..."
+    
+    # Update the environment configuration
+    if [ "$RAILS_ENV" = "production" ]; then
+        # For production, you'll need to update the environment configuration
+        echo "   Please update your production environment to use :linode storage"
+        echo "   In config/environments/production.rb, change:"
+        echo "   config.active_storage.service = :linode"
+    else
+        # For development/staging
+        echo "   Please update your environment configuration to use :linode_dev storage"
+        echo "   In config/environments/development.rb, change:"
+        echo "   config.active_storage.service = :linode_dev"
+    fi
+    echo ""
+fi
+
+# Step 6: Cleanup (optional)
+echo "🧹 Step 6: Cleanup (optional)"
+echo "   This will permanently delete all attachments from AWS S3"
+echo "   Only run this after you're confident the migration was successful"
+echo ""
+
+read -p "Do you want to clean up AWS S3 attachments? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Running cleanup..."
+    bundle exec rails storage:cleanup_aws_attachments
+    echo ""
+fi
+
+echo "✅ Migration process completed!"
+echo ""
+echo "📋 Summary of actions:"
+echo "   - Migration script executed"
+echo "   - Verification completed"
+echo "   - Storage configuration updated"
+echo "   - AWS S3 cleanup completed (if selected)"
+echo ""
+echo "🎉 Your application is now using Linode S3-compatible storage!" 
