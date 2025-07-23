@@ -21,6 +21,8 @@ export default class extends Controller {
     this.selectedIndex = -1;
     this.searchTimeout = null;
     this.minChars = 3;
+    this.lastSelectedValue = null; // Track the last selected value
+    this.isValueSelected = false; // Track if a value was selected from autocomplete
   }
 
   disconnect() {
@@ -84,6 +86,25 @@ export default class extends Controller {
       return;
     }
 
+    // Check if we should show suggestions based on selection state
+    if (this.isValueSelected && this.lastSelectedValue) {
+      // If a value was previously selected, only show suggestions if:
+      // 1. The current query is not a prefix of the selected value, OR
+      // 2. The current query is completely different from the selected value
+      if (this.lastSelectedValue.toLowerCase().startsWith(query.toLowerCase())) {
+        // User is typing a prefix of the selected value - don't show suggestions
+        this.hideSuggestions();
+        return;
+      }
+      
+      // If the query is completely different from the selected value, reset the selection state
+      if (!this.lastSelectedValue.toLowerCase().includes(query.toLowerCase()) && 
+          !query.toLowerCase().includes(this.lastSelectedValue.toLowerCase())) {
+        this.isValueSelected = false;
+        this.lastSelectedValue = null;
+      }
+    }
+
     // Clear any existing timeout
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
@@ -129,6 +150,11 @@ export default class extends Controller {
     const selectedText = element.textContent.trim();
     this.inputTarget.value = selectedText;
     this.inputTarget.dispatchEvent(new Event('input', { bubbles: true }));
+    
+    // Mark that a value was selected and store it
+    this.isValueSelected = true;
+    this.lastSelectedValue = selectedText;
+    
     this.hideSuggestions();
   }
 
