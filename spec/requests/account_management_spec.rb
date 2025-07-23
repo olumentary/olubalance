@@ -9,7 +9,7 @@ RSpec.describe "Account management", type: :request do
 
   it "redirects to login page when not authenticated" do
     get accounts_path
-    expect(response).to redirect_to root_path
+    expect(response).to redirect_to new_user_session_path
   end
 
   it "displays a list of the user's accounts" do
