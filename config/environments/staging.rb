@@ -102,5 +102,14 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'linode_dev').to_sym
+  # Use linode storage if configured, otherwise fallback to amazon
+  storage_service = ENV.fetch('STORAGE_SERVICE', 'amazon')
+  
+  # Validate that required environment variables are set for linode
+  if storage_service == 'linode' && ENV['LINODE_BUCKET_NAME'].blank?
+    Rails.logger.warn "STORAGE_SERVICE is set to 'linode' but LINODE_BUCKET_NAME is not set. Falling back to 'amazon'."
+    storage_service = 'amazon'
+  end
+  
+  config.active_storage.service = storage_service.to_sym
 end
