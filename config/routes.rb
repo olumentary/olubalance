@@ -48,7 +48,7 @@ Rails.application.routes.draw do
   resources :quick_transactions, only: [ :new, :create ]
 
   authenticated do
-    root to: "accounts#index", as: :authenticated_root
+    root to: "home#index", as: :authenticated_root
   end
 
   root to: "static_pages#home"

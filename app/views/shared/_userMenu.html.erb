@@ -31,6 +31,13 @@
       Daily Summary
     <% end %>
 
+    <%= link_to accounts_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-wallet"></i>
+      </span>
+      Accounts
+    <% end %>
+
     <%= link_to destroy_user_session_path, class: "navbar-item" do%>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-sign-out-alt"></i>

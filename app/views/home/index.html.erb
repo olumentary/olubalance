@@ -1,0 +1,52 @@
+<div class="is-hidden-desktop">
+  <!-- Mobile Home Page -->
+  <div class="has-text-centered">
+    <h1 class="title is-4 mb-6">Welcome to OluBalance</h1>
+    
+    <!-- Large Upload Button -->
+    <div class="mb-6">
+      <%= link_to new_quick_transaction_path, class: "button is-primary is-large is-fullwidth py-6" do %>
+        <div class="mb-3">
+          <span class="icon is-large">
+            <i class="fas fa-camera fa-3x"></i>
+          </span>
+        </div>
+        <div>
+          <span class="is-size-4 has-text-weight-bold">Upload Receipt</span>
+        </div>
+        <div class="mt-2">
+          <span class="is-size-6 has-text-light">Quick and easy receipt upload</span>
+        </div>
+      <% end %>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="columns is-mobile is-multiline">
+      <div class="column is-6">
+        <%= link_to accounts_path, class: "button is-outlined is-fullwidth py-4" do %>
+          <div class="mb-2">
+            <span class="icon">
+              <i class="fas fa-wallet fa-lg"></i>
+            </span>
+          </div>
+          <span class="is-size-6">Accounts</span>
+        <% end %>
+      </div>
+      <div class="column is-6">
+        <%= link_to accounts_summary_path, class: "button is-outlined is-fullwidth py-4" do %>
+          <div class="mb-2">
+            <span class="icon">
+              <i class="fas fa-chart-line fa-lg"></i>
+            </span>
+          </div>
+          <span class="is-size-6">Summary</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Desktop Home Page (shows accounts as before) -->
+<div class="is-hidden-touch">
+  <%= render "accounts/index" %>
+</div>
