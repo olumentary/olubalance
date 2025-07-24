@@ -35,6 +35,7 @@ class Transaction < ApplicationRecord
   after_create :update_account_balance_create
   after_update :update_account_balance_edit
   after_destroy :update_account_balance_destroy
+  after_commit :clear_account_cache
 
   scope :with_balance, -> { includes(:transaction_balance).references(:transaction_balance) }
   scope :desc, -> { order("pending DESC, trx_date DESC, id DESC") }
@@ -198,5 +199,20 @@ class Transaction < ApplicationRecord
   def validate_amount_is_numeric
     return if pending? || amount.blank? || new_record?
     errors.add(:amount, "must be a number") unless amount.is_a?(Numeric)
+  end
+
+  private
+
+  def clear_account_cache
+    return unless account_id.present?
+    
+    # Clear account balance caches
+    Rails.cache.delete("account_#{account_id}_pending_balance")
+    Rails.cache.delete("account_#{account_id}_non_pending_balance")
+    
+    # Clear transfer accounts cache for the user
+    if account&.user_id.present?
+      Rails.cache.delete_matched("user_#{account.user_id}_transfer_accounts_*")
+    end
   end
 end

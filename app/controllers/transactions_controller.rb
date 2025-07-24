@@ -2,6 +2,7 @@
 
 class TransactionsController < ApplicationController
   include Pagy::Backend
+  include PerformanceMonitoring
 
   before_action :authenticate_user!
   before_action :find_account
@@ -20,6 +21,7 @@ class TransactionsController < ApplicationController
                             .then { apply_pending_order _1 }
                             .then { apply_order _1 }
                             .then { apply_id_order _1 }
+                            .limit(20) # Add explicit limit to prevent loading too many records
 
     @pagy, @transactions = pagy(@transactions)
     @transactions = @transactions.decorate
@@ -328,9 +330,11 @@ class TransactionsController < ApplicationController
 
   def transfer_accounts
     account_id = @account.id
-    @transfer_accounts = current_user.accounts.where("active = ?", "true").where("account_type != ?", "credit").where(
-      "id != ?", account_id
-    ).decorate
+    @transfer_accounts = Rails.cache.fetch("user_#{current_user.id}_transfer_accounts_#{account_id}", expires_in: 10.minutes) do
+      current_user.accounts.where("active = ?", "true").where("account_type != ?", "credit").where(
+        "id != ?", account_id
+      ).decorate
+    end
   end
 
   def find_transaction

@@ -48,11 +48,15 @@ class Account < ApplicationRecord
 
   # Sum of Pending Transactions
   def pending_balance
-    transactions.where(pending: true).sum(:amount)
+    Rails.cache.fetch("account_#{id}_pending_balance", expires_in: 5.minutes) do
+      transactions.where(pending: true).sum(:amount)
+    end
   end
 
   def non_pending_balance
-    transactions.where(pending: false).sum(:amount)
+    Rails.cache.fetch("account_#{id}_non_pending_balance", expires_in: 5.minutes) do
+      transactions.where(pending: false).sum(:amount)
+    end
   end
 
   def available_credit
