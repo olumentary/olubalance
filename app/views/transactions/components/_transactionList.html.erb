@@ -1,6 +1,5 @@
 <%= turbo_refreshes_with method: :morph, scroll: :preserve %>
-<%= turbo_frame_tag "transactions_table" do %>
-  <table class="table is-hoverable is-fullwidth ob-table mb-4">
+<table class="table is-hoverable is-fullwidth ob-table mb-4">
     <thead class="ob-table-phead">
       <th class="has-text-centered is-hidden-mobile" id="trx-date">
         <div class="ob-cell-content">
@@ -100,4 +99,3 @@
   <% @transactions.select { |t| t.quick_receipt? && t.pending? }.each do |transaction| %>
     <%= render partial: "transactions/components/quickReceiptReviewModal", locals: { transaction: transaction } %>
   <% end %>
-<% end %>
