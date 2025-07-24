@@ -4,7 +4,10 @@ Rails.application.routes.draw do
   # Rails 7.1+ health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
-  devise_for :users, skip: [ :registrations ], controllers: { registrations: "registrations" }
+  devise_for :users, skip: [ :registrations ], controllers: { 
+    registrations: "registrations",
+    sessions: "users/sessions"
+  }
 
   as :user do
     get "users/edit" => "devise/registrations#edit", :as => "edit_user_registration"

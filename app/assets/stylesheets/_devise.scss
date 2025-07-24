@@ -1,3 +1,22 @@
 // Extend Devise error message CSS classes
 .is-alert { @extend .is-danger !optional; }
 .is-notice { @extend .is-dark !optional; }
+
+// Mobile-specific styling for remember me checkbox
+@media (max-width: 768px) {
+  .checkbox {
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      margin-right: 0.5rem;
+    }
+  }
+  
+  // Make remember me text more prominent on mobile
+  .checkbox span {
+    font-weight: 500;
+    color: #363636;
+  }
+}
