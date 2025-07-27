@@ -295,7 +295,7 @@ class TransactionsController < ApplicationController
   end
 
   def search_by_description(scope)
-    session["filters"]["description"].present? ? scope.where("UPPER(description) like UPPER(?)", "%#{session['filters']['description']}%") : scope
+    session["filters"]&.dig("description")&.present? ? scope.where("UPPER(description) like UPPER(?)", "%#{session['filters']['description']}%") : scope
   end
 
   def apply_pending_order(scope)
