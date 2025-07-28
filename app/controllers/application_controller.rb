@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   before_action :set_timezone
   before_action :assign_navbar_content
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :auto_remember_me_for_mobile, if: :devise_controller?
 
   def current_user
     UserDecorator.decorate(super) unless super.nil?
@@ -36,5 +37,14 @@ class ApplicationController < ActionController::Base
   def set_timezone
     tz = current_user ? current_user.timezone : nil
     Time.zone = tz || ActiveSupport::TimeZone["UTC"]
+  end
+
+  def auto_remember_me_for_mobile
+    # Automatically enable remember me for mobile devices
+    # This ensures iOS app shortcuts maintain login state
+    if mobile_device? && controller_name == 'sessions' && action_name == 'create'
+      params[:user][:remember_me] = '1' if params[:user]
+      Rails.logger.info "Application controller: Mobile device detected - auto-enabling remember me"
+    end
   end
 end

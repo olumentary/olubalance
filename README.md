@@ -25,6 +25,16 @@ One other fantastic feature is the ability to attach receipts to your transactio
 
 olubalance cannot and will not ever connect to your bank account. This is unlike other financial tools that "sync" your transactions from your online banking account.  With olubalance, you will be the only party to add or remove transactions within the app.  
 
+#### Mobile Authentication
+
+olubalance supports persistent login for mobile devices, including iOS app shortcuts. When you create an app shortcut on your iPhone, the application will automatically remember your login for 2 weeks, so you won't need to re-authenticate every time you tap the shortcut icon.
+
+**Features:**
+- Automatic "Remember me" for mobile devices
+- 2-week session persistence
+- Optimized for iOS app shortcuts
+- Secure cookie-based authentication
+
 #### License
 
 olubalance is free and open source, and licensed under the [MIT License](https://github.com/odinsride/olubalance/blob/master/LICENSE). Feel free to build and deploy on your own server as you see fit (I recommend Dokku with the PostgreSQL Plugin)! See the license link for further details regarding terms of use.
