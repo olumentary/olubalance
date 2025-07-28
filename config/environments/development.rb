@@ -31,7 +31,7 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   # Use STORAGE_SERVICE environment variable to switch between services
   # Options: :amazondev, :linode_dev, :local
-  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'linode_dev').to_sym
+  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'linode').to_sym
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false

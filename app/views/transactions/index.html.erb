@@ -16,7 +16,5 @@
   </div>
 <% end %>
 
-<%= turbo_frame_tag "transactions_table" do %>
-  <%= render partial: "transactions/components/transactionList" %>
-  <%= render partial: "transactions/components/pagination" %>
-<% end %>
+<%= render partial: "transactions/components/transactionList" %>
+<%= render partial: "transactions/components/pagination" %>

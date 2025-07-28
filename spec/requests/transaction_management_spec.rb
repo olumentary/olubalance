@@ -144,4 +144,32 @@ RSpec.describe "Transaction management", type: :request do
     # Since the transaction is non-pending, validation should fail and render edit template
     expect(response).to render_template(:edit)
   end
+
+  it "marks a transaction as reviewed via turbo stream" do
+    sign_in @user
+    pending_transaction = FactoryBot.create(:transaction, trx_date: Date.today, description: "Pending Transaction", amount: 75, trx_type: 'debit', account: @account, pending: true)
+    
+    patch mark_reviewed_account_transaction_path(@account, pending_transaction), 
+          headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    
+    expect(response).to be_successful
+    expect(response.content_type).to include('text/vnd.turbo-stream.html')
+    
+    pending_transaction.reload
+    expect(pending_transaction.pending).to be false
+  end
+
+  it "marks a transaction as pending via turbo stream" do
+    sign_in @user
+    reviewed_transaction = FactoryBot.create(:transaction, :non_pending, trx_date: Date.today, description: "Reviewed Transaction", amount: 75, trx_type: 'debit', account: @account, pending: false)
+    
+    patch mark_pending_account_transaction_path(@account, reviewed_transaction), 
+          headers: { 'Accept' => 'text/vnd.turbo-stream.html' }
+    
+    expect(response).to be_successful
+    expect(response.content_type).to include('text/vnd.turbo-stream.html')
+    
+    reviewed_transaction.reload
+    expect(reviewed_transaction.pending).to be true
+  end
 end
