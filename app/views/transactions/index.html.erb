@@ -1,5 +1,3 @@
-<%= turbo_refreshes_with method: :morph, scroll: :preserve %>
-
 <%= render partial: "shared/backButton", locals: { 
   param_back_path: accounts_path, 
   param_back_text: "Accounts", 
@@ -17,4 +15,6 @@
 <% end %>
 
 <%= render partial: "transactions/components/transactionList" %>
-<%= render partial: "transactions/components/pagination" %>
+<div id="transactions-pagination">
+  <%= render partial: "transactions/components/pagination" %>
+</div>

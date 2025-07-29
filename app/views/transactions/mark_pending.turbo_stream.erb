@@ -4,24 +4,34 @@
 
 <%= turbo_stream.replace "transactions_table" do %>
   <!-- Cache bust: <%= Time.current.to_i %> -->
-  <%= render partial: "transactions/components/transactionList" %>
+  <div id="transactions_table">
+    <%= render partial: "transactions/components/transactionTable" %>
+  </div>
+<% end %>
+
+<%= turbo_stream.replace "transactions-pagination" do %>
+  <!-- Cache bust: <%= Time.current.to_i %> -->
   <%= render partial: "transactions/components/pagination" %>
 <% end %>
 
 <%= turbo_stream.replace "transaction_level" do %>
+  <!-- Cache bust: <%= Time.current.to_i %> -->
   <%= render partial: "transactions/components/transactionLevel" %>
 <% end %>
 
 <%= turbo_stream.replace "account-balances" do %>
+  <!-- Cache bust: <%= Time.current.to_i %> -->
   <%= render partial: "transactions/components/balances" %>
 <% end %>
 
 <%= turbo_stream.replace "account-balances-mobile" do %>
+  <!-- Cache bust: <%= Time.current.to_i %> -->
   <%= render partial: "transactions/components/balancesMobile" %>
 <% end %>
 
 <% if !@account.credit? %>
   <%= turbo_stream.replace "stash_list" do %>
+    <!-- Cache bust: <%= Time.current.to_i %> -->
     <%= render partial: "stashes/components/stashList" %>
   <% end %>
 <% end %>

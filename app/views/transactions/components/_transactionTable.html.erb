@@ -1,0 +1,100 @@
+<table class="table is-hoverable is-fullwidth ob-table mb-4">
+  <thead class="ob-table-phead">
+    <th class="has-text-centered is-hidden-mobile" id="trx-date">
+      <div class="ob-cell-content">
+        Date
+      </div>
+    </th>
+    <th class="is-hidden-mobile">
+      <div class="ob-cell-content">
+        Description
+      </div>
+    </th>
+    <th class="has-text-right is-hidden-mobile">
+      <div class="ob-cell-content">
+        Amount
+      </div>
+    </th>
+    <th class="has-text-right is-hidden-mobile" id="trx-balance">
+      <div class="ob-cell-content">
+        Balance
+      </div>
+    </th>
+    <th class="has-text-right is-hidden-mobile" id="trx-actions">
+      <div>
+        Actions
+      </div>
+    </th>
+  </thead>
+  <tbody>
+    <tr class="is-hidden-tablet has-background-link">
+      <td colspan="1" class="has-text-weight-bold has-text-white py-2">
+        Transactions
+      </td>
+    </tr>
+
+    <% quick_receipts = @transactions.select { |trx| trx.quick_receipt? } %>
+    <% other_transactions = @transactions.reject { |trx| trx.quick_receipt? } %>
+    
+    <%# Debug: Log the counts %>
+    <% pending_quick_receipts = quick_receipts.select(&:pending?) %>
+    <% Rails.logger.info "TransactionTable - Total: #{@transactions.count}, Quick receipts: #{quick_receipts.count} (pending: #{pending_quick_receipts.count}), Other: #{other_transactions.count}" %>
+
+    <% if quick_receipts.any? %>
+      <tr class="has-background-light is-hidden-mobile">
+        <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+          Quick Receipt Uploads
+        </td>
+      </tr>
+      <%= render partial: "transactions/components/transactionLineDesktop", collection: quick_receipts, as: :transaction %>
+      <%= render partial: "transactions/components/transactionLineMobile", collection: quick_receipts, as: :transaction %>
+    <% end %>
+
+    <% pending_transactions = other_transactions.select(&:pending?) %>
+    <% non_pending_transactions = other_transactions.reject(&:pending?) %>
+    
+    <%# Debug: Log pending counts %>
+    <% Rails.logger.info "TransactionTable - Pending: #{pending_transactions.count}, Non-pending: #{non_pending_transactions.count}" %>
+
+    <% if pending_transactions.any? %>
+      <tr class="has-background-light is-hidden-mobile">
+        <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+          Pending Transactions
+        </td>
+      </tr>
+      <%= render partial: "transactions/components/transactionLineDesktop", collection: pending_transactions, as: :transaction %>
+    <% end %>
+
+    <% non_pending_transactions.group_by(&:trx_date).each do |date, transactions| %>
+      <% 
+        # Sort transactions by ID in descending order
+        sorted_transactions = transactions.sort_by(&:id).reverse
+        end_of_day_balance = sorted_transactions.first.running_balance
+      %>
+      <tr class="has-background-light is-hidden-mobile">
+        <td colspan="3" class="has-text-weight-bold has-text-grey py-3">
+          <%= date.strftime("%A, %B %d, %Y") %>
+        </td>
+        <td class="has-text-right has-text-weight-bold has-text-grey py-3">
+          <div class="ob-cell-content">
+            <%= number_to_currency(end_of_day_balance) %>
+          </div>
+        </td>
+        <td></td>
+      </tr>
+      <%= render partial: "transactions/components/transactionLineDesktop", collection: sorted_transactions, as: :transaction %>
+    <% end %>
+
+    <%= render partial: "transactions/components/transactionLineMobile", collection: other_transactions, as: :transaction %>
+  </tbody>
+</table>
+
+<!-- Attachment Upload Modals -->
+<% @transactions.select(&:pending?).each do |transaction| %>
+  <%= render partial: "transactions/components/attachmentModal", locals: { transaction: transaction } %>
+<% end %>
+
+<!-- Quick Receipt Review Modals -->
+<% @transactions.select { |t| t.quick_receipt? && t.pending? }.each do |transaction| %>
+  <%= render partial: "transactions/components/quickReceiptReviewModal", locals: { transaction: transaction } %>
+<% end %> 

@@ -148,6 +148,9 @@ class TransactionsController < ApplicationController
       @pagy, @transactions = pagy(@transactions)
       @transactions = @transactions.decorate
 
+      # Set the correct pagination URL
+      @pagy_url = account_transactions_path(@account)
+
       # Debug: Log the pending count
       pending_count = @transactions.select(&:pending?).count
       Rails.logger.info "Mark reviewed - Pending count: #{pending_count}, Total transactions: #{@transactions.count}"
@@ -188,6 +191,9 @@ class TransactionsController < ApplicationController
 
       @pagy, @transactions = pagy(@transactions)
       @transactions = @transactions.decorate
+
+      # Set the correct pagination URL
+      @pagy_url = account_transactions_path(@account)
 
       # Debug: Log the pending count
       pending_count = @transactions.select(&:pending?).count

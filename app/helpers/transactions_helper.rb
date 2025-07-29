@@ -3,6 +3,50 @@
 module TransactionsHelper
   include Pagy::Frontend
 
+  def custom_pagination(pagy, account)
+    return "" if pagy.pages <= 1
+
+    Rails.logger.info "Custom pagination - Current page: #{pagy.page}, Total pages: #{pagy.pages}, Series: #{pagy.series}"
+
+    html = '<nav class="pagination is-centered" role="navigation" aria-label="pagination">'
+    
+    # Previous button
+    if pagy.prev
+      html += link_to("Previous", account_transactions_path(account, page: pagy.prev), class: "pagination-previous")
+    else
+      html += '<span class="pagination-previous" disabled>Previous</span>'
+    end
+
+    # Next button
+    if pagy.next
+      html += link_to("Next", account_transactions_path(account, page: pagy.next), class: "pagination-next")
+    else
+      html += '<span class="pagination-next" disabled>Next</span>'
+    end
+
+    # Page numbers
+    html += '<ul class="pagination-list">'
+    
+    pagy.series.each do |item|
+      if item.is_a?(Integer) || (item.is_a?(String) && item.match?(/\A\d+\z/))
+        # Page number - convert to integer for comparison
+        page_num = item.to_i
+        if page_num == pagy.page
+          html += '<li><span class="pagination-link is-current" aria-current="page">' + page_num.to_s + '</span></li>'
+        else
+          html += '<li>' + link_to(page_num.to_s, account_transactions_path(account, page: page_num), class: "pagination-link") + '</li>'
+        end
+      elsif item == :gap
+        html += '<li><span class="pagination-ellipsis">&hellip;</span></li>'
+      end
+    end
+    
+    html += '</ul>'
+    html += '</nav>'
+    
+    html.html_safe
+  end
+
   def sort_link(column:, label:)
     direction = column == session["filters"]&.dig("column") ? next_direction : "asc"
     link_to(account_transactions_path(column: column, direction: direction), class: "has-text-white sortable", data: { turbo_action: "replace" }) do
