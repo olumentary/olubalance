@@ -50,15 +50,28 @@ class TransactionDecorator < ApplicationDecorator
   end
 
   def filename_size
-    attachment.attached? ? attachment.filename.to_s + " (" + number_to_human_size(attachment.byte_size).to_s + ")" : nil
+    if attachments.attached?
+      if attachments.count == 1
+        attachment = attachments.first
+        attachment.filename.to_s + " (" + number_to_human_size(attachment.byte_size).to_s + ")"
+      else
+        "#{attachments.count} files"
+      end
+    else
+      nil
+    end
   end
 
   def filename_form
-    attachment.attached? ? filename_size : "- No receipt -"
+    attachments.attached? ? filename_size : "- No receipts -"
   end
 
   def add_receipt_button_label
-    attachment.attached? ? "Change receipt..." : "Add receipt..."
+    attachments.attached? ? "Add more receipts..." : "Add receipts..."
+  end
+
+  def attachment_upload_help_text
+    attachments.attached? ? "Select additional receipts to add to this transaction" : "Select receipts to attach to this transaction"
   end
 
   def button_label

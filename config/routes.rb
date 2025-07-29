@@ -24,6 +24,7 @@ Rails.application.routes.draw do
         patch :mark_reviewed
         patch :mark_pending
         patch :update_attachment
+        delete :delete_attachment
         post :update_date
       end
       collection do

@@ -41,8 +41,8 @@
         <div class="ob-cell-content" style="cursor: pointer;">
           <span data-inline-edit-target="display" class="is-clickable">
             <%= transaction.trx_desc_display %>
-            <% if transaction.attachment.attached? then %>
-              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+            <% if transaction.attachments.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
@@ -57,8 +57,8 @@
         <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
           <div class="ob-cell-content">
             <%= transaction.trx_desc_display %>
-            <% if transaction.attachment.attached? then %>
-              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+            <% if transaction.attachments.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
@@ -138,7 +138,7 @@
                 <%= transaction.amount&.negative? ? 'D' : 'C' %>
               </span>
             </button>
-            <% unless transaction.attachment.attached? %>
+            <% unless transaction.attachments.attached? %>
               <button type="button"
                       data-action="click->shared#toggleModal"
                       data-id="attachment-modal-<%= transaction.id %>"

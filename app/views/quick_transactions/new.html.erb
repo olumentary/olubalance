@@ -30,17 +30,18 @@
           </div>
 
           <div class="field">
-            <%= f.label :attachment, "Receipt", class: "label" %>
+            <%= f.label :attachments, "Receipt", class: "label" %>
             <div class="control">
-              <%= f.file_field :attachment, 
-                              class: "input #{'is-danger' if @transaction.errors[:attachment].any?}", 
+              <%= f.file_field :attachments, 
+                              multiple: true,
+                              class: "input #{'is-danger' if @transaction.errors[:attachments].any?}", 
                               accept: "image/*,.pdf",
                               data: { 
                                 quick_receipt_target: "attachment",
                                 action: "change->quick-receipt#attachmentSelected"
                               } %>
-              <% if @transaction.errors[:attachment].any? %>
-                <p class="help is-danger"><%= @transaction.errors[:attachment].join(', ') %></p>
+              <% if @transaction.errors[:attachments].any? %>
+                <p class="help is-danger"><%= @transaction.errors[:attachments].join(', ') %></p>
               <% end %>
               <p class="help is-danger is-hidden" data-quick-receipt-target="error"></p>
             </div>

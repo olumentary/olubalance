@@ -12,7 +12,7 @@
     data-action="click->shared#toggleModal"
     data-id="quick-receipt-review-modal-<%= transaction.id %>"
   ></div>
-  <div class="modal-content quick-receipt-modal">
+  <div class="modal-content quick-receipt-modal" style="max-height: 100vh; height: 100vh; margin: 0; border-radius: 0;">
     <div class="card">
       <header class="card-header has-background-primary">
         <p class="card-header-title has-text-white">
@@ -29,7 +29,7 @@
           style="margin: 0.75rem;"
         ></button>
       </header>
-      <section class="card-content">
+      <section class="card-content" style="overflow-y: auto; max-height: calc(100vh - 120px);">
         <div class="columns quick-receipt-columns">
           <!-- Left Column - Transaction Form -->
           <div class="column is-6">
@@ -60,21 +60,7 @@
                   </article>
                 <% end %>
 
-                <!-- Account Selection -->
-                <div class="field">
-                  <label class="label has-text-grey">Account</label>
-                  <div class="control has-icons-left">
-                    <div class="select is-fullwidth is-primary">
-                      <%= f.select :account_id,
-                                  @user_accounts.map { |a| [a.name, a.id] },
-                                  { selected: transaction.account_id },
-                                  { data: { action: "change->trxform#accountChanged" } } %>
-                    </div>
-                    <div class="icon is-small is-left has-text-primary">
-                      <i class="fas fa-piggy-bank"></i>
-                    </div>
-                  </div>
-                </div>
+
 
                 <!-- Transaction Type -->
                 <div class="field">
@@ -166,6 +152,13 @@
                   <span>Fill in the transaction details based on the receipt image shown on the right.</span>
                 </div>
 
+                <div class="notification is-warning is-light">
+                  <span class="icon">
+                    <i class="fas fa-exchange-alt"></i>
+                  </span>
+                  <span><strong>Tip:</strong> You can move this transaction to another account after saving by editing it from the transaction list.</span>
+                </div>
+
                 <!-- Hidden submit button for form submission -->
                 <%= f.submit "Save Transaction", 
                             type: 'submit',
@@ -180,48 +173,62 @@
             <div class="content">
               <h4 class="title is-5 mb-4">Receipt Preview</h4>
               
-              <% if transaction.attachment.attached? %>
-                <div class="receipt-container quick-receipt-container">
-                  <% if transaction.attachment.content_type.start_with?('image/') %>
-                    <!-- Loading indicator -->
-                    <div class="quick-receipt-loading" data-quick-receipt-review-target="loadingIndicator">
-                      <div class="has-text-centered">
-                        <span class="icon is-large">
-                          <i class="fas fa-spinner fa-spin"></i>
-                        </span>
-                        <p class="mt-2">Loading receipt...</p>
-                      </div>
-                    </div>
-                    
-                    <%= image_tag transaction.attachment, 
-                                  class: "receipt-preview quick-receipt-image is-hidden", 
-                                  data: { 
-                                    "quick-receipt-review-target": "receiptImage",
-                                    action: "load->quick-receipt-review#imageLoaded"
-                                  } %>
-                  <% elsif transaction.attachment.content_type == 'application/pdf' %>
-                    <div class="notification is-warning is-light quick-receipt-notification">
-                      <span class="icon">
-                        <i class="fas fa-file-pdf"></i>
-                      </span>
-                      <span>PDF receipt attached. Please download to view.</span>
-                    </div>
-                    <div class="has-text-centered quick-receipt-button-container">
-                      <%= link_to "Download PDF", rails_blob_path(transaction.attachment, disposition: "attachment"), 
-                                  class: "button is-primary",
-                                  target: "_blank" %>
-                    </div>
-                  <% else %>
-                    <div class="notification is-warning is-light quick-receipt-notification">
-                      <span class="icon">
-                        <i class="fas fa-file"></i>
-                      </span>
-                      <span>File attached: <%= transaction.attachment.filename %></span>
-                    </div>
-                    <div class="has-text-centered quick-receipt-button-container">
-                      <%= link_to "Download File", rails_blob_path(transaction.attachment, disposition: "attachment"), 
-                                  class: "button is-primary",
-                                  target: "_blank" %>
+              <% if transaction.attachments.attached? %>
+                <div class="receipt-container quick-receipt-container" style="padding: 1rem;">
+                  <% transaction.attachments.each_with_index do |attachment, index| %>
+                    <div class="mb-4">
+                      <h5 class="title is-6">Receipt <%= index + 1 %></h5>
+                      <% if attachment.content_type.start_with?('image/') %>
+                        <!-- Loading indicator -->
+                        <div class="quick-receipt-loading" data-quick-receipt-review-target="loadingIndicator">
+                          <div class="has-text-centered">
+                            <span class="icon is-large">
+                              <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                            <p class="mt-2">Loading receipt...</p>
+                          </div>
+                        </div>
+                        
+                        <%= image_tag attachment, 
+                                      class: "receipt-preview quick-receipt-image is-hidden", 
+                                      data: { 
+                                        "quick-receipt-review-target": "receiptImage",
+                                        action: "load->quick-receipt-review#imageLoaded"
+                                      } %>
+                      <% elsif attachment.content_type == 'application/pdf' %>
+                        <div class="notification is-info is-light quick-receipt-notification mb-3">
+                          <span class="icon">
+                            <i class="fas fa-file-pdf"></i>
+                          </span>
+                          <span>PDF receipt preview (scroll to view full document)</span>
+                        </div>
+                        <div class="pdf-preview-container" style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                          <embed 
+                            src="<%= rails_blob_path(attachment) %>" 
+                            type="application/pdf"
+                            width="100%"
+                            height="400px"
+                            style="display: block;"
+                          />
+                        </div>
+                        <div class="has-text-centered quick-receipt-button-container mt-3">
+                          <%= link_to "Download PDF", rails_blob_path(attachment, disposition: "attachment"), 
+                                      class: "button is-primary",
+                                      target: "_blank" %>
+                        </div>
+                      <% else %>
+                        <div class="notification is-warning is-light quick-receipt-notification">
+                          <span class="icon">
+                            <i class="fas fa-file"></i>
+                          </span>
+                          <span>File attached: <%= attachment.filename %></span>
+                        </div>
+                        <div class="has-text-centered quick-receipt-button-container">
+                          <%= link_to "Download File", rails_blob_path(attachment, disposition: "attachment"), 
+                                      class: "button is-primary",
+                                      target: "_blank" %>
+                        </div>
+                      <% end %>
                     </div>
                   <% end %>
                 </div>

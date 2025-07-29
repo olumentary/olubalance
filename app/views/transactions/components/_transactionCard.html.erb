@@ -30,39 +30,35 @@
         </div>
 
         <div class="column is-6 has-text-centered-mobile has-text-right">
-          <!-- Attachment -->
+          <!-- Attachments -->
           <p class="title mb-5 is-6 has-text-link">
-            Attachment
+            Attachments
           </p>
-          <p class="title is-7">
-            <% if @transaction.attachment.attached? then %>
-              <% if @transaction.attachment.variable? %>
-                <div class="tooltip" data-tooltip="<%= @transaction.filename_size %>">
-                  <%= link_to url_for(@transaction.attachment), target: '_blank' do %>
-                    <%= image_tag @transaction.attachment.variant(resize_to_fill: [128, 128]).processed.url,
-                                                                  class: 'mt-5 ob-attachment-img' %>
-                  <% end %>
-                </div>
-              <% else %>
-                <%= link_to url_for(@transaction.attachment), target: '_blank',
-                                                                            class: 'button is-primary is-large mt-5 tooltip',
-                                                                            data: {
-                                                                              tooltip: @transaction.filename_size
-                                                                            } do %>
-                  <span class="icon is-medium has-text-white">
-                    <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Open</span>
+          <div class="title is-7">
+            <% if @transaction.attachments.attached? then %>
+              <div class="attachment-links">
+                <% @transaction.attachments.each do |attachment| %>
+                  <div class="mb-2">
+                    <%= link_to url_for(attachment), 
+                                target: '_blank',
+                                class: 'has-text-link',
+                                title: "#{attachment.filename} (#{number_to_human_size(attachment.byte_size)})" do %>
+                      <span><%= attachment.filename %></span>
+                      <span class="icon is-small ml-1">
+                        <i class="fas fa-external-link-alt"></i>
+                      </span>
+                    <% end %>
+                  </div>
                 <% end %>
-              <% end %>
+              </div>
             <% else %>
               <p>
                 <span class="tag is-dark has-text-weight-bold">
-                  No attachment
+                  No attachments
                 </span>
               </p>
             <% end %>
-          </p>
+          </div>
         </div>
       </div>
     </div>

@@ -25,13 +25,18 @@
           <div class="select is-fullwidth is-primary">
             <%= f.select :account_id,
                         @user_accounts.map { |a| [a.name, a.id] },
-                        { selected: @account.id },
+                        { selected: @transaction.account_id },
                         { data: { action: "change->trxform#accountChanged" } } %>
           </div>
           <div class="icon is-small is-left has-text-primary">
             <i class="fas fa-piggy-bank"></i>
           </div>
         </div>
+        <% unless @transaction.new_record? %>
+          <p class="help has-text-grey is-size-7 mt-2">
+            💡 Changing the account will update balances for both accounts automatically
+          </p>
+        <% end %>
       </div>
 
       <!-- Transaction Type -->
@@ -119,11 +124,11 @@
         </div>
       </div>
 
-      <!-- Attachment -->
-      <label class="label has-text-grey">Receipt</label>
+      <!-- Attachments -->
+      <label class="label has-text-grey">Receipts</label>
       <div class="file">
         <label class="file-label">
-          <%= f.file_field :attachment, class: "file-input is-primary", data: { action: 'change->trxform#attachmentSelected', 'trxform-target': 'attachment' } %>
+          <%= f.file_field :attachments, multiple: true, class: "file-input is-primary", data: { action: 'change->trxform#attachmentSelected', 'trxform-target': 'attachment' } %>
           <span class="file-cta has-background-primary">
             <span class="file-icon has-text-white">
               <i class="fas fa-upload"></i>
@@ -135,10 +140,43 @@
         </label>
       </div>
       
+      <p class="help has-text-grey is-size-7 mt-2">
+        <%= @transaction.attachment_upload_help_text %>
+      </p>
+      
       <div class="ob-file-name has-text-grey">
         <span data-trxform-target="newreceipt" class="has-text-weight-bold has-text-danger"></span>
         <span data-trxform-target="filename"><%= @transaction.filename_form %></span>
       </div>
+      
+      <!-- Display existing attachments -->
+      <% if @transaction.attachments.attached? %>
+        <div class="mt-3">
+          <p class="has-text-grey is-size-7">Current attachments:</p>
+          <div class="tags">
+            <% @transaction.attachments.each_with_index do |attachment, index| %>
+              <span class="tag is-info is-light" id="attachment-<%= attachment.id %>" style="margin-bottom: 0.5rem;">
+                <span class="icon is-small">
+                  <i class="fas fa-paperclip"></i>
+                </span>
+                <span style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= attachment.filename %>">
+                  <%= attachment.filename %>
+                </span>
+                <button 
+                  type="button" 
+                  class="delete is-small" 
+                  style="margin-left: 0.5rem;"
+                  data-action="click->trxform#deleteAttachment"
+                  data-attachment-id="<%= attachment.id %>"
+                  data-transaction-id="<%= @transaction.id %>"
+                  data-account-id="<%= @transaction.account_id %>"
+                  title="Delete attachment"
+                ></button>
+              </span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div> <!-- /columns -->
 
@@ -157,4 +195,73 @@
       %>
     </div>
   </div>
-<% end %> 
+<% end %>
+
+<!-- Account Transfer Confirmation Modal -->
+<% unless @transaction.new_record? %>
+  <div 
+    id="account-transfer-modal-<%= @transaction.id %>" 
+    class="modal"
+    style="z-index: 9999" 
+    data-shared-target="modal"
+  >
+    <div 
+      class="modal-background"
+      onclick="window.cancelAccountTransfer()"
+    ></div>
+    <div class="modal-content ob-modal-card">
+      <div class="card">
+        <header class="card-header has-background-danger">
+          <p class="card-header-title has-text-white">
+            <span class="icon">
+              <i class="fas fa-exchange-alt"></i>
+            </span>
+            <span>Move Transaction</span>
+          </p>
+          <button 
+            class="delete" 
+            aria-label="close"
+            onclick="window.cancelAccountTransfer()"
+            style="margin: 0.75rem;"
+          ></button>
+        </header>
+        <section class="card-content">
+          <div class="content">
+                      <p class="mb-4">
+            Are you sure you want to move this transaction to <strong><span id="transfer-account-name"></span></strong>?
+          </p>
+          <div class="notification is-light mb-4">
+            <p class="has-text-weight-semibold mb-2">Transaction Details:</p>
+            <ul>
+              <li><strong>Date:</strong> <span id="transfer-transaction-date"></span></li>
+              <li><strong>Description:</strong> <span id="transfer-transaction-description"></span></li>
+              <li><strong>Amount:</strong> <span id="transfer-transaction-amount"></span></li>
+            </ul>
+          </div>
+            <div class="notification is-info is-light">
+              <p class="has-text-weight-semibold">This will update the balances for both accounts:</p>
+              <ul class="mt-2">
+                <li>Remove the transaction amount from the current account</li>
+                <li>Add the transaction amount to the new account</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <footer class="card-footer">
+          <button 
+            class="card-footer-item has-text-weight-bold has-text-grey"
+            onclick="window.cancelAccountTransfer()"
+          >
+            Cancel
+          </button>
+          <button 
+            class="card-footer-item has-text-weight-bold has-text-danger"
+            onclick="window.confirmAccountTransfer()"
+          >
+            Move Transaction
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+<% end %>

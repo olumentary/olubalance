@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-# A transaction record which belongs to one account. Can have one attached file
+# A transaction record which belongs to one account. Can have multiple attached files
 class Transaction < ApplicationRecord
   belongs_to :account
   has_one :transaction_balance
 
-  has_one_attached :attachment
+  has_many_attached :attachments
 
   # Link running_balance to view
   delegate :running_balance, to: :transaction_balance
@@ -24,6 +24,7 @@ class Transaction < ApplicationRecord
   validate :require_fields_when_reviewed
   validate :validate_amount_for_reviewed_transactions
   validate :validate_amount_is_numeric
+  validate :validate_account_ownership
 
   # before_post_process :rename_file
 
@@ -34,6 +35,7 @@ class Transaction < ApplicationRecord
   before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
   after_create :update_account_balance_create
   after_update :update_account_balance_edit
+  after_update :update_account_balance_transfer
   after_destroy :update_account_balance_destroy
 
   scope :with_balance, -> { includes(:transaction_balance).references(:transaction_balance) }
@@ -59,6 +61,16 @@ class Transaction < ApplicationRecord
 
   def update_date_only(date)
     update_columns(trx_date: date, updated_at: Time.current)
+  end
+
+  # Helper method to check if transaction has any attachments
+  def has_attachments?
+    attachments.attached?
+  end
+
+  # Helper method to get the first attachment (for backward compatibility)
+  def attachment
+    attachments.first
   end
 
   private
@@ -165,9 +177,38 @@ class Transaction < ApplicationRecord
     @account.update(current_balance: @account.current_balance - amount_was)
   end
 
+  def update_account_balance_transfer
+    return if amount.nil?
+    return unless amount.is_a?(Numeric)
+    return unless account_id_previously_changed?
+
+    old_account_id = account_id_previously_was
+    new_account_id = account_id
+
+    Rails.logger.info "Transferring transaction #{id} from account #{old_account_id} to account #{new_account_id}"
+
+    # Remove from old account
+    if old_account_id.present?
+      old_account = Account.find(old_account_id)
+      old_balance = old_account.current_balance
+      new_balance = old_balance - amount
+      old_account.update(current_balance: new_balance)
+      Rails.logger.info "Updated account #{old_account_id} balance: #{old_balance} -> #{new_balance}"
+    end
+
+    # Add to new account
+    if new_account_id.present?
+      new_account = Account.find(new_account_id)
+      old_balance = new_account.current_balance
+      new_balance = old_balance + amount
+      new_account.update(current_balance: new_balance)
+      Rails.logger.info "Updated account #{new_account_id} balance: #{old_balance} -> #{new_balance}"
+    end
+  end
+
   def attachment_required_for_quick_receipt
-    if quick_receipt? && attachment.blank?
-      errors.add(:attachment, "is required for quick receipt transactions")
+    if quick_receipt? && attachments.blank?
+      errors.add(:attachments, "are required for quick receipt transactions")
     end
   end
 
@@ -180,7 +221,7 @@ class Transaction < ApplicationRecord
       # Only require attachment when marking as reviewed (not when creating new transactions)
       # Temporarily disabled - will be re-enabled later
       # if will_save_change_to_pending? && !pending?
-      #   errors.add(:attachment, "must be attached when marking as reviewed") unless attachment.attached?
+      #   errors.add(:attachments, "must be attached when marking as reviewed") unless attachments.attached?
       # end
     end
   end
@@ -198,5 +239,20 @@ class Transaction < ApplicationRecord
   def validate_amount_is_numeric
     return if pending? || amount.blank? || new_record?
     errors.add(:amount, "must be a number") unless amount.is_a?(Numeric)
+  end
+
+  def validate_account_ownership
+    return if account_id.blank? || new_record?
+    
+    # Check if the account belongs to the same user as the transaction's account
+    if account_id_changed?
+      new_account = Account.find(account_id)
+      current_account = Account.find(account_id_was) if account_id_was.present?
+      
+      # Ensure both accounts belong to the same user
+      if current_account && new_account.user_id != current_account.user_id
+        errors.add(:account_id, "must belong to the same user")
+      end
+    end
   end
 end

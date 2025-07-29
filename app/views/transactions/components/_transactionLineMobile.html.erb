@@ -6,8 +6,8 @@
         <div class="level-left">
           <div class="level-item">
             <%= transaction.trx_desc_display_mobile %>
-            <% if transaction.attachment.attached? then %>
-              <span class="icon has-text-grey-light tooltip" data-tooltip="Transaction has attachment">
+            <% if transaction.attachments.attached? then %>
+                              <span class="icon has-text-grey-light tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>

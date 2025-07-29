@@ -27,6 +27,6 @@ class QuickTransactionsController < ApplicationController
   end
 
   def transaction_params
-    params.require(:transaction).permit(:account_id, :attachment)
+    params.require(:transaction).permit(:account_id, { attachments: [] })
   end
 end
