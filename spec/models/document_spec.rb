@@ -8,15 +8,17 @@ RSpec.describe Document, type: :model do
 
   describe 'associations' do
     it { should belong_to(:attachable) }
-    it { should have_many_attached(:attachments) }
+    it { should have_one_attached(:attachment) }
   end
 
   describe 'validations' do
     it { should validate_presence_of(:category) }
     it { should validate_presence_of(:document_date) }
-    it { should validate_presence_of(:attachments).on(:update) }
+    it { should validate_presence_of(:attachment).on(:update) }
     
     it { should validate_inclusion_of(:category).in_array(Document::CATEGORIES) }
+    
+    it { should validate_length_of(:description).is_at_most(500) }
     
     context 'when category is Taxes' do
       let(:document) { build(:document, category: 'Taxes', tax_year: nil) }
@@ -50,10 +52,17 @@ RSpec.describe Document, type: :model do
       end
     end
     
-    describe '.by_tax_year' do
-      it 'filters by tax_year' do
-        expect(Document.by_tax_year(2023)).to include(tax_doc)
-        expect(Document.by_tax_year(2023)).not_to include(statement_doc)
+    describe '.by_level' do
+      it 'filters by level' do
+        expect(Document.by_level('User')).to include(statement_doc)
+        expect(Document.by_level('User')).not_to include(tax_doc)
+      end
+    end
+    
+    describe '.by_account' do
+      it 'filters by account' do
+        expect(Document.by_account(account.id)).to include(tax_doc)
+        expect(Document.by_account(account.id)).not_to include(statement_doc)
       end
     end
   end

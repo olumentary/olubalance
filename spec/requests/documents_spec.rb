@@ -37,9 +37,15 @@ RSpec.describe 'Documents', type: :request do
         expect(assigns(:documents)).not_to include(user_document)
       end
 
-      it 'filters by tax_year' do
-        get documents_path, params: { tax_year: 2023 }
-        expect(assigns(:documents)).to include(tax_document)
+      it 'filters by level' do
+        get documents_path, params: { level: 'User' }
+        expect(assigns(:documents)).to include(user_document)
+        expect(assigns(:documents)).not_to include(account_document)
+      end
+
+      it 'filters by account' do
+        get documents_path, params: { account_id: account.id }
+        expect(assigns(:documents)).to include(account_document)
         expect(assigns(:documents)).not_to include(user_document)
       end
 
@@ -58,6 +64,16 @@ RSpec.describe 'Documents', type: :request do
       it 'sorts by category when specified' do
         get documents_path, params: { sort: 'category', direction: 'asc' }
         expect(assigns(:documents).to_sql).to include('ORDER BY "documents"."category" ASC')
+      end
+
+      it 'sorts by description when specified' do
+        get documents_path, params: { sort: 'description', direction: 'asc' }
+        expect(assigns(:documents).to_sql).to include('ORDER BY "documents"."description" ASC')
+      end
+
+      it 'sorts by filename when specified' do
+        get documents_path, params: { sort: 'filename', direction: 'asc' }
+        expect(assigns(:documents).to_sql).to include('ORDER BY active_storage_attachments.name asc')
       end
     end
   end

@@ -12,7 +12,8 @@ class DocumentsController < ApplicationController
 
     # Apply filters
     @documents = @documents.by_category(params[:category]) if params[:category].present?
-    @documents = @documents.by_tax_year(params[:tax_year]) if params[:tax_year].present?
+    @documents = @documents.by_level(params[:level]) if params[:level].present?
+    @documents = @documents.by_account(params[:account_id]) if params[:account_id].present?
     @documents = @documents.by_date_range(params[:start_date], params[:end_date]) if params[:start_date].present? && params[:end_date].present?
 
     # Apply sorting
@@ -26,11 +27,18 @@ class DocumentsController < ApplicationController
       @documents = @documents.order(attachable_type: sort_direction, document_date: :desc)
     when 'account_name'
       @documents = @documents.order("accounts.name #{sort_direction}, document_date DESC")
+    when 'description'
+      @documents = @documents.order(description: sort_direction, document_date: :desc)
+    when 'filename'
+      # Sort by filename - one attachment per document
+      @documents = @documents.joins("LEFT JOIN active_storage_attachments ON active_storage_attachments.record_id = documents.id AND active_storage_attachments.record_type = 'Document'")
+                            .order("active_storage_attachments.name #{sort_direction}, document_date DESC")
     else
       @documents = @documents.order(document_date: sort_direction)
     end
 
     @categories = Document::CATEGORIES
-    @tax_years = Document.where.not(tax_year: nil).distinct.pluck(:tax_year).sort.reverse
+    @levels = ['User', 'Account']
+    @accounts = current_user.accounts.order(:name)
   end
 end 

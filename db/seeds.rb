@@ -381,17 +381,16 @@ users.each do |user|
       attachable: user,
       category: doc_category,
       document_date: Faker::Date.backward(days: 365),
+      description: Faker::Lorem.sentence(word_count: rand(5..15)),
       tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
     )
     
-    # Attach files
-    rand(1..3).times do |j|
-      document.attachments.attach(
-        io: File.open('app/assets/images/logo.png'),
-        filename: "user-doc-#{user.id}-#{i + 1}-#{j + 1}.png",
-        content_type: 'image/png'
-      )
-    end
+    # Attach a file
+    document.attachment.attach(
+      io: File.open('app/assets/images/logo.png'),
+      filename: "user-doc-#{user.id}-#{i + 1}.png",
+      content_type: 'image/png'
+    )
     
     documents << document
   end
@@ -406,17 +405,16 @@ accounts.each do |account|
       attachable: account,
       category: doc_category,
       document_date: Faker::Date.backward(days: 365),
+      description: Faker::Lorem.sentence(word_count: rand(5..15)),
       tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
     )
     
-    # Attach files
-    rand(1..2).times do |j|
-      document.attachments.attach(
-        io: File.open('app/assets/images/logo.png'),
-        filename: "account-doc-#{account.id}-#{i + 1}-#{j + 1}.png",
-        content_type: 'image/png'
-      )
-    end
+    # Attach a file
+    document.attachment.attach(
+      io: File.open('app/assets/images/logo.png'),
+      filename: "account-doc-#{account.id}-#{i + 1}.png",
+      content_type: 'image/png'
+    )
     
     documents << document
   end

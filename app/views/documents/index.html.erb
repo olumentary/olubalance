@@ -16,11 +16,11 @@
         <div class="columns is-multiline">
           <div class="column is-3">
             <div class="field">
-              <label class="label">Document Category</label>
+              <label class="label is-size-7">Type</label>
               <div class="control">
-                <div class="select is-fullwidth">
-                  <%= f.select :category, 
-                      options_for_select([['All Categories', '']] + @categories.map { |category| [category, category] }, params[:category]) %>
+                <div class="select is-small is-fullwidth">
+                  <%= f.select :level, 
+                      options_for_select([['All Types', '']] + @levels.map { |level| [level, level] }, params[:level]) %>
                 </div>
               </div>
             </div>
@@ -28,41 +28,55 @@
           
           <div class="column is-3">
             <div class="field">
-              <label class="label">Tax Year</label>
+              <label class="label is-size-7">Account</label>
               <div class="control">
-                <div class="select is-fullwidth">
-                  <%= f.select :tax_year, 
-                      options_for_select([['All Years', '']] + @tax_years.map { |year| [year, year] }, params[:tax_year]) %>
+                <div class="select is-small is-fullwidth">
+                  <%= f.select :account_id, 
+                      options_for_select([['All Accounts', '']] + @accounts.map { |account| [account.name, account.id] }, params[:account_id]) %>
                 </div>
               </div>
             </div>
           </div>
           
+          <div class="column is-3">
+            <div class="field">
+              <label class="label is-size-7">Category</label>
+              <div class="control">
+                <div class="select is-small is-fullwidth">
+                  <%= f.select :category, 
+                      options_for_select([['All Categories', '']] + @categories.map { |category| [category, category] }, params[:category]) %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="columns is-multiline">
           <div class="column is-2">
             <div class="field">
-              <label class="label">Start Date</label>
+              <label class="label is-size-7">Start Date</label>
               <div class="control">
-                <%= f.date_field :start_date, value: params[:start_date], class: "input" %>
+                <%= f.date_field :start_date, value: params[:start_date], class: "input is-small" %>
               </div>
             </div>
           </div>
           
           <div class="column is-2">
             <div class="field">
-              <label class="label">End Date</label>
+              <label class="label is-size-7">End Date</label>
               <div class="control">
-                <%= f.date_field :end_date, value: params[:end_date], class: "input" %>
+                <%= f.date_field :end_date, value: params[:end_date], class: "input is-small" %>
               </div>
             </div>
           </div>
           
           <div class="column is-2">
             <div class="field">
-              <label class="label">&nbsp;</label>
+              <label class="label is-size-7">&nbsp;</label>
               <div class="control">
-                <div class="buttons">
-                  <%= f.submit "Apply", class: "button is-primary" %>
-                  <%= link_to "Reset", documents_path, class: "button is-danger" %>
+                <div class="buttons are-small">
+                  <%= f.submit "Apply", class: "button is-primary is-small" %>
+                  <%= link_to "Reset", documents_path, class: "button is-danger is-small" %>
                 </div>
               </div>
             </div>
@@ -78,26 +92,37 @@
             <tr>
               <th>
                 <%= link_to "Type", documents_path(sort: 'level', direction: sort_direction('level'), 
-                    category: params[:category], tax_year: params[:tax_year], 
+                    category: params[:category], level: params[:level], account_id: params[:account_id], 
                     start_date: params[:start_date], end_date: params[:end_date]), 
                     class: "has-text-white" %>
               </th>
               <th>
                 <%= link_to "Account", documents_path(sort: 'account_name', direction: sort_direction('account_name'), 
-                    category: params[:category], tax_year: params[:tax_year], 
+                    category: params[:category], level: params[:level], account_id: params[:account_id], 
                     start_date: params[:start_date], end_date: params[:end_date]), 
                     class: "has-text-white" %>
               </th>
               <th>
                 <%= link_to "Date", documents_path(sort: 'document_date', direction: sort_direction('document_date'), 
-                    category: params[:category], tax_year: params[:tax_year], 
+                    category: params[:category], level: params[:level], account_id: params[:account_id], 
                     start_date: params[:start_date], end_date: params[:end_date]), 
                     class: "has-text-white" %>
               </th>
-              <th class="has-text-white">Filename</th>
+              <th>
+                <%= link_to "Description", documents_path(sort: 'description', direction: sort_direction('description'), 
+                    category: params[:category], level: params[:level], account_id: params[:account_id], 
+                    start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
+              <th>
+                <%= link_to "Filename", documents_path(sort: 'filename', direction: sort_direction('filename'), 
+                    category: params[:category], level: params[:level], account_id: params[:account_id], 
+                    start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
               <th>
                 <%= link_to "Category", documents_path(sort: 'category', direction: sort_direction('category'), 
-                    tax_year: params[:tax_year], start_date: params[:start_date], end_date: params[:end_date]), 
+                    level: params[:level], account_id: params[:account_id], start_date: params[:start_date], end_date: params[:end_date]), 
                     class: "has-text-white" %>
               </th>
             </tr>
@@ -105,34 +130,39 @@
           <tbody>
             <% if @documents.any? %>
               <% @documents.each do |document| %>
-                <% document.attachments.each do |attachment| %>
-                  <tr>
-                    <td>
-                      <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
-                        <%= document.level %>
-                      </span>
-                    </td>
-                    <td>
-                      <% if document.level == 'Account' %>
-                        <%= link_to document.account_name, "#", class: "has-text-link" %>
-                      <% else %>
-                        <span class="has-text-grey-light">-</span>
-                      <% end %>
-                    </td>
-                    <td><%= document.document_date.strftime("%B %d, %Y") %></td>
-                    <td>
-                      <strong><%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), 
-                          class: "has-text-link" %></strong>
-                    </td>
-                    <td>
-                      <span class="tag is-info is-light"><%= document.category %></span>
-                    </td>
-                  </tr>
-                <% end %>
+                <tr>
+                  <td>
+                    <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
+                      <%= document.level %>
+                    </span>
+                  </td>
+                  <td>
+                    <% if document.level == 'Account' %>
+                      <%= link_to document.account_name, "#", class: "has-text-link" %>
+                    <% else %>
+                      <span class="has-text-grey-light">-</span>
+                    <% end %>
+                  </td>
+                  <td><%= document.document_date.strftime("%B %d, %Y") %></td>
+                  <td>
+                    <% if document.description.present? %>
+                      <%= truncate(document.description, length: 50) %>
+                    <% else %>
+                      <span class="has-text-grey-light">-</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <strong><%= link_to document.attachment.filename, rails_blob_path(document.attachment, disposition: "attachment"), 
+                        class: "has-text-link" %></strong>
+                  </td>
+                  <td>
+                    <span class="tag is-info is-light"><%= document.category %></span>
+                  </td>
+                </tr>
               <% end %>
             <% else %>
               <tr>
-                <td colspan="5" class="has-text-centered has-text-grey-light">
+                <td colspan="6" class="has-text-centered has-text-grey-light">
                   <p class="is-size-5">No documents found</p>
                   <p class="is-size-6">Try adjusting your filters or add some documents to get started.</p>
                 </td>
@@ -149,7 +179,7 @@
   <script>
     // Auto-submit form when select fields change
     document.addEventListener('DOMContentLoaded', function() {
-      const selectFields = document.querySelectorAll('select[name="attachment_type"], select[name="tax_year"]');
+      const selectFields = document.querySelectorAll('select[name="category"], select[name="level"], select[name="account_id"]');
       selectFields.forEach(function(select) {
         select.addEventListener('change', function() {
           this.closest('form').submit();

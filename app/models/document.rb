@@ -2,17 +2,19 @@
 
 class Document < ApplicationRecord
   belongs_to :attachable, polymorphic: true
-  has_many_attached :attachments
+  has_one_attached :attachment
 
   CATEGORIES = %w[Statements Account\ Documentation Correspondence Legal Taxes Other].freeze
 
   validates :category, presence: true, inclusion: { in: CATEGORIES }
   validates :document_date, presence: true
+  validates :description, length: { maximum: 500 }
   validates :tax_year, presence: true, numericality: { only_integer: true, greater_than: 1900, less_than: 2100 }, if: :tax_document?
-  validates :attachments, presence: true, on: :update
+  validates :attachment, presence: true, on: :update
 
   scope :by_category, ->(category) { where(category: category) if category.present? }
-  scope :by_tax_year, ->(year) { where(tax_year: year) if year.present? }
+  scope :by_level, ->(level) { where(attachable_type: level) if level.present? }
+  scope :by_account, ->(account_id) { where(attachable_type: 'Account', attachable_id: account_id) if account_id.present? }
   scope :by_date_range, ->(start_date, end_date) { 
     where(document_date: start_date..end_date) if start_date.present? && end_date.present? 
   }

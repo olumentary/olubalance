@@ -188,7 +188,8 @@ CREATE TABLE public.documents (
     tax_year integer,
     document_date date,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    description text
 );
 
 
@@ -729,6 +730,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250619000235'),
+('20250120000003'),
 ('20250120000002'),
 ('20250120000001'),
 ('20250120000000'),
