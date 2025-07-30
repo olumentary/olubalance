@@ -221,7 +221,7 @@ accounts.each do |account|
     )
   end
 
-  # Create 10 transactions with attachments for the first account only (for migration testing)
+  # Create 10 transactions with multiple attachments for the first account only (for migration testing)
   if account == accounts.first
     10.times do |i|
       t = Transaction.create!(
@@ -232,7 +232,34 @@ accounts.each do |account|
             skip_pending_default: true,
             account: account
           )
-      t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: "migration-test-#{i + 1}.png", content_type: 'image/png')
+      
+      # Attach multiple files to demonstrate multiple attachments support
+      # Primary receipt image
+      t.attachments.attach(
+        io: File.open('app/assets/images/logo.png'), 
+        filename: "receipt-#{i + 1}.png", 
+        content_type: 'image/png'
+      )
+      
+      # Additional supporting documents (simulate multiple attachments)
+      if i % 3 == 0  # Every 3rd transaction gets 2 additional attachments
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}-1.png", 
+          content_type: 'image/png'
+        )
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}-2.png", 
+          content_type: 'image/png'
+        )
+      elsif i % 2 == 0  # Every 2nd transaction gets 1 additional attachment
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}.png", 
+          content_type: 'image/png'
+        )
+      end
     end
   end
 
@@ -296,7 +323,7 @@ end
 #         trx_type: trx_type.sample,
 #         account_id: 1
 #       )
-#   t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
+#   t.attachments.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
 # end
 
 # 1000.times do
@@ -317,7 +344,7 @@ end
 #         trx_type: trx_type.sample,
 #         account_id: 1
 #       )
-#   v.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
+#   v.attachments.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
 # end
 
 # 20.times do
