@@ -92,6 +92,16 @@ a.navbar-link {
   width: 18rem;
 }
 
+.has-rounded-corners {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.table.has-rounded-corners {
+  margin: 0;
+  border-radius: 8px !important;
+}
+
 .has-text-shadow {
   //text-shadow: 1px 1px 10px #acacac;
   text-shadow: 1px 1px 10px #636363;

@@ -3,6 +3,7 @@ users = []
 accounts = []
 transactions = []
 stashes = []
+documents = []
 
 # Seed Lists
 trx_type = %w[debit credit]
@@ -78,6 +79,8 @@ stash_names = %w[
   House\ Down\ Payment
   Vacation
 ]
+
+document_categories = %w[Statements Account\ Documentation Correspondence Legal Taxes Other]
 
 # Create 3 test accounts
 emails.each do |email|
@@ -365,3 +368,58 @@ end
 #     account: accounts.sample
 #   )
 # end
+
+# Create documents for users and accounts
+puts "Creating documents..."
+
+# Create user-level documents
+users.each do |user|
+  # Create 3-5 documents per user
+  rand(3..5).times do |i|
+    doc_category = document_categories.sample
+    document = Document.create!(
+      attachable: user,
+      category: doc_category,
+      document_date: Faker::Date.backward(days: 365),
+      tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
+    )
+    
+    # Attach files
+    rand(1..3).times do |j|
+      document.attachments.attach(
+        io: File.open('app/assets/images/logo.png'),
+        filename: "user-doc-#{user.id}-#{i + 1}-#{j + 1}.png",
+        content_type: 'image/png'
+      )
+    end
+    
+    documents << document
+  end
+end
+
+# Create account-level documents
+accounts.each do |account|
+  # Create 2-4 documents per account
+  rand(2..4).times do |i|
+    doc_category = document_categories.sample
+    document = Document.create!(
+      attachable: account,
+      category: doc_category,
+      document_date: Faker::Date.backward(days: 365),
+      tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
+    )
+    
+    # Attach files
+    rand(1..2).times do |j|
+      document.attachments.attach(
+        io: File.open('app/assets/images/logo.png'),
+        filename: "account-doc-#{account.id}-#{i + 1}-#{j + 1}.png",
+        content_type: 'image/png'
+      )
+    end
+    
+    documents << document
+  end
+end
+
+puts "Created #{documents.length} documents"

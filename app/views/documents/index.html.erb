@@ -1,0 +1,160 @@
+<% content_for :title, "Document Center" %>
+
+<div class="container">
+  <div class="section">
+    <div class="columns">
+      <div class="column">
+        <h1 class="title">Document Center</h1>
+        <p class="subtitle">Manage and view all your account and user-level documents</p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="box">
+      <h2 class="title is-5">Filters</h2>
+      <%= form_with url: documents_path, method: :get, local: true, class: "form" do |f| %>
+        <div class="columns is-multiline">
+          <div class="column is-3">
+            <div class="field">
+              <label class="label">Document Category</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :category, 
+                      options_for_select([['All Categories', '']] + @categories.map { |category| [category, category] }, params[:category]) %>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="column is-3">
+            <div class="field">
+              <label class="label">Tax Year</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :tax_year, 
+                      options_for_select([['All Years', '']] + @tax_years.map { |year| [year, year] }, params[:tax_year]) %>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="column is-2">
+            <div class="field">
+              <label class="label">Start Date</label>
+              <div class="control">
+                <%= f.date_field :start_date, value: params[:start_date], class: "input" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="column is-2">
+            <div class="field">
+              <label class="label">End Date</label>
+              <div class="control">
+                <%= f.date_field :end_date, value: params[:end_date], class: "input" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="column is-2">
+            <div class="field">
+              <label class="label">&nbsp;</label>
+              <div class="control">
+                <div class="buttons">
+                  <%= f.submit "Apply", class: "button is-primary" %>
+                  <%= link_to "Reset", documents_path, class: "button is-danger" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="has-rounded-corners">
+      <table class="table is-fullwidth is-striped is-hoverable has-rounded-corners">
+          <thead>
+            <tr>
+              <th>
+                <%= link_to "Type", documents_path(sort: 'level', direction: sort_direction('level'), 
+                    category: params[:category], tax_year: params[:tax_year], 
+                    start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
+              <th>
+                <%= link_to "Account", documents_path(sort: 'account_name', direction: sort_direction('account_name'), 
+                    category: params[:category], tax_year: params[:tax_year], 
+                    start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
+              <th>
+                <%= link_to "Date", documents_path(sort: 'document_date', direction: sort_direction('document_date'), 
+                    category: params[:category], tax_year: params[:tax_year], 
+                    start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
+              <th class="has-text-white">Filename</th>
+              <th>
+                <%= link_to "Category", documents_path(sort: 'category', direction: sort_direction('category'), 
+                    tax_year: params[:tax_year], start_date: params[:start_date], end_date: params[:end_date]), 
+                    class: "has-text-white" %>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if @documents.any? %>
+              <% @documents.each do |document| %>
+                <% document.attachments.each do |attachment| %>
+                  <tr>
+                    <td>
+                      <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
+                        <%= document.level %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if document.level == 'Account' %>
+                        <%= link_to document.account_name, "#", class: "has-text-link" %>
+                      <% else %>
+                        <span class="has-text-grey-light">-</span>
+                      <% end %>
+                    </td>
+                    <td><%= document.document_date.strftime("%B %d, %Y") %></td>
+                    <td>
+                      <strong><%= link_to attachment.filename, rails_blob_path(attachment, disposition: "attachment"), 
+                          class: "has-text-link" %></strong>
+                    </td>
+                    <td>
+                      <span class="tag is-info is-light"><%= document.category %></span>
+                    </td>
+                  </tr>
+                <% end %>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="5" class="has-text-centered has-text-grey-light">
+                  <p class="is-size-5">No documents found</p>
+                  <p class="is-size-6">Try adjusting your filters or add some documents to get started.</p>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :javascript do %>
+  <script>
+    // Auto-submit form when select fields change
+    document.addEventListener('DOMContentLoaded', function() {
+      const selectFields = document.querySelectorAll('select[name="attachment_type"], select[name="tax_year"]');
+      selectFields.forEach(function(select) {
+        select.addEventListener('change', function() {
+          this.closest('form').submit();
+        });
+      });
+    });
+  </script>
+<% end %> 

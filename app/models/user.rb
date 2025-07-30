@@ -17,4 +17,5 @@ class User < ApplicationRecord
   validates :timezone, presence: { message: "Please select a Time Zone" }
 
   has_many :accounts, dependent: :destroy
+  has_many :documents, as: :attachable, dependent: :destroy
 end

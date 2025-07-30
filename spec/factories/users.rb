@@ -9,5 +9,13 @@ FactoryBot.define do
     last_name { 'Doe' }
     timezone { 'Eastern Time (US & Canada)' }
     confirmed_at { Time.now }
+    
+    trait :confirmed do
+      confirmed_at { Time.now }
+    end
+    
+    trait :unconfirmed do
+      confirmed_at { nil }
+    end
   end
 end

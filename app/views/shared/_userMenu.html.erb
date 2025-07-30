@@ -45,6 +45,13 @@
       Daily Summary
     <% end %>
 
+    <%= link_to documents_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        📄
+      </span>
+      Document Center
+    <% end %>
+
     <%= link_to destroy_user_session_path, class: "navbar-item" do%>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-sign-out-alt"></i>
