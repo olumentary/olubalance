@@ -1,13 +1,21 @@
 <% content_for :title, "Document Center" %>
 
 <div class="container">
-  <div class="section">
-    <div class="columns">
-      <div class="column">
-        <h1 class="title">Document Center</h1>
-        <p class="subtitle">Manage and view all your account and user-level documents</p>
+      <div class="section">
+      <div class="columns">
+        <div class="column">
+          <h1 class="title">Document Center</h1>
+          <p class="subtitle">Manage and view all your account and user-level documents</p>
+        </div>
+        <div class="column is-narrow">
+          <%= link_to new_document_path, class: "button is-primary" do %>
+            <span class="icon">
+              <i class="fas fa-plus"></i>
+            </span>
+            <span>New Document</span>
+          <% end %>
+        </div>
       </div>
-    </div>
 
     <!-- Filters -->
     <div class="box">
@@ -130,7 +138,7 @@
           <tbody>
             <% if @documents.any? %>
               <% @documents.each do |document| %>
-                <tr>
+                <tr class="document-row" data-href="<%= document_path(document) %>" style="cursor: pointer;">
                   <td>
                     <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
                       <%= document.level %>
@@ -138,7 +146,7 @@
                   </td>
                   <td>
                     <% if document.level == 'Account' %>
-                      <%= link_to document.account_name, "#", class: "has-text-link" %>
+                      <span class="has-text-link"><%= document.account_name %></span>
                     <% else %>
                       <span class="has-text-grey-light">-</span>
                     <% end %>
@@ -152,8 +160,7 @@
                     <% end %>
                   </td>
                   <td>
-                    <strong><%= link_to document.attachment.filename, rails_blob_path(document.attachment, disposition: "attachment"), 
-                        class: "has-text-link" %></strong>
+                    <strong class="has-text-link"><%= document.attachment.filename %></strong>
                   </td>
                   <td>
                     <span class="tag is-info is-light"><%= document.category %></span>
@@ -183,6 +190,18 @@
       selectFields.forEach(function(select) {
         select.addEventListener('change', function() {
           this.closest('form').submit();
+        });
+      });
+
+      // Handle document row clicks
+      const documentRows = document.querySelectorAll('.document-row');
+      documentRows.forEach(function(row) {
+        row.addEventListener('click', function(e) {
+          // Don't trigger if clicking on a link or button
+          if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+            return;
+          }
+          window.location.href = this.dataset.href;
         });
       });
     });

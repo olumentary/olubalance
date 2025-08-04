@@ -1,0 +1,172 @@
+<% content_for :title, "Document Details" %>
+
+<div class="container">
+  <div class="section">
+    <!-- Header -->
+    <div class="columns">
+      <div class="column">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+          <ul>
+            <li><%= link_to "Document Center", documents_path %></li>
+            <li class="is-active"><a href="#" aria-current="page">Document Details</a></li>
+          </ul>
+        </nav>
+        <h1 class="title">Document Details</h1>
+      </div>
+      <div class="column is-narrow">
+        <div class="buttons">
+          <%= link_to rails_blob_path(@document.attachment, disposition: "attachment"), class: "button is-info" do %>
+            <span class="icon">
+              <i class="fas fa-download"></i>
+            </span>
+            <span>Download</span>
+          <% end %>
+          <%= link_to documents_path, class: "button" do %>
+            <span class="icon">
+              <i class="fas fa-arrow-left"></i>
+            </span>
+            <span>Back</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns">
+      <!-- Document Details -->
+      <div class="column is-4">
+        <div class="box">
+          <h2 class="title is-5">Document Information</h2>
+          
+          <div class="field">
+            <label class="label is-size-7">Type</label>
+            <div class="control">
+              <span class="tag <%= @document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
+                <%= @document.level %>
+              </span>
+            </div>
+          </div>
+
+          <% if @document.level == 'Account' %>
+            <div class="field">
+              <label class="label is-size-7">Account</label>
+              <div class="control">
+                <span class="has-text-weight-medium"><%= @document.account_name %></span>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="field">
+            <label class="label is-size-7">Category</label>
+            <div class="control">
+              <span class="tag is-info is-light"><%= @document.category %></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label is-size-7">Document Date</label>
+            <div class="control">
+              <span class="has-text-weight-medium"><%= @document.document_date.strftime("%B %d, %Y") %></span>
+            </div>
+          </div>
+
+          <% if @document.tax_year.present? %>
+            <div class="field">
+              <label class="label is-size-7">Tax Year</label>
+              <div class="control">
+                <span class="has-text-weight-medium"><%= @document.tax_year %></span>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @document.description.present? %>
+            <div class="field">
+              <label class="label is-size-7">Description</label>
+              <div class="control">
+                <p class="has-text-weight-medium"><%= @document.description %></p>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="field">
+            <label class="label is-size-7">Filename</label>
+            <div class="control">
+              <span class="has-text-weight-medium"><%= @document.attachment.filename %></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label is-size-7">File Size</label>
+            <div class="control">
+              <span class="has-text-weight-medium"><%= number_to_human_size(@document.attachment.byte_size) %></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label is-size-7">Content Type</label>
+            <div class="control">
+              <span class="has-text-weight-medium"><%= @document.attachment.content_type %></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label is-size-7">Uploaded</label>
+            <div class="control">
+              <span class="has-text-weight-medium"><%= @document.created_at.strftime("%B %d, %Y at %I:%M %p") %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Preview -->
+      <div class="column is-8">
+        <div class="box">
+          <h2 class="title is-5">Document Preview</h2>
+          
+          <% if @document.attachment.content_type.start_with?('image/') %>
+            <!-- Image Preview -->
+            <div class="has-text-centered">
+              <%= image_tag @document.attachment, class: "document-preview", style: "max-width: 100%; max-height: 600px; object-fit: contain;" %>
+            </div>
+          <% elsif @document.attachment.content_type == 'application/pdf' %>
+            <!-- PDF Preview -->
+            <div class="has-text-centered">
+              <iframe src="<%= rails_blob_path(@document.attachment) %>" 
+                      width="100%" 
+                      height="600" 
+                      style="border: 1px solid #ddd; border-radius: 4px;">
+                <p>Your browser does not support PDF preview. 
+                   <%= link_to "Download the PDF", rails_blob_path(@document.attachment, disposition: "attachment") %> to view it.</p>
+              </iframe>
+            </div>
+          <% else %>
+            <!-- Generic File Preview -->
+            <div class="has-text-centered">
+              <div class="notification is-light">
+                <span class="icon is-large">
+                  <i class="fas fa-file fa-3x"></i>
+                </span>
+                <p class="is-size-5 mt-3"><%= @document.attachment.filename %></p>
+                <p class="is-size-6 has-text-grey">This file type cannot be previewed.</p>
+                <div class="mt-4">
+                  <%= link_to rails_blob_path(@document.attachment, disposition: "attachment"), class: "button is-primary" do %>
+                    <span class="icon">
+                      <i class="fas fa-download"></i>
+                    </span>
+                    <span>Download File</span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .document-preview {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+  }
+</style>
