@@ -41,4 +41,52 @@ class DocumentsController < ApplicationController
     @levels = ['User', 'Account']
     @accounts = current_user.accounts.order(:name)
   end
+
+  def show
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
+  def new
+    @document = Document.new
+    @categories = Document::CATEGORIES
+    @accounts = current_user.accounts.order(:name)
+  end
+
+  def create
+    @document = Document.new(document_params)
+    
+    # Set the attachable based on the level
+    if params[:document][:level] == 'Account'
+      if params[:document][:account_id].present?
+        @document.attachable = current_user.accounts.find(params[:document][:account_id])
+      else
+        @document.errors.add(:base, "Account must be selected for Account-level documents")
+        @categories = Document::CATEGORIES
+        @accounts = current_user.accounts.order(:name)
+        render :new, status: :unprocessable_entity
+        return
+      end
+    else
+      @document.attachable = current_user
+    end
+
+    if @document.save
+      redirect_to @document, notice: 'Document was successfully uploaded.'
+    else
+      @categories = Document::CATEGORIES
+      @accounts = current_user.accounts.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def document_params
+    params.require(:document).permit(:category, :document_date, :description, :tax_year, :attachment, :level)
+  end
 end 

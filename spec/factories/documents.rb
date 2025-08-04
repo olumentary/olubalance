@@ -8,21 +8,11 @@ FactoryBot.define do
     description { Faker::Lorem.sentence(word_count: rand(5..15)) }
     tax_year { nil }
 
-    trait :with_attachment do
-      after(:create) do |document|
-        document.attachment.attach(
-          io: File.open(Rails.root.join('app', 'assets', 'images', 'logo.png')),
-          filename: "test-document-#{document.id}.png",
-          content_type: 'image/png'
-        )
-      end
-    end
-
-    # Always include attachment since it's required on update
-    after(:create) do |document|
+    # Always include attachment since it's required
+    after(:build) do |document|
       document.attachment.attach(
         io: File.open(Rails.root.join('app', 'assets', 'images', 'logo.png')),
-        filename: "test-document-#{document.id}.png",
+        filename: "test-document-#{SecureRandom.hex(8)}.png",
         content_type: 'image/png'
       )
     end
@@ -40,8 +30,8 @@ FactoryBot.define do
       association :attachable, factory: :account
     end
 
-    factory :user_document, traits: [:user_level, :with_attachment]
-    factory :account_document, traits: [:account_level, :with_attachment]
-    factory :tax_document, traits: [:tax_document, :with_attachment]
+    factory :user_document, traits: [:user_level]
+    factory :account_document, traits: [:account_level]
+    factory :tax_document, traits: [:tax_document]
   end
 end 

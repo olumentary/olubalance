@@ -1,0 +1,205 @@
+<% content_for :title, "Upload New Document" %>
+
+<div class="container">
+  <div class="section">
+    <!-- Header -->
+    <div class="columns">
+      <div class="column">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+          <ul>
+            <li><%= link_to "Document Center", documents_path %></li>
+            <li class="is-active"><a href="#" aria-current="page">Upload New Document</a></li>
+          </ul>
+        </nav>
+        <h1 class="title">Upload New Document</h1>
+        <p class="subtitle">Add a new document to your document center</p>
+      </div>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="box">
+          <%= form_with model: @document, local: true, multipart: true, class: "form" do |f| %>
+            <% if @document.errors.any? %>
+              <div class="notification is-danger">
+                <h4 class="title is-5">Please correct the following errors:</h4>
+                <ul>
+                  <% @document.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <!-- Document Level Selection -->
+            <div class="field">
+              <label class="label">Document Level *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :level, 
+                      options_for_select([
+                        ['User Level - Personal documents', 'User'],
+                        ['Account Level - Account-specific documents', 'Account']
+                      ], @document.attachable_type || 'User') %>
+                </div>
+              </div>
+              <p class="help">Choose whether this document is personal or belongs to a specific account</p>
+            </div>
+
+            <!-- Account Selection (shown only when Account level is selected) -->
+            <div class="field" id="account-selection" style="display: none;">
+              <label class="label">Account *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select name="document[account_id]" id="document_account_id">
+                    <option value="">Select an account...</option>
+                    <% @accounts.each do |account| %>
+                      <option value="<%= account.id %>"><%= account.name %></option>
+                    <% end %>
+                  </select>
+                </div>
+              </div>
+              <p class="help">Select the account this document belongs to</p>
+            </div>
+
+            <!-- Category -->
+            <div class="field">
+              <label class="label">Category *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :category, 
+                      options_for_select(@categories.map { |category| [category, category] }, @document.category) %>
+                </div>
+              </div>
+              <p class="help">Select the category that best describes this document</p>
+            </div>
+
+            <!-- Document Date -->
+            <div class="field">
+              <label class="label">Document Date *</label>
+              <div class="control">
+                <%= f.date_field :document_date, value: @document.document_date || Date.current, class: "input" %>
+              </div>
+              <p class="help">The date associated with this document (e.g., statement date, tax year end)</p>
+            </div>
+
+            <!-- Tax Year (shown only for Tax documents) -->
+            <div class="field" id="tax-year-field" style="display: none;">
+              <label class="label">Tax Year *</label>
+              <div class="control">
+                <%= f.number_field :tax_year, value: @document.tax_year || Date.current.year, 
+                    min: 1900, max: 2100, class: "input" %>
+              </div>
+              <p class="help">The tax year this document relates to</p>
+            </div>
+
+            <!-- Description -->
+            <div class="field">
+              <label class="label">Description</label>
+              <div class="control">
+                <%= f.text_area :description, placeholder: "Optional description of the document...", 
+                    class: "textarea", rows: 3 %>
+              </div>
+              <p class="help">Optional description to help identify this document (max 500 characters)</p>
+            </div>
+
+            <!-- File Upload -->
+            <div class="field">
+              <label class="label">Document File *</label>
+              <div class="control">
+                <div class="file has-name is-fullwidth">
+                  <label class="file-label">
+                    <%= f.file_field :attachment, class: "file-input", accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt" %>
+                    <span class="file-cta">
+                      <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                      </span>
+                      <span class="file-label">
+                        Choose a file...
+                      </span>
+                    </span>
+                    <span class="file-name" id="file-name">
+                      No file chosen
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <p class="help">Supported formats: PDF, Word, Excel, Images, Text files (max 10MB)</p>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="field is-grouped">
+              <div class="control">
+                <%= f.submit "Upload Document", class: "button is-primary" %>
+              </div>
+              <div class="control">
+                <%= link_to "Cancel", documents_path, class: "button is-light" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :javascript do %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const levelSelect = document.querySelector('select[name="document[level]"]');
+      const accountSelection = document.getElementById('account-selection');
+      const categorySelect = document.querySelector('select[name="document[category]"]');
+      const taxYearField = document.getElementById('tax-year-field');
+      const fileInput = document.querySelector('input[type="file"]');
+      const fileName = document.getElementById('file-name');
+      // Handle level selection
+      levelSelect.addEventListener('change', function() {
+        if (this.value === 'Account') {
+          accountSelection.style.display = 'block';
+        } else {
+          accountSelection.style.display = 'none';
+        }
+      });
+
+      // Form validation
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function(e) {
+        if (levelSelect.value === 'Account') {
+          const accountSelect = document.getElementById('document_account_id');
+          if (!accountSelect.value) {
+            e.preventDefault();
+            alert('Please select an account for Account-level documents.');
+            accountSelect.focus();
+            return false;
+          }
+        }
+      });
+
+      // Handle category selection for tax year
+      categorySelect.addEventListener('change', function() {
+        if (this.value === 'Taxes') {
+          taxYearField.style.display = 'block';
+        } else {
+          taxYearField.style.display = 'none';
+        }
+      });
+
+      // Handle file name display
+      fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+          fileName.textContent = this.files[0].name;
+        } else {
+          fileName.textContent = 'No file chosen';
+        }
+      });
+
+      // Initialize on page load
+      if (levelSelect.value === 'Account') {
+        accountSelection.style.display = 'block';
+      }
+      if (categorySelect.value === 'Taxes') {
+        taxYearField.style.display = 'block';
+      }
+    });
+  </script>
+<% end %>

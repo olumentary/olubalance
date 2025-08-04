@@ -10,7 +10,7 @@ class Document < ApplicationRecord
   validates :document_date, presence: true
   validates :description, length: { maximum: 500 }
   validates :tax_year, presence: true, numericality: { only_integer: true, greater_than: 1900, less_than: 2100 }, if: :tax_document?
-  validates :attachment, presence: true, on: :update
+  validates :attachment, presence: true
 
   scope :by_category, ->(category) { where(category: category) if category.present? }
   scope :by_level, ->(level) { where(attachable_type: level) if level.present? }
