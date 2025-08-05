@@ -138,32 +138,46 @@
           <tbody>
             <% if @documents.any? %>
               <% @documents.each do |document| %>
-                <tr class="document-row" data-href="<%= document_path(document) %>" style="cursor: pointer;">
+                <tr>
                   <td>
-                    <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
-                      <%= document.level %>
-                    </span>
-                  </td>
-                  <td>
-                    <% if document.level == 'Account' %>
-                      <span class="has-text-link"><%= document.account_name %></span>
-                    <% else %>
-                      <span class="has-text-grey-light">-</span>
-                    <% end %>
-                  </td>
-                  <td><%= document.document_date.strftime("%B %d, %Y") %></td>
-                  <td>
-                    <% if document.description.present? %>
-                      <%= truncate(document.description, length: 50) %>
-                    <% else %>
-                      <span class="has-text-grey-light">-</span>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
+                        <%= document.level %>
+                      </span>
                     <% end %>
                   </td>
                   <td>
-                    <strong class="has-text-link"><%= document.attachment.filename %></strong>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <% if document.level == 'Account' %>
+                        <span class="has-text-link"><%= document.account_name %></span>
+                      <% else %>
+                        <span class="has-text-grey-light">-</span>
+                      <% end %>
+                    <% end %>
                   </td>
                   <td>
-                    <span class="tag is-info is-light"><%= document.category %></span>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <%= document.document_date.strftime("%m/%d/%Y") %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <% if document.description.present? %>
+                        <%= truncate(document.description, length: 50) %>
+                      <% else %>
+                        <span class="has-text-grey-light">-</span>
+                      <% end %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <strong class="has-text-link"><%= document.attachment.filename %></strong>
+                    <% end %>
+                  </td>
+                  <td>
+                    <%= link_to document_path(document), class: "has-text-dark" do %>
+                      <span class="tag is-info is-light"><%= document.category %></span>
+                    <% end %>
                   </td>
                 </tr>
               <% end %>
