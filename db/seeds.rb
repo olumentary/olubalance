@@ -377,7 +377,9 @@ users.each do |user|
   # Create 3-5 documents per user
   rand(3..5).times do |i|
     doc_category = document_categories.sample
-    document = Document.create!(
+    
+    # Create document with attachment
+    document = Document.new(
       attachable: user,
       category: doc_category,
       document_date: Faker::Date.backward(days: 365),
@@ -385,13 +387,14 @@ users.each do |user|
       tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
     )
     
-    # Attach a file
+    # Attach file before saving
     document.attachment.attach(
       io: File.open('app/assets/images/logo.png'),
       filename: "user-doc-#{user.id}-#{i + 1}.png",
       content_type: 'image/png'
     )
     
+    document.save!
     documents << document
   end
 end
@@ -401,7 +404,9 @@ accounts.each do |account|
   # Create 2-4 documents per account
   rand(2..4).times do |i|
     doc_category = document_categories.sample
-    document = Document.create!(
+    
+    # Create document with attachment
+    document = Document.new(
       attachable: account,
       category: doc_category,
       document_date: Faker::Date.backward(days: 365),
@@ -409,13 +414,14 @@ accounts.each do |account|
       tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
     )
     
-    # Attach a file
+    # Attach file before saving
     document.attachment.attach(
       io: File.open('app/assets/images/logo.png'),
       filename: "account-doc-#{account.id}-#{i + 1}.png",
       content_type: 'image/png'
     )
     
+    document.save!
     documents << document
   end
 end
