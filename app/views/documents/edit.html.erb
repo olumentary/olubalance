@@ -1,0 +1,28 @@
+<% content_for :title, "Edit Document" %>
+
+<div class="container">
+  <div class="section">
+    <!-- Header -->
+    <div class="columns">
+      <div class="column">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+          <ul>
+            <li><%= link_to "Document Center", documents_path %></li>
+            <li><%= link_to @document.description.presence || "Document", document_path(@document) %></li>
+            <li class="is-active"><a href="#" aria-current="page">Edit Document</a></li>
+          </ul>
+        </nav>
+        <h1 class="title">Edit Document</h1>
+        <p class="subtitle">Update document information and settings</p>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="column is-8">
+        <div class="box">
+          <%= render 'form' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

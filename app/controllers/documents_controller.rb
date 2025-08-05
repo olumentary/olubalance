@@ -86,6 +86,51 @@ class DocumentsController < ApplicationController
     end
   end
 
+  def edit
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+    @categories = Document::CATEGORIES
+    @accounts = current_user.accounts.order(:name)
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
+  def update
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+    
+    # Set the attachable based on the level (accessed directly from params)
+    level = params[:document][:level]
+    if level == 'Account'
+      account_id = params[:document][:account_id]
+      if account_id.present?
+        @document.attachable = current_user.accounts.find(account_id)
+      else
+        @document.errors.add(:base, "Account must be selected for Account-level documents")
+        @categories = Document::CATEGORIES
+        @accounts = current_user.accounts.order(:name)
+        render :edit, status: :unprocessable_entity
+        return
+      end
+    else
+      @document.attachable = current_user
+    end
+
+    if @document.update(document_params)
+      redirect_to @document, notice: 'Document was successfully updated.'
+    else
+      @categories = Document::CATEGORIES
+      @accounts = current_user.accounts.order(:name)
+      render :edit, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
   private
 
   def document_params
