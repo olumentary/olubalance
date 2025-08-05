@@ -57,3 +57,6 @@ application.register('trxtype-radio-buttons', TrxtypeRadioButtonsController);
 
 import TypeaheadController from './typeahead_controller';
 application.register('typeahead', TypeaheadController);
+
+import DocumentFormController from './document_form_controller';
+application.register('document-form', DocumentFormController);

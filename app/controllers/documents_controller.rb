@@ -60,10 +60,12 @@ class DocumentsController < ApplicationController
   def create
     @document = Document.new(document_params)
     
-    # Set the attachable based on the level
-    if params[:document][:level] == 'Account'
-      if params[:document][:account_id].present?
-        @document.attachable = current_user.accounts.find(params[:document][:account_id])
+    # Set the attachable based on the level (accessed directly from params)
+    level = params[:document][:level]
+    if level == 'Account'
+      account_id = params[:document][:account_id]
+      if account_id.present?
+        @document.attachable = current_user.accounts.find(account_id)
       else
         @document.errors.add(:base, "Account must be selected for Account-level documents")
         @categories = Document::CATEGORIES
@@ -87,6 +89,6 @@ class DocumentsController < ApplicationController
   private
 
   def document_params
-    params.require(:document).permit(:category, :document_date, :description, :tax_year, :attachment, :level)
+    params.require(:document).permit(:category, :document_date, :description, :tax_year, :attachment)
   end
 end 

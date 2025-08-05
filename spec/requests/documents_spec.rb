@@ -77,4 +77,115 @@ RSpec.describe 'Documents', type: :request do
       end
     end
   end
+
+  describe 'GET /documents/new' do
+    it 'returns a successful response' do
+      get new_document_path
+      expect(response).to be_successful
+    end
+
+    it 'assigns @document' do
+      get new_document_path
+      expect(assigns(:document)).to be_a_new(Document)
+    end
+
+    it 'assigns @categories' do
+      get new_document_path
+      expect(assigns(:categories)).to eq(Document::CATEGORIES)
+    end
+
+    it 'assigns @accounts' do
+      get new_document_path
+      expect(assigns(:accounts)).to include(account)
+    end
+  end
+
+  describe 'POST /documents' do
+    let(:valid_attributes) do
+      {
+        category: 'Statements',
+        document_date: Date.current,
+        description: 'Test document',
+        level: 'User',
+        attachment: Rack::Test::UploadedFile.new(
+          Rails.root.join('app', 'assets', 'images', 'logo.png'),
+          'image/png'
+        )
+      }
+    end
+
+    context 'with valid parameters' do
+      it 'creates a new user-level document' do
+        expect {
+          post documents_path, params: { document: valid_attributes }
+        }.to change(Document, :count).by(1)
+
+        document = Document.last
+        expect(document.attachable).to eq(user)
+        expect(document.category).to eq('Statements')
+        expect(response).to redirect_to(document_path(document))
+      end
+
+      it 'creates a new account-level document' do
+        account_attributes = valid_attributes.merge(
+          level: 'Account',
+          account_id: account.id
+        )
+
+        expect {
+          post documents_path, params: { document: account_attributes }
+        }.to change(Document, :count).by(1)
+
+        document = Document.last
+        expect(document.attachable).to eq(account)
+        expect(response).to redirect_to(document_path(document))
+      end
+
+      it 'creates a tax document with tax year' do
+        tax_attributes = valid_attributes.merge(
+          category: 'Taxes',
+          tax_year: 2023
+        )
+
+        expect {
+          post documents_path, params: { document: tax_attributes }
+        }.to change(Document, :count).by(1)
+
+        document = Document.last
+        expect(document.tax_year).to eq(2023)
+        expect(response).to redirect_to(document_path(document))
+      end
+    end
+
+    context 'with invalid parameters' do
+      it 'does not create a document without required fields' do
+        expect {
+          post documents_path, params: { document: { category: '' } }
+        }.not_to change(Document, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'does not create account-level document without account selection' do
+        invalid_attributes = valid_attributes.merge(level: 'Account', account_id: '')
+
+        expect {
+          post documents_path, params: { document: invalid_attributes }
+        }.not_to change(Document, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(assigns(:document).errors[:base]).to include('Account must be selected for Account-level documents')
+      end
+
+      it 'does not create tax document without tax year' do
+        tax_attributes = valid_attributes.merge(category: 'Taxes', tax_year: '')
+
+        expect {
+          post documents_path, params: { document: tax_attributes }
+        }.not_to change(Document, :count)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
 end 
