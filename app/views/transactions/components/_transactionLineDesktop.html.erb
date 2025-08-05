@@ -96,17 +96,11 @@
       <% end %>
     </td>
 
-    <td class="has-text-right <%= transaction.reviewed_weight %> <%= 'is-hidden' if transaction.quick_receipt? %>">
-      <% if transaction.pending? %>
+    <td class="has-text-right <%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
         <div class="ob-cell-content has-text-weight-semibold has-text-grey">
           <%= transaction.running_balance_display %>
         </div>
-      <% else %>
-        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-          <div class="ob-cell-content has-text-weight-semibold has-text-grey">
-            <%= transaction.running_balance_display %>
-          </div>
-        <% end %>
       <% end %>
     </td>
 
