@@ -145,6 +145,9 @@
                   </div>
                 </div>
 
+                <!-- Hidden account_id field to ensure the account is preserved -->
+                <%= f.hidden_field :account_id, value: transaction.account_id %>
+
                 <div class="notification is-info is-light">
                   <span class="icon">
                     <i class="fas fa-info-circle"></i>
