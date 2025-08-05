@@ -15,17 +15,17 @@
       </div>
       <div class="column is-narrow">
         <div class="buttons">
-          <%= link_to rails_blob_path(@document.attachment, disposition: "attachment"), class: "button is-info" do %>
+          <%= link_to edit_document_path(@document), class: "button is-light" do %>
+            <span class="icon">
+              <i class="fas fa-edit"></i>
+            </span>
+            <span>Edit</span>
+          <% end %>
+          <%= link_to rails_blob_path(@document.attachment, disposition: "attachment"), class: "button is-primary" do %>
             <span class="icon">
               <i class="fas fa-download"></i>
             </span>
             <span>Download</span>
-          <% end %>
-          <%= link_to documents_path, class: "button" do %>
-            <span class="icon">
-              <i class="fas fa-arrow-left"></i>
-            </span>
-            <span>Back</span>
           <% end %>
         </div>
       </div>
