@@ -1,98 +1,21 @@
 # frozen_string_literal: true
 
 namespace :storage do
-  desc 'Migrate transaction attachments from AWS S3 to Linode S3-compatible storage'
+  desc 'Migrate transaction attachments from AWS S3 to Linode S3-compatible storage (DEPRECATED - use migrate_blobs_to_linode instead)'
   task migrate_to_linode: :environment do
-    puts "Starting migration of transaction attachments from AWS S3 to Linode..."
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    
-    # Count total attachments to migrate
-    total_attachments = Transaction.joins(:attachment_attachment).count
-    puts "Found #{total_attachments} attachments to migrate"
-    
-    if total_attachments == 0
-      puts "No attachments found to migrate. Exiting."
-      return
-    end
-    
-    migrated_count = 0
-    failed_count = 0
-    failed_transactions = []
-    
-    # Process each transaction with an attachment
-    Transaction.joins(:attachment_attachment).find_each do |transaction|
-      begin
-        puts "Migrating attachment for transaction #{transaction.id} (#{transaction.description})"
-        
-        # Get the current attachment
-        attachment = transaction.attachment
-        
-        if attachment.blank?
-          puts "  Skipping - no attachment found"
-          next
-        end
-        
-        # Store original attachment details
-        original_filename = attachment.filename
-        original_content_type = attachment.content_type
-        original_byte_size = attachment.byte_size
-        
-        # Download the file from AWS S3
-        puts "  Downloading from AWS S3..."
-        downloaded_file = attachment.download
-        
-        # Temporarily switch to Linode storage
-        Rails.application.config.active_storage.service = :linode
-        
-        # Upload to Linode
-        puts "  Uploading to Linode..."
-        transaction.attachment.attach(
-          io: StringIO.new(downloaded_file),
-          filename: original_filename,
-          content_type: original_content_type
-        )
-        
-        # Switch back to original storage
-        Rails.application.config.active_storage.service = original_service
-        
-        # Verify the new attachment
-        if transaction.attachment.attached?
-          puts "  ✓ Successfully migrated"
-          migrated_count += 1
-        else
-          puts "  ✗ Failed to verify attachment"
-          failed_count += 1
-          failed_transactions << { id: transaction.id, error: "Failed to verify attachment" }
-        end
-        
-      rescue => e
-        puts "  ✗ Error migrating transaction #{transaction.id}: #{e.message}"
-        failed_count += 1
-        failed_transactions << { id: transaction.id, error: e.message }
-        
-        # Ensure we're back to original storage service
-        Rails.application.config.active_storage.service = original_service
-      end
-    end
-    
-    # Print summary
-    puts "\n" + "="*50
-    puts "MIGRATION SUMMARY"
-    puts "="*50
-    puts "Total attachments: #{total_attachments}"
-    puts "Successfully migrated: #{migrated_count}"
-    puts "Failed: #{failed_count}"
-    
-    if failed_transactions.any?
-      puts "\nFailed transactions:"
-      failed_transactions.each do |failure|
-        puts "  Transaction #{failure[:id]}: #{failure[:error]}"
-      end
-    end
-    
-    puts "\nMigration completed!"
+    puts "⚠️  This migration method is deprecated and may not work correctly."
+    puts "Please use 'bundle exec rails storage:migrate_blobs_to_linode' instead."
+    puts ""
+    puts "The migrate_blobs_to_linode method is more robust and handles the migration"
+    puts "at the blob level, which is the recommended approach for ActiveStorage migrations."
+    puts ""
+    puts "To run the recommended migration:"
+    puts "  bundle exec rails storage:migrate_blobs_to_linode"
+    puts ""
+    puts "Or use the migration script:"
+    puts "  bin/migrate_to_linode"
+    puts ""
+    exit 1
   end
   
   desc 'Migrate using ActiveStorage blob records (more robust method)'
@@ -244,11 +167,11 @@ namespace :storage do
     original_service = Rails.application.config.active_storage.service
     Rails.application.config.active_storage.service = :linode
     
-    total_attachments = Transaction.joins(:attachment_attachment).count
+    total_attachments = Transaction.joins(:attachments_attachments).count
     verified_count = 0
     failed_count = 0
     
-    Transaction.joins(:attachment_attachment).find_each do |transaction|
+    Transaction.joins(:attachments_attachments).find_each do |transaction|
       begin
         attachment = transaction.attachment
         
@@ -308,7 +231,7 @@ namespace :storage do
     
     cleaned_count = 0
     
-    Transaction.joins(:attachment_attachment).find_each do |transaction|
+    Transaction.joins(:attachments_attachments).find_each do |transaction|
       begin
         attachment = transaction.attachment
         
@@ -953,7 +876,7 @@ namespace :storage do
     
     puts "\nAttachment statistics:"
     total_transactions = Transaction.count
-    transactions_with_attachments = Transaction.joins(:attachment_attachment).count
+    transactions_with_attachments = Transaction.joins(:attachments_attachments).count
     
     puts "  Total transactions: #{total_transactions}"
     puts "  Transactions with attachments: #{transactions_with_attachments}"
