@@ -1,223 +1,194 @@
 <% content_for :title, "Document Center" %>
 
 <div class="container">
-      <div class="section">
-      <div class="columns">
-        <div class="column">
-          <h1 class="title">Document Center</h1>
-          <p class="subtitle">Manage and view all your account and user-level documents</p>
-        </div>
-        <div class="column is-narrow">
-          <%= link_to new_document_path, class: "button is-primary" do %>
-            <span class="icon">
-              <i class="fas fa-plus"></i>
-            </span>
-            <span>New Document</span>
-          <% end %>
-        </div>
-      </div>
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">Document Center</h1>
+      <p class="subtitle">Manage and view all your account and user-level documents</p>
+    </div>
+    <div class="column is-narrow">
+      <%= link_to new_document_path, class: "button is-primary" do %>
+        <span class="icon">
+          <i class="fas fa-plus"></i>
+        </span>
+        <span>New Document</span>
+      <% end %>
+    </div>
+  </div>
 
-    <!-- Filters -->
-    <div class="box">
-      <h2 class="title is-5">Filters</h2>
-      <%= form_with url: documents_path, method: :get, local: true, class: "form" do |f| %>
-        <div class="columns is-multiline">
-          <div class="column is-3">
-            <div class="field">
-              <label class="label is-size-7">Type</label>
-              <div class="control">
-                <div class="select is-small is-fullwidth">
-                  <%= f.select :level, 
-                      options_for_select([['All Types', '']] + @levels.map { |level| [level, level] }, params[:level]) %>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="column is-3">
-            <div class="field">
-              <label class="label is-size-7">Account</label>
-              <div class="control">
-                <div class="select is-small is-fullwidth">
-                  <%= f.select :account_id, 
-                      options_for_select([['All Accounts', '']] + @accounts.map { |account| [account.name, account.id] }, params[:account_id]) %>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="column is-3">
-            <div class="field">
-              <label class="label is-size-7">Category</label>
-              <div class="control">
-                <div class="select is-small is-fullwidth">
-                  <%= f.select :category, 
-                      options_for_select([['All Categories', '']] + @categories.map { |category| [category, category] }, params[:category]) %>
-                </div>
+  <!-- Filters -->
+  <div class="box">
+    <h2 class="title is-5">Filters</h2>
+    <%= form_with url: documents_path, method: :get, local: true, class: "form" do |f| %>
+      <div class="columns is-multiline">
+        <div class="column is-3">
+          <div class="field">
+            <label class="label is-size-7">Type</label>
+            <div class="control">
+              <div class="select is-small is-fullwidth">
+                <%= f.select :level, 
+                    options_for_select([['All Types', '']] + @levels.map { |level| [level, level] }, params[:level]) %>
               </div>
             </div>
           </div>
         </div>
         
-        <div class="columns is-multiline">
-          <div class="column is-2">
-            <div class="field">
-              <label class="label is-size-7">Start Date</label>
-              <div class="control">
-                <%= f.date_field :start_date, value: params[:start_date], class: "input is-small" %>
-              </div>
-            </div>
-          </div>
-          
-          <div class="column is-2">
-            <div class="field">
-              <label class="label is-size-7">End Date</label>
-              <div class="control">
-                <%= f.date_field :end_date, value: params[:end_date], class: "input is-small" %>
-              </div>
-            </div>
-          </div>
-          
-          <div class="column is-2">
-            <div class="field">
-              <label class="label is-size-7">&nbsp;</label>
-              <div class="control">
-                <div class="buttons are-small">
-                  <%= f.submit "Apply", class: "button is-primary is-small" %>
-                  <%= link_to "Reset", documents_path, class: "button is-danger is-small" %>
-                </div>
+        <div class="column is-3">
+          <div class="field">
+            <label class="label is-size-7">Account</label>
+            <div class="control">
+              <div class="select is-small is-fullwidth">
+                <%= f.select :account_id, 
+                    options_for_select([['All Accounts', '']] + @accounts.map { |account| [account.name, account.id] }, params[:account_id]) %>
               </div>
             </div>
           </div>
         </div>
-      <% end %>
-    </div>
-
-    <!-- Documents Table -->
-    <div class="has-rounded-corners">
-      <table class="table is-fullwidth is-striped is-hoverable has-rounded-corners">
-          <thead>
-            <tr>
-              <th>
-                <%= link_to "Type", documents_path(sort: 'level', direction: sort_direction('level'), 
-                    category: params[:category], level: params[:level], account_id: params[:account_id], 
-                    start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-              <th>
-                <%= link_to "Account", documents_path(sort: 'account_name', direction: sort_direction('account_name'), 
-                    category: params[:category], level: params[:level], account_id: params[:account_id], 
-                    start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-              <th>
-                <%= link_to "Date", documents_path(sort: 'document_date', direction: sort_direction('document_date'), 
-                    category: params[:category], level: params[:level], account_id: params[:account_id], 
-                    start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-              <th>
-                <%= link_to "Description", documents_path(sort: 'description', direction: sort_direction('description'), 
-                    category: params[:category], level: params[:level], account_id: params[:account_id], 
-                    start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-              <th>
-                <%= link_to "Filename", documents_path(sort: 'filename', direction: sort_direction('filename'), 
-                    category: params[:category], level: params[:level], account_id: params[:account_id], 
-                    start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-              <th>
-                <%= link_to "Category", documents_path(sort: 'category', direction: sort_direction('category'), 
-                    level: params[:level], account_id: params[:account_id], start_date: params[:start_date], end_date: params[:end_date]), 
-                    class: "has-text-white" %>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if @documents.any? %>
-              <% @documents.each do |document| %>
-                <tr>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
-                        <%= document.level %>
-                      </span>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <% if document.level == 'Account' %>
-                        <span class="has-text-link"><%= document.account_name %></span>
-                      <% else %>
-                        <span class="has-text-grey-light">-</span>
-                      <% end %>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <%= document.document_date.strftime("%m/%d/%Y") %>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <% if document.description.present? %>
-                        <%= truncate(document.description, length: 50) %>
-                      <% else %>
-                        <span class="has-text-grey-light">-</span>
-                      <% end %>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <strong class="has-text-link"><%= document.attachment.filename %></strong>
-                    <% end %>
-                  </td>
-                  <td>
-                    <%= link_to document_path(document), class: "has-text-dark" do %>
-                      <span class="tag is-info is-light"><%= document.category %></span>
-                    <% end %>
-                  </td>
-                </tr>
-              <% end %>
-            <% else %>
-              <tr>
-                <td colspan="6" class="has-text-centered has-text-grey-light">
-                  <p class="is-size-5">No documents found</p>
-                  <p class="is-size-6">Try adjusting your filters or add some documents to get started.</p>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+        
+        <div class="column is-3">
+          <div class="field">
+            <label class="label is-size-7">Category</label>
+            <div class="control">
+              <div class="select is-small is-fullwidth">
+                <%= f.select :category, 
+                    options_for_select([['All Categories', '']] + @categories.map { |category| [category, category] }, params[:category]) %>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+      
+      <div class="columns is-multiline">
+        <div class="column is-2">
+          <div class="field">
+            <label class="label is-size-7">Start Date</label>
+            <div class="control">
+              <%= f.date_field :start_date, value: params[:start_date], class: "input is-small" %>
+            </div>
+          </div>
+        </div>
+        
+        <div class="column is-2">
+          <div class="field">
+            <label class="label is-size-7">End Date</label>
+            <div class="control">
+              <%= f.date_field :end_date, value: params[:end_date], class: "input is-small" %>
+            </div>
+          </div>
+        </div>
+        
+        <div class="column is-2">
+          <div class="field">
+            <label class="label is-size-7">&nbsp;</label>
+            <div class="control">
+              <div class="buttons are-small">
+                <%= f.submit "Apply", class: "button is-primary is-small" %>
+                <%= link_to "Reset", documents_path, class: "button is-danger is-small" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Documents Table -->
+  <div class="has-rounded-corners">
+    <table class="table is-fullwidth is-striped is-hoverable has-rounded-corners">
+      <thead>
+        <tr>
+          <th>
+            <%= link_to "Type", documents_path(sort: 'level', direction: sort_direction('level'), 
+                category: params[:category], level: params[:level], account_id: params[:account_id], 
+                start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+          <th>
+            <%= link_to "Account", documents_path(sort: 'account_name', direction: sort_direction('account_name'), 
+                category: params[:category], level: params[:level], account_id: params[:account_id], 
+                start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+          <th>
+            <%= link_to "Date", documents_path(sort: 'document_date', direction: sort_direction('document_date'), 
+                category: params[:category], level: params[:level], account_id: params[:account_id], 
+                start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+          <th>
+            <%= link_to "Description", documents_path(sort: 'description', direction: sort_direction('description'), 
+                category: params[:category], level: params[:level], account_id: params[:account_id], 
+                start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+          <th>
+            <%= link_to "Filename", documents_path(sort: 'filename', direction: sort_direction('filename'), 
+                category: params[:category], level: params[:level], account_id: params[:account_id], 
+                start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+          <th>
+            <%= link_to "Category", documents_path(sort: 'category', direction: sort_direction('category'), 
+                level: params[:level], account_id: params[:account_id], start_date: params[:start_date], end_date: params[:end_date]), 
+                class: "has-text-white" %>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if @documents.any? %>
+          <% @documents.each do |document| %>
+            <tr>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <span class="tag <%= document.level == 'User' ? 'is-success' : 'is-warning' %> is-light has-text-dark">
+                    <%= document.level %>
+                  </span>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <% if document.level == 'Account' %>
+                    <span class="has-text-link"><%= document.account_name %></span>
+                  <% else %>
+                    <span class="has-text-grey-light">-</span>
+                  <% end %>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <%= document.document_date.strftime("%m/%d/%Y") %>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <% if document.description.present? %>
+                    <%= truncate(document.description, length: 50) %>
+                  <% else %>
+                    <span class="has-text-grey-light">-</span>
+                  <% end %>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <strong class="has-text-link"><%= document.attachment.filename %></strong>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to document_path(document), class: "has-text-dark" do %>
+                  <span class="tag is-info is-light"><%= document.category %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="6" class="has-text-centered has-text-grey-light">
+              <p class="is-size-5">No documents found</p>
+              <p class="is-size-6">Try adjusting your filters or add some documents to get started.</p>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
   </div>
 </div>
-
-<% content_for :javascript do %>
-  <script>
-    // Auto-submit form when select fields change
-    document.addEventListener('DOMContentLoaded', function() {
-      const selectFields = document.querySelectorAll('select[name="category"], select[name="level"], select[name="account_id"]');
-      selectFields.forEach(function(select) {
-        select.addEventListener('change', function() {
-          this.closest('form').submit();
-        });
-      });
-
-      // Handle document row clicks
-      const documentRows = document.querySelectorAll('.document-row');
-      documentRows.forEach(function(row) {
-        row.addEventListener('click', function(e) {
-          // Don't trigger if clicking on a link or button
-          if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
-            return;
-          }
-          window.location.href = this.dataset.href;
-        });
-      });
-    });
-  </script>
-<% end %> 
