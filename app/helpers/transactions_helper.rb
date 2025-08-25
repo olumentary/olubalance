@@ -8,18 +8,29 @@ module TransactionsHelper
 
     Rails.logger.info "Custom pagination - Current page: #{pagy.page}, Total pages: #{pagy.pages}, Series: #{pagy.series}"
 
+    # Build base URL with filters preserved
+    base_params = {}
+    if session["filters"]&.dig("description")&.present?
+      base_params[:description] = session["filters"]["description"]
+    end
+    if session["filters"]&.dig("account_id")&.present?
+      base_params[:account_id] = session["filters"]["account_id"]
+    end
+
     html = '<nav class="pagination is-centered" role="navigation" aria-label="pagination">'
     
     # Previous button
     if pagy.prev
-      html += link_to("Previous", account_transactions_path(account, page: pagy.prev), class: "pagination-previous")
+      prev_params = base_params.merge(page: pagy.prev)
+      html += link_to("Previous", account_transactions_path(account) + "?" + prev_params.to_query, class: "pagination-previous")
     else
       html += '<span class="pagination-previous" disabled>Previous</span>'
     end
 
     # Next button
     if pagy.next
-      html += link_to("Next", account_transactions_path(account, page: pagy.next), class: "pagination-next")
+      next_params = base_params.merge(page: pagy.next)
+      html += link_to("Next", account_transactions_path(account) + "?" + next_params.to_query, class: "pagination-next")
     else
       html += '<span class="pagination-next" disabled>Next</span>'
     end
@@ -34,7 +45,8 @@ module TransactionsHelper
         if page_num == pagy.page
           html += '<li><span class="pagination-link is-current" aria-current="page">' + page_num.to_s + '</span></li>'
         else
-          html += '<li>' + link_to(page_num.to_s, account_transactions_path(account, page: page_num), class: "pagination-link") + '</li>'
+          page_params = base_params.merge(page: page_num)
+          html += '<li>' + link_to(page_num.to_s, account_transactions_path(account) + "?" + page_params.to_query, class: "pagination-link") + '</li>'
         end
       elsif item == :gap
         html += '<li><span class="pagination-ellipsis">&hellip;</span></li>'

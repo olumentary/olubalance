@@ -176,15 +176,25 @@ class TransactionsController < ApplicationController
                               .then { apply_order _1 }
                               .then { apply_id_order _1 }
 
-      @pagy, @transactions = pagy(@transactions)
+      # Preserve the current page from the request parameters
+      current_page = params[:page]&.to_i || 1
+      @pagy, @transactions = pagy(@transactions, page: current_page)
       @transactions = @transactions.decorate
 
-      # Set the correct pagination URL
-      @pagy_url = account_transactions_path(@account)
+      # Set the correct pagination URL with current page and filters
+      pagination_params = { page: current_page }
+      # Preserve any existing filters from session
+      if session["filters"]&.dig("description")&.present?
+        pagination_params[:description] = session["filters"]["description"]
+      end
+      if session["filters"]&.dig("account_id")&.present?
+        pagination_params[:account_id] = session["filters"]["account_id"]
+      end
+      @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
 
       # Debug: Log the pending count
       pending_count = @transactions.select(&:pending?).count
-      Rails.logger.info "Mark reviewed - Pending count: #{pending_count}, Total transactions: #{@transactions.count}"
+      Rails.logger.info "Mark reviewed - Pending count: #{pending_count}, Total transactions: #{@transactions.count}, Current page: #{current_page}"
 
       # Set required variables for partials
       @stashes = @account.stashes.order(id: :asc).decorate
@@ -220,15 +230,25 @@ class TransactionsController < ApplicationController
                               .then { apply_order _1 }
                               .then { apply_id_order _1 }
 
-      @pagy, @transactions = pagy(@transactions)
+      # Preserve the current page from the request parameters
+      current_page = params[:page]&.to_i || 1
+      @pagy, @transactions = pagy(@transactions, page: current_page)
       @transactions = @transactions.decorate
 
-      # Set the correct pagination URL
-      @pagy_url = account_transactions_path(@account)
+      # Set the correct pagination URL with current page and filters
+      pagination_params = { page: current_page }
+      # Preserve any existing filters from session
+      if session["filters"]&.dig("description")&.present?
+        pagination_params[:description] = session["filters"]["description"]
+      end
+      if session["filters"]&.dig("account_id")&.present?
+        pagination_params[:account_id] = session["filters"]["account_id"]
+      end
+      @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
 
       # Debug: Log the pending count
       pending_count = @transactions.select(&:pending?).count
-      Rails.logger.info "Mark pending - Pending count: #{pending_count}, Total transactions: #{@transactions.count}"
+      Rails.logger.info "Mark pending - Pending count: #{pending_count}, Total transactions: #{@transactions.count}, Current page: #{current_page}"
 
       # Set required variables for partials
       @stashes = @account.stashes.order(id: :asc).decorate
