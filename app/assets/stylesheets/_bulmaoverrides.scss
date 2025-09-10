@@ -1,11 +1,51 @@
-@use "obtheme" as ob;
+@use 'obtheme' as ob;
 
 .tag.is-success {
   color: ob.$white-ter;
 }
 
 .button {
-  &.is-primary, &.is-danger {
+  &.is-primary,
+  &.is-danger {
     color: ob.$white-ter;
   }
+}
+
+// Mobile home page specific styles
+.mobile-home {
+  .button.is-large {
+    min-height: 6rem;
+    font-size: 1.25rem;
+    padding: 2rem 1rem;
+
+    .icon.is-large {
+      margin-right: 0.75rem;
+    }
+  }
+
+  .button.is-medium {
+    min-height: 3rem;
+  }
+}
+
+// Ensure proper spacing on mobile
+@media screen and (max-width: 768px) {
+  .mobile-home {
+    .container {
+      padding: 1rem;
+    }
+
+    .title.is-3 {
+      font-size: 1.75rem;
+    }
+  }
+}
+
+// Utility classes for sticky footer
+.min-vh-100 {
+  min-height: 100vh;
+}
+
+.mt-auto {
+  margin-top: auto;
 }

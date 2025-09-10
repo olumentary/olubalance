@@ -3,20 +3,16 @@
 
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
 
-    <title>olubalance</title>
+    <!-- iOS App Shortcut specific meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="oluhome">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=dLXL9YRL6A">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=dLXL9YRL6A">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=dLXL9YRL6A">
-    <link rel="manifest" href="/site.webmanifest?v=dLXL9YRL6A">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=dLXL9YRL6A" color="#366a64">
-    <link rel="shortcut icon" href="/favicon.ico?v=dLXL9YRL6A">
-    <meta name="apple-mobile-web-app-title" content="olubalance">
-    <meta name="application-name" content="olubalance">
-    <meta name="msapplication-TileColor" content="#366a64">
-    <meta name="theme-color" content="#366a64">
+    <title>oluhome</title>
+
+    <%= render "shared/favicon" %>
 
     <% if content_for? :head %>
       <%= yield :head %>
@@ -44,12 +40,12 @@
     #
     #########################################################################-->
 
-    <div id="app">
+    <div id="app" class="is-flex is-flex-direction-column min-vh-100">
       <header>
         <%= render "shared/navbar" %>
       </header>
 
-      <main class="olubalance site-content">
+      <main class="olubalance site-content is-flex-grow-1">
         <section class="section">
           <div class="container">
             <div id="flash_messages"></div>
@@ -69,7 +65,7 @@
         </section>
       </main>
 
-      <footer class="footer">
+      <footer class="footer mt-auto">
         <%= render "shared/footer" %>
       </footer>
     </div>

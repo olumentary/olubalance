@@ -1,0 +1,139 @@
+# frozen_string_literal: true
+
+class DocumentsController < ApplicationController
+  before_action :authenticate_user!
+
+  def index
+    # Get all documents for the current user (both user-level and account-level)
+    @documents = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                        .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                               current_user.id, current_user.id)
+                        .includes(:attachable)
+
+    # Apply filters
+    @documents = @documents.by_category(params[:category]) if params[:category].present?
+    @documents = @documents.by_level(params[:level]) if params[:level].present?
+    @documents = @documents.by_account(params[:account_id]) if params[:account_id].present?
+    @documents = @documents.by_date_range(params[:start_date], params[:end_date]) if params[:start_date].present? && params[:end_date].present?
+
+    # Apply sorting
+    sort_column = params[:sort] || 'document_date'
+    sort_direction = params[:direction] == 'asc' ? 'asc' : 'desc'
+    
+    case sort_column
+    when 'category'
+      @documents = @documents.order(category: sort_direction, document_date: :desc)
+    when 'level'
+      @documents = @documents.order(attachable_type: sort_direction, document_date: :desc)
+    when 'account_name'
+      @documents = @documents.order("accounts.name #{sort_direction}, document_date DESC")
+    when 'description'
+      @documents = @documents.order(description: sort_direction, document_date: :desc)
+    when 'filename'
+      # Sort by filename - one attachment per document
+      @documents = @documents.joins("LEFT JOIN active_storage_attachments ON active_storage_attachments.record_id = documents.id AND active_storage_attachments.record_type = 'Document'")
+                            .order("active_storage_attachments.name #{sort_direction}, document_date DESC")
+    else
+      @documents = @documents.order(document_date: sort_direction)
+    end
+
+    @categories = Document::CATEGORIES
+    @levels = ['User', 'Account']
+    @accounts = current_user.accounts.order(:name)
+  end
+
+  def show
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
+  def new
+    @document = Document.new
+    @categories = Document::CATEGORIES
+    @accounts = current_user.accounts.order(:name)
+  end
+
+  def create
+    @document = Document.new(document_params)
+    
+    # Set the attachable based on the level (accessed directly from params)
+    level = params[:document][:level]
+    if level == 'Account'
+      account_id = params[:document][:account_id]
+      if account_id.present?
+        @document.attachable = current_user.accounts.find(account_id)
+      else
+        @document.errors.add(:base, "Account must be selected for Account-level documents")
+        @categories = Document::CATEGORIES
+        @accounts = current_user.accounts.order(:name)
+        render :new, status: :unprocessable_entity
+        return
+      end
+    else
+      @document.attachable = current_user
+    end
+
+    if @document.save
+      redirect_to @document, notice: 'Document was successfully uploaded.'
+    else
+      @categories = Document::CATEGORIES
+      @accounts = current_user.accounts.order(:name)
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+    @categories = Document::CATEGORIES
+    @accounts = current_user.accounts.order(:name)
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
+  def update
+    @document = Document.joins("LEFT JOIN accounts ON documents.attachable_id = accounts.id AND documents.attachable_type = 'Account'")
+                       .where("(documents.attachable_type = 'User' AND documents.attachable_id = ?) OR (documents.attachable_type = 'Account' AND accounts.user_id = ?)", 
+                              current_user.id, current_user.id)
+                       .find(params[:id])
+    
+    # Set the attachable based on the level (accessed directly from params)
+    level = params[:document][:level]
+    if level == 'Account'
+      account_id = params[:document][:account_id]
+      if account_id.present?
+        @document.attachable = current_user.accounts.find(account_id)
+      else
+        @document.errors.add(:base, "Account must be selected for Account-level documents")
+        @categories = Document::CATEGORIES
+        @accounts = current_user.accounts.order(:name)
+        render :edit, status: :unprocessable_entity
+        return
+      end
+    else
+      @document.attachable = current_user
+    end
+
+    if @document.update(document_params)
+      redirect_to @document, notice: 'Document was successfully updated.'
+    else
+      @categories = Document::CATEGORIES
+      @accounts = current_user.accounts.order(:name)
+      render :edit, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_to documents_path, alert: 'Document not found or access denied.'
+  end
+
+  private
+
+  def document_params
+    params.require(:document).permit(:category, :document_date, :description, :tax_year, :attachment)
+  end
+end 

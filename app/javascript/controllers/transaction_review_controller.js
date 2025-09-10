@@ -16,7 +16,15 @@ export default class extends Controller {
     }
 
     try {
-      const response = await fetch(this.urlValue, {
+      // Get current page from URL or default to 1
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentPage = urlParams.get('page') || '1';
+
+      // Append page parameter to the URL
+      const url = new URL(this.urlValue, window.location.origin);
+      url.searchParams.set('page', currentPage);
+
+      const response = await fetch(url.toString(), {
         method: 'PATCH',
         headers: {
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
@@ -49,7 +57,15 @@ export default class extends Controller {
 
   async markPending() {
     try {
-      const response = await fetch(this.urlValue, {
+      // Get current page from URL or default to 1
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentPage = urlParams.get('page') || '1';
+
+      // Append page parameter to the URL
+      const url = new URL(this.urlValue, window.location.origin);
+      url.searchParams.set('page', currentPage);
+
+      const response = await fetch(url.toString(), {
         method: 'PATCH',
         headers: {
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,

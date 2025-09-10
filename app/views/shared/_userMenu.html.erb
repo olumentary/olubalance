@@ -10,6 +10,20 @@
 
     <hr class="navbar-divider"/>
 
+    <%= link_to mobile_home_path, class: "navbar-item is-hidden-desktop" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-receipt"></i>
+      </span>
+      Quick Receipt Upload
+    <% end %>
+
+    <%= link_to accounts_path, class: "navbar-item is-hidden-desktop" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-credit-card"></i>
+      </span>
+      Accounts
+    <% end %>
+
     <%= link_to edit_user_registration_path, class: "navbar-item" do %>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-cog"></i>
@@ -29,6 +43,13 @@
         <i class="fas fa-calendar-day"></i>
       </span>
       Daily Summary
+    <% end %>
+
+    <%= link_to documents_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        📄
+      </span>
+      Document Center
     <% end %>
 
     <%= link_to destroy_user_session_path, class: "navbar-item" do%>

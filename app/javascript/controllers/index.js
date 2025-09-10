@@ -2,55 +2,61 @@
 // Run that command whenever you add a new controller or create them with
 // ./bin/rails generate stimulus controllerName
 
-import { application } from "./application"
+import { application } from './application';
 
-import AcctformController from "./acctform_controller"
-application.register("acctform", AcctformController)
+import AcctformController from './acctform_controller';
+application.register('acctform', AcctformController);
 
-import ApplicationController from "./application_controller"
-application.register("application", ApplicationController)
+import ApplicationController from './application_controller';
+application.register('application', ApplicationController);
 
-import AttachmentUploadController from "./attachment_upload_controller"
-application.register("attachment-upload", AttachmentUploadController)
+import AttachmentUploadController from './attachment_upload_controller';
+application.register('attachment-upload', AttachmentUploadController);
 
-import DropdownController from "./dropdown_controller"
-application.register("dropdown", DropdownController)
+import DropdownController from './dropdown_controller';
+application.register('dropdown', DropdownController);
 
-import HelloController from "./hello_controller"
-application.register("hello", HelloController)
+import HelloController from './hello_controller';
+application.register('hello', HelloController);
 
-import InlineEditController from "./inline_edit_controller"
-application.register("inline-edit", InlineEditController)
+import InlineEditController from './inline_edit_controller';
+application.register('inline-edit', InlineEditController);
 
-import NavController from "./nav_controller"
-application.register("nav", NavController)
+import NavController from './nav_controller';
+application.register('nav', NavController);
 
-import QuickReceiptController from "./quick_receipt_controller"
-application.register("quick-receipt", QuickReceiptController)
+import QuickReceiptController from './quick_receipt_controller';
+application.register('quick-receipt', QuickReceiptController);
 
-import SharedController from "./shared_controller"
-application.register("shared", SharedController)
+import QuickReceiptReviewController from './quick_receipt_review_controller';
+application.register('quick-receipt-review', QuickReceiptReviewController);
 
-import StashlistController from "./stashlist_controller"
-application.register("stashlist", StashlistController)
+import SharedController from './shared_controller';
+application.register('shared', SharedController);
 
-import TransactionListController from "./transaction_list_controller"
-application.register("transaction-list", TransactionListController)
+import StashlistController from './stashlist_controller';
+application.register('stashlist', StashlistController);
 
-import TransactionReviewController from "./transaction_review_controller"
-application.register("transaction-review", TransactionReviewController)
+import TransactionListController from './transaction_list_controller';
+application.register('transaction-list', TransactionListController);
 
-import TransactionTypeToggleController from "./transaction_type_toggle_controller"
-application.register("transaction-type-toggle", TransactionTypeToggleController)
+import TransactionReviewController from './transaction_review_controller';
+application.register('transaction-review', TransactionReviewController);
 
-import TrxformController from "./trxform_controller"
-application.register("trxform", TrxformController)
+import TransactionTypeToggleController from './transaction_type_toggle_controller';
+application.register('transaction-type-toggle', TransactionTypeToggleController);
 
-import TrxsearchController from "./trxsearch_controller"
-application.register("trxsearch", TrxsearchController)
+import TrxformController from './trxform_controller';
+application.register('trxform', TrxformController);
 
-import TrxtypeRadioButtonsController from "./trxtype_radio_buttons_controller"
-application.register("trxtype-radio-buttons", TrxtypeRadioButtonsController)
+import TrxsearchController from './trxsearch_controller';
+application.register('trxsearch', TrxsearchController);
 
-import TypeaheadController from "./typeahead_controller"
-application.register("typeahead", TypeaheadController)
+import TrxtypeRadioButtonsController from './trxtype_radio_buttons_controller';
+application.register('trxtype-radio-buttons', TrxtypeRadioButtonsController);
+
+import TypeaheadController from './typeahead_controller';
+application.register('typeahead', TypeaheadController);
+
+import DocumentFormController from './document_form_controller';
+application.register('document-form', DocumentFormController);

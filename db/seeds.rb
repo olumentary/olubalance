@@ -3,6 +3,7 @@ users = []
 accounts = []
 transactions = []
 stashes = []
+documents = []
 
 # Seed Lists
 trx_type = %w[debit credit]
@@ -78,6 +79,8 @@ stash_names = %w[
   House\ Down\ Payment
   Vacation
 ]
+
+document_categories = %w[Statements Account\ Documentation Correspondence Legal Taxes Other]
 
 # Create 3 test accounts
 emails.each do |email|
@@ -221,17 +224,46 @@ accounts.each do |account|
     )
   end
 
-  # Create 2 transactions with attachments for each Account
-  2.times do
-    t = Transaction.create!(
-          trx_date: Faker::Date.backward(days: 1),
-          description: 'Attachment Test Transaction',
-          amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
-          trx_type: 'debit',
-          skip_pending_default: true,
-          account: account
+  # Create 10 transactions with multiple attachments for the first account only (for migration testing)
+  if account == accounts.first
+    10.times do |i|
+      t = Transaction.create!(
+            trx_date: Faker::Date.backward(days: 1),
+            description: "Migration Test Transaction #{i + 1}",
+            amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
+            trx_type: 'debit',
+            skip_pending_default: true,
+            account: account
+          )
+      
+      # Attach multiple files to demonstrate multiple attachments support
+      # Primary receipt image
+      t.attachments.attach(
+        io: File.open('app/assets/images/logo.png'), 
+        filename: "receipt-#{i + 1}.png", 
+        content_type: 'image/png'
+      )
+      
+      # Additional supporting documents (simulate multiple attachments)
+      if i % 3 == 0  # Every 3rd transaction gets 2 additional attachments
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}-1.png", 
+          content_type: 'image/png'
         )
-    t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png', content_type: 'image/png')
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}-2.png", 
+          content_type: 'image/png'
+        )
+      elsif i % 2 == 0  # Every 2nd transaction gets 1 additional attachment
+        t.attachments.attach(
+          io: File.open('app/assets/images/logo.png'), 
+          filename: "supporting-doc-#{i + 1}.png", 
+          content_type: 'image/png'
+        )
+      end
+    end
   end
 
   # Create 2 pending transactions
@@ -294,7 +326,7 @@ end
 #         trx_type: trx_type.sample,
 #         account_id: 1
 #       )
-#   t.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
+#   t.attachments.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
 # end
 
 # 1000.times do
@@ -315,7 +347,7 @@ end
 #         trx_type: trx_type.sample,
 #         account_id: 1
 #       )
-#   v.attachment.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
+#   v.attachments.attach(io: File.open('app/assets/images/logo.png'), filename: 'logo.png')
 # end
 
 # 20.times do
@@ -336,3 +368,62 @@ end
 #     account: accounts.sample
 #   )
 # end
+
+# Create documents for users and accounts
+puts "Creating documents..."
+
+# Create user-level documents
+users.each do |user|
+  # Create 3-5 documents per user
+  rand(3..5).times do |i|
+    doc_category = document_categories.sample
+    
+    # Create document with attachment
+    document = Document.new(
+      attachable: user,
+      category: doc_category,
+      document_date: Faker::Date.backward(days: 365),
+      description: Faker::Lorem.sentence(word_count: rand(5..15)),
+      tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
+    )
+    
+    # Attach file before saving
+    document.attachment.attach(
+      io: File.open('app/assets/images/logo.png'),
+      filename: "user-doc-#{user.id}-#{i + 1}.png",
+      content_type: 'image/png'
+    )
+    
+    document.save!
+    documents << document
+  end
+end
+
+# Create account-level documents
+accounts.each do |account|
+  # Create 2-4 documents per account
+  rand(2..4).times do |i|
+    doc_category = document_categories.sample
+    
+    # Create document with attachment
+    document = Document.new(
+      attachable: account,
+      category: doc_category,
+      document_date: Faker::Date.backward(days: 365),
+      description: Faker::Lorem.sentence(word_count: rand(5..15)),
+      tax_year: doc_category == 'Taxes' ? rand(2020..2024) : nil
+    )
+    
+    # Attach file before saving
+    document.attachment.attach(
+      io: File.open('app/assets/images/logo.png'),
+      filename: "account-doc-#{account.id}-#{i + 1}.png",
+      content_type: 'image/png'
+    )
+    
+    document.save!
+    documents << document
+  end
+end
+
+puts "Created #{documents.length} documents"

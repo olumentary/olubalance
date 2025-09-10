@@ -41,8 +41,8 @@
         <div class="ob-cell-content" style="cursor: pointer;">
           <span data-inline-edit-target="display" class="is-clickable">
             <%= transaction.trx_desc_display %>
-            <% if transaction.attachment.attached? then %>
-              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+            <% if transaction.attachments.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
@@ -57,8 +57,8 @@
         <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
           <div class="ob-cell-content">
             <%= transaction.trx_desc_display %>
-            <% if transaction.attachment.attached? then %>
-              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachment">
+            <% if transaction.attachments.attached? then %>
+              <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
@@ -96,55 +96,63 @@
       <% end %>
     </td>
 
-    <td class="has-text-right <%= transaction.reviewed_weight %> <%= 'is-hidden' if transaction.quick_receipt? %>">
-      <% if transaction.pending? %>
+    <td class="has-text-right <%= transaction.reviewed_weight %>">
+      <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
         <div class="ob-cell-content has-text-weight-semibold has-text-grey">
           <%= transaction.running_balance_display %>
         </div>
-      <% else %>
-        <%= link_to account_transaction_path(id: transaction.id), data: { turbo_frame: "_top" } do %>
-          <div class="ob-cell-content has-text-weight-semibold has-text-grey">
-            <%= transaction.running_balance_display %>
-          </div>
-        <% end %>
       <% end %>
     </td>
 
-    <td class="has-text-right <%= 'is-hidden' if transaction.quick_receipt? %>">
+    <td class="has-text-right">
       <div class="ob-cell-content" style="border-right: none;">
         <div class="buttons are-small" style="justify-content: flex-end; margin-right: -0.5rem;">
         <% if transaction.pending? %>
-          <button type="button"
-                  data-controller="transaction-type-toggle"
-                  data-transaction-type-toggle-url-value="<%= account_transaction_path(id: transaction.id) %>"
-                  data-transaction-type-toggle-current-type-value="<%= transaction.amount&.negative? ? 'debit' : 'credit' %>"
-                  data-transaction-type-toggle-current-amount-value="<%= transaction.amount&.abs %>"
-                  data-action="click->transaction-type-toggle#toggleType"
-                  class="button is-light">
-            <span class="tag <%= transaction.amount&.negative? ? 'is-danger' : 'is-success' %> is-small">
-              <%= transaction.amount&.negative? ? 'D' : 'C' %>
-            </span>
-          </button>
-          <% unless transaction.attachment.attached? %>
+          <% if transaction.quick_receipt? %>
+            <!-- Quick Receipt Review Button -->
             <button type="button"
                     data-action="click->shared#toggleModal"
-                    data-id="attachment-modal-<%= transaction.id %>"
+                    data-id="quick-receipt-review-modal-<%= transaction.id %>"
                     class="button is-primary is-small"
-                    title="Upload attachment">
+                    title="Review Quick Receipt">
               <span class="icon has-text-white">
-                <i class="fas fa-paperclip"></i>
+                <i class="fas fa-receipt"></i>
+              </span>
+            </button>
+          <% else %>
+            <!-- Regular transaction buttons -->
+            <button type="button"
+                    data-controller="transaction-type-toggle"
+                    data-transaction-type-toggle-url-value="<%= account_transaction_path(id: transaction.id) %>"
+                    data-transaction-type-toggle-current-type-value="<%= transaction.amount&.negative? ? 'debit' : 'credit' %>"
+                    data-transaction-type-toggle-current-amount-value="<%= transaction.amount&.abs %>"
+                    data-action="click->transaction-type-toggle#toggleType"
+                    class="button is-light">
+              <span class="tag <%= transaction.amount&.negative? ? 'is-danger' : 'is-success' %> is-small">
+                <%= transaction.amount&.negative? ? 'D' : 'C' %>
+              </span>
+            </button>
+            <% unless transaction.attachments.attached? %>
+              <button type="button"
+                      data-action="click->shared#toggleModal"
+                      data-id="attachment-modal-<%= transaction.id %>"
+                      class="button is-primary is-small"
+                      title="Upload attachment">
+                <span class="icon has-text-white">
+                  <i class="fas fa-paperclip"></i>
+                </span>
+              </button>
+            <% end %>
+            <button type="button"
+                    data-controller="transaction-review"
+                    data-action="click->transaction-review#markReviewed"
+                    data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+                    class="button is-light">
+              <span class="icon has-text-success">
+                <i class="fas fa-check"></i>
               </span>
             </button>
           <% end %>
-          <button type="button"
-                  data-controller="transaction-review"
-                  data-action="click->transaction-review#markReviewed"
-                  data-transaction-review-url-value="<%= mark_reviewed_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
-                  class="button is-light">
-            <span class="icon has-text-success">
-              <i class="fas fa-check"></i>
-            </span>
-          </button>
         <% else %>
           <button type="button"
                   data-controller="transaction-review"

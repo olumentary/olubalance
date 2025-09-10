@@ -1,11 +1,44 @@
 {
   "name": "olubalance",
   "description": "olubalance",
-  "keywords": [
-  ],
+  "keywords": [],
   "scripts": {
     "dokku": {
       "postdeploy": "bundle exec rake db:migrate"
     }
+  },
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+    },
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-ruby"
+    }
+  ],
+  "packages": ["imagemagick", "libmagickwand-dev"],
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "name": "web check",
+        "description": "Checking if the web process is responding",
+        "path": "/up",
+        "attempts": 3,
+        "timeout": 5,
+        "interval": 10,
+        "grace": 30,
+        "status": 200
+      },
+      {
+        "type": "liveness",
+        "name": "web check",
+        "description": "Checking if the web process is still responding",
+        "path": "/up",
+        "attempts": 3,
+        "timeout": 5,
+        "interval": 30,
+        "status": 200
+      }
+    ]
   }
 }

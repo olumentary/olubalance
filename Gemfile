@@ -7,10 +7,11 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-ruby "3.4.3"
+ruby "3.4.5"
 
 gem "aws-sdk-s3"
 gem "bootsnap", require: false
+gem "bundler", "~> 2.7.0"
 gem "cssbundling-rails"
 gem "devise", "~> 4.9.0"
 gem "draper", "~> 4.0.2"
@@ -33,10 +34,10 @@ gem "turbo-rails"
 
 group :development, :test do
   gem "brakeman", require: false
-  gem "debug", platforms: %i[mri mingw x64_mingw], require: "debug/prelude"
+  gem "debug", require: "debug/prelude"
   gem "factory_bot_rails"
-  gem 'rails-controller-testing'
-  gem 'rspec-rails', '~> 7.0.0'
+  gem "rails-controller-testing"
+  gem "rspec-rails", "~> 7.0.0"
   gem "rubocop-rails-omakase", require: false
 end
 
@@ -50,6 +51,6 @@ end
 group :test do
   gem "capybara"
   gem "selenium-webdriver"
-  gem 'shoulda-matchers', '~> 6.0'
+  gem "shoulda-matchers", "~> 6.0"
   gem "simplecov", require: false
 end

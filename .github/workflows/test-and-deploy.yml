@@ -1,0 +1,86 @@
+name: Test and Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  test:
+    environment: stage
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: olubalance_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.5'
+          bundler-cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+          bundle install
+          yarn install
+
+      - name: Build assets
+        run: |
+          yarn build:css
+          yarn build
+
+      - name: Set up database
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/olubalance_test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+        run: |
+          bundle exec rails db:reset
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/olubalance_test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+        run: bundle exec rspec
+
+  deploy:
+    needs: test
+    environment: stage
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deploy to Dokku Staging
+        uses: dokku/github-action@v1.0.0
+        with:
+          git_remote_url: ${{ secrets.DOKKU_GIT_REMOTE_URL }}
+          ssh_private_key: ${{ secrets.DOKKU_SSH_PRIVATE_KEY }}
+          ssh_host_key: ${{ secrets.DOKKU_SSH_HOST_KEY }}
+          branch: develop

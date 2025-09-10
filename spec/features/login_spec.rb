@@ -5,30 +5,21 @@ RSpec.feature "Logins", type: :feature do
     user = FactoryBot.create(:user)
 
     visit root_path
-    within "header" do
-      click_link "Login"
-    end
     fill_in "user_email", with: user.email
     fill_in "user_password", with: user.password
-    within ".olubalance" do
-      click_button "Login"
-    end
+    click_button "Login"
 
-    expect(page).to have_content("Accounts")
+    # Check for either mobile home content or desktop accounts content
+    expect(page).to have_content(/Accounts|Upload Receipt/)
   end
 
   scenario "user logs in unsuccessfully" do
     user = FactoryBot.create(:user)
 
     visit root_path
-    within "header" do
-      click_link "Login"
-    end
     fill_in "user_email", with: user.email
     fill_in "user_password", with: 'asdfasdf'
-    within ".olubalance" do
-      click_button "Login"
-    end
+    click_button "Login"
 
     expect(page).to have_content("Login to olubalance")
   end

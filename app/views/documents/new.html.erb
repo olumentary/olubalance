@@ -1,0 +1,153 @@
+<% content_for :title, "Upload New Document" %>
+
+<div class="container">
+  <div class="section">
+    <!-- Header -->
+    <div class="columns">
+      <div class="column">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+          <ul>
+            <li><%= link_to "Document Center", documents_path %></li>
+            <li class="is-active"><a href="#" aria-current="page">Upload New Document</a></li>
+          </ul>
+        </nav>
+        <h1 class="title">Upload New Document</h1>
+        <p class="subtitle">Add a new document to your document center</p>
+      </div>
+    </div>
+
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="box">
+          <%= form_with model: @document, local: true, multipart: true, class: "form", 
+              data: { controller: "document-form" } do |f| %>
+            <% if @document.errors.any? %>
+              <div class="notification is-danger">
+                <h4 class="title is-5">Please correct the following errors:</h4>
+                <ul>
+                  <% @document.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <!-- Document Level Selection -->
+            <div class="field">
+              <label class="label">Document Level *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :level, 
+                      options_for_select([
+                        ['User Level - Personal documents', 'User'],
+                        ['Account Level - Account-specific documents', 'Account']
+                      ], @document.attachable_type || 'User'),
+                      {},
+                      { data: { "document-form-target": "levelSelect" } } %>
+                </div>
+              </div>
+              <p class="help">Choose whether this document is personal or belongs to a specific account</p>
+            </div>
+
+            <!-- Account Selection (shown only when Account level is selected) -->
+            <div class="field" id="account-selection" style="display: none;" data-document-form-target="accountSelection">
+              <label class="label">Account *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select name="document[account_id]" id="document_account_id" data-document-form-target="accountSelect">
+                    <option value="">Select an account...</option>
+                    <% @accounts.each do |account| %>
+                      <option value="<%= account.id %>"><%= account.name %></option>
+                    <% end %>
+                  </select>
+                </div>
+              </div>
+              <p class="help">Select the account this document belongs to</p>
+            </div>
+
+            <!-- Category -->
+            <div class="field">
+              <label class="label">Category *</label>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <%= f.select :category, 
+                      options_for_select(@categories.map { |category| [category, category] }, @document.category),
+                      {},
+                      { data: { "document-form-target": "categorySelect" } } %>
+                </div>
+              </div>
+              <p class="help">Select the category that best describes this document</p>
+            </div>
+
+            <!-- Document Date -->
+            <div class="field">
+              <label class="label">Document Date *</label>
+              <div class="control">
+                <%= f.date_field :document_date, value: @document.document_date || Date.current, class: "input" %>
+              </div>
+              <p class="help">The date associated with this document (e.g., statement date, tax year end)</p>
+            </div>
+
+            <!-- Tax Year (shown only for Tax documents) -->
+            <div class="field" id="tax-year-field" style="display: none;" data-document-form-target="taxYearField">
+              <label class="label">Tax Year *</label>
+              <div class="control">
+                <%= f.number_field :tax_year, value: @document.tax_year || Date.current.year, 
+                    min: 1900, max: 2100, class: "input", 
+                    data: { "document-form-target": "taxYearInput" } %>
+              </div>
+              <p class="help">The tax year this document relates to</p>
+            </div>
+
+            <!-- Description -->
+            <div class="field">
+              <label class="label">Description</label>
+              <div class="control">
+                <%= f.text_area :description, placeholder: "Optional description of the document...", 
+                    class: "textarea", rows: 3 %>
+              </div>
+              <p class="help">Optional description to help identify this document (max 500 characters)</p>
+            </div>
+
+            <!-- File Upload -->
+            <div class="field">
+              <label class="label">Document File *</label>
+              <div class="control">
+                <div class="file has-name is-fullwidth">
+                  <label class="file-label">
+                    <%= f.file_field :attachment, class: "file-input", accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt",
+                        data: { "document-form-target": "fileInput" } %>
+                    <span class="file-cta">
+                      <span class="file-icon">
+                        <i class="fas fa-upload"></i>
+                      </span>
+                      <span class="file-label">
+                        Choose a file...
+                      </span>
+                    </span>
+                    <span class="file-name" id="file-name" data-document-form-target="fileName">
+                      No file chosen
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <p class="help">Supported formats: PDF, Word, Excel, Images, Text files (max 10MB)</p>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="field is-grouped">
+              <div class="control">
+                <%= f.submit "Upload Document", class: "button is-primary" %>
+              </div>
+              <div class="control">
+                <%= link_to "Cancel", documents_path, class: "button is-light" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

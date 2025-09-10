@@ -21,7 +21,7 @@ Rails.application.configure do
   config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
 
   # Do not fallback to assets pipeline if a precompiled asset is missed.
-  # config.assets.compile = false
+  config.assets.compile = false
 
   # `config.assets.precompile` and `config.assets.version` have moved to config/initializers/assets.rb
 
@@ -49,11 +49,13 @@ Rails.application.configure do
 
   # Use a different cache store in production.
   config.cache_store = :redis_cache_store, {url: ENV.fetch('REDIS_URL')}
-  config.session_store :cache_store,
-    key: "_session",
-    compress: true,
-    pool_size: 5,
-    expire_after: 1.year
+  
+  # Session configuration for better mobile persistence
+  config.session_store :cookie_store, 
+    key: '_olubalance_session',
+    expire_after: 2.weeks,
+    secure: true,
+    same_site: :lax
 
   # Use a real queuing backend for Active Job (and separate queues per environment)
   # config.active_job.queue_adapter     = :resque
@@ -61,7 +63,6 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   config.action_mailer.default_url_options = { host: 'olubalance.com' }
-
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.default :charset => "utf-8"
@@ -103,5 +104,14 @@ Rails.application.configure do
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
 
-  config.active_storage.service = :amazon
+  # Use linode storage if configured, otherwise fallback to amazon
+  storage_service = ENV.fetch('STORAGE_SERVICE', 'amazon')
+  
+  # Validate that required environment variables are set for linode
+  if storage_service == 'linode' && ENV['LINODE_BUCKET_NAME'].blank?
+    Rails.logger.warn "STORAGE_SERVICE is set to 'linode' but LINODE_BUCKET_NAME is not set. Falling back to 'amazon'."
+    storage_service = 'amazon'
+  end
+  
+  config.active_storage.service = storage_service.to_sym
 end

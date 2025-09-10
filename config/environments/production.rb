@@ -21,8 +21,17 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
+  # Disable serving static files from the `/public` folder by default since
+  # Apache or NGINX already handles this.
+  config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
+
+  # Do not fallback to assets pipeline if a precompiled asset is missed.
+  config.assets.compile = false
+
   # Store uploaded files on Amazon S3 (see config/storage.yml for options).
-  config.active_storage.service = :amazon
+  # Use STORAGE_SERVICE environment variable to switch between services
+  # Options: :amazon, :linode
+  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'amazon').to_sym
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
@@ -32,6 +41,13 @@ Rails.application.configure do
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  
+  # Session configuration for better mobile persistence
+  config.session_store :cookie_store, 
+    key: '_olubalance_session',
+    expire_after: 2.weeks,
+    secure: true,
+    same_site: :lax
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]

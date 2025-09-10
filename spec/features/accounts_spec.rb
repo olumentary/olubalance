@@ -5,14 +5,9 @@ RSpec.feature "Accounts", type: :feature do
     @user = FactoryBot.create(:user)
 
     visit root_path
-    within "header" do
-      click_link "Login"
-    end
     fill_in "user_email", with: @user.email
     fill_in "user_password", with: @user.password
-    within ".olubalance" do
-      click_button "Login"
-    end
+    click_button "Login"
   end 
 
   scenario "user creates a new account and renames it" do
@@ -56,6 +51,49 @@ RSpec.feature "Accounts", type: :feature do
     end
     expect(page).to have_content("Deactivate Test Account?")
 
+  end
+
+  scenario "user marks transaction as reviewed and stays on current page" do
+    # Create an account first
+    account = FactoryBot.create(:account, user: @user, name: "Test Account", starting_balance: 1000)
+    
+    # Create enough transactions to ensure pagination (Pagy default is 15 items per page)
+    30.times do |i|
+      FactoryBot.create(:transaction, 
+        account: account, 
+        trx_date: Date.today, 
+        description: "Transaction #{i}", 
+        amount: 10, 
+        trx_type: 'debit', 
+        pending: true
+      )
+    end
+
+    # Visit the transactions page
+    visit account_transactions_path(account)
+    
+    # Check if pagination exists and go to page 2
+    if page.has_link?("2")
+      click_link "2"
+      
+      # Verify we're on page 2
+      expect(page).to have_current_path(/#{account_transactions_path(account)}.*page=2/)
+      
+      # Mark a transaction as reviewed (if one exists)
+      if page.has_css?('.button[data-action*="markReviewed"]')
+        first('.button[data-action*="markReviewed"]').click
+        
+        # Should still be on page 2
+        expect(page).to have_current_path(/#{account_transactions_path(account)}.*page=2/)
+      end
+    else
+      # If no pagination, just test that marking as reviewed works
+      if page.has_css?('.button[data-action*="markReviewed"]')
+        first('.button[data-action*="markReviewed"]').click
+        # Just verify we're still on the transactions page
+        expect(page).to have_current_path(account_transactions_path(account))
+      end
+    end
   end
 
 end

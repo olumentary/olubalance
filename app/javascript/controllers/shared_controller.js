@@ -17,6 +17,9 @@ export default class extends Controller {
         duration: 1500,
       });
     }
+    
+    // Auto-enable remember me for mobile devices on login form
+    this.autoRememberMeForMobile();
   }
 
   /**
@@ -29,5 +32,24 @@ export default class extends Controller {
     let modalId = e.currentTarget.dataset.id;
     document.getElementById(modalId).classList.toggle('is-active');
     console.log('Modal toggled');
+  }
+  
+  /**
+   * autoRememberMeForMobile
+   * Automatically check the remember me checkbox for mobile devices
+   * This ensures iOS app shortcuts maintain login state
+   */
+  autoRememberMeForMobile() {
+    // Check if we're on a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      // Find the remember me checkbox on login form
+      const rememberMeCheckbox = document.querySelector('input[name="user[remember_me]"]');
+      if (rememberMeCheckbox) {
+        rememberMeCheckbox.checked = true;
+        console.log('Auto-enabled remember me for mobile device');
+      }
+    }
   }
 }

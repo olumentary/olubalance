@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  devise_scope :user do
-    get "/sign_in" => "devise/sessions#new"
-  end
+  # Rails 7.1+ health check endpoint
+  get "up" => "rails/health#show", as: :rails_health_check
 
-  devise_for :users, skip: [ :registrations ], controllers: { registrations: "registrations" }
+  devise_for :users, skip: [ :registrations ], controllers: { 
+    registrations: "registrations",
+    sessions: "users/sessions"
+  }
 
   as :user do
     get "users/edit" => "devise/registrations#edit", :as => "edit_user_registration"
@@ -22,6 +24,7 @@ Rails.application.routes.draw do
         patch :mark_reviewed
         patch :mark_pending
         patch :update_attachment
+        delete :delete_attachment
         post :update_date
       end
       collection do
@@ -41,12 +44,17 @@ Rails.application.routes.draw do
   end
 
   resources :transfers, only: %i[create]
+  resources :quick_transactions, only: [ :new, :create ]
+  resources :documents, only: %i[index show new create edit update]
 
-  resources :quick_transactions, only: [:new, :create]
+  # Mobile home page route
+  get "mobile_home" => "static_pages#mobile_home", as: :mobile_home
 
   authenticated do
-    root to: "accounts#index", as: :authenticated_root
+    root to: "static_pages#home", as: :authenticated_root
   end
 
-  root to: "static_pages#home"
+  devise_scope :user do
+    root to: "devise/sessions#new"
+  end
 end

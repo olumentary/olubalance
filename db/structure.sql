@@ -177,6 +177,42 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: documents; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.documents (
+    id bigint NOT NULL,
+    attachable_type character varying NOT NULL,
+    attachable_id bigint NOT NULL,
+    category character varying,
+    tax_year integer,
+    document_date date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    description text
+);
+
+
+--
+-- Name: documents_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.documents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: documents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.documents_id_seq OWNED BY public.documents.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -380,6 +416,13 @@ ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: documents id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents ALTER COLUMN id SET DEFAULT nextval('public.documents_id_seq'::regclass);
+
+
+--
 -- Name: stash_entries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -445,6 +488,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: documents documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.documents
+    ADD CONSTRAINT documents_pkey PRIMARY KEY (id);
 
 
 --
@@ -527,6 +578,34 @@ CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_b
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
+-- Name: index_documents_on_attachable; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_documents_on_attachable ON public.documents USING btree (attachable_type, attachable_id);
+
+
+--
+-- Name: index_documents_on_category; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_documents_on_category ON public.documents USING btree (category);
+
+
+--
+-- Name: index_documents_on_document_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_documents_on_document_date ON public.documents USING btree (document_date);
+
+
+--
+-- Name: index_documents_on_tax_year; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_documents_on_tax_year ON public.documents USING btree (tax_year);
 
 
 --
@@ -651,6 +730,10 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20250619000235'),
+('20250120000003'),
+('20250120000002'),
+('20250120000001'),
+('20250120000000'),
 ('20240125144637'),
 ('20210104203329'),
 ('20210104203328'),
