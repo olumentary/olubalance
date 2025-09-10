@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.11.0] - 2025-09-10
+
+### New
+
+- Updated theme / look & feel
+- Rebranding of olubalance as "oluhome"
+- Attachments Overhaul:
+  - Multiple attachments per transaction supported
+  - Account-level attachments
+  - User-level attachments
+  - Document Center - central hub to view all account and user level documents
+- Mobile homepage is redesigned to focus on quick receipt upload functionality
+- Quick receipts now have a desktop review feature to make it easier to update details for those types of transactions
+
+### Bugfixes / Maintenance
+
+- Query performance improvements
+- Fixed an issue that causes UI scaling issues when marking transactions as reviewed
+- Fixed an issue that caused transaction autofill to stay open after selecting an item
+- Fixed an issue that prevented persistent user login sessions on the same device
+- Fixed an issue that caused invalid pagination links when marking transactions as reviewed
+- Implemented several Dokku deployment improvements
+- Implemented CI solution for staging environment
+- Introduced groundwork to allow migration of attachments from AWS S3 to Linode Object Storage
+
+### Chores
+
+- Upgrade to Rails 8.0
+- Upgrade to Ruby 3.4.5
+- Update gems and node packages
+
 ## [v1.10.0] - 2025-07-17
 
 ### New
@@ -393,8 +424,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.10.0...develop
-[v1.10.0]: https://github.com/odinsride/olubalance/compare/v1.9.0...1.10.0
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.11.0...develop
+[v1.11.0]: https://github.com/odinsride/olubalance/compare/v1.10.0...v1.11.0
+[v1.10.0]: https://github.com/odinsride/olubalance/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/odinsride/olubalance/compare/v1.8.5...v1.9.0
 [v1.8.5]: https://github.com/odinsride/olubalance/compare/v1.8.4...v1.8.5
 [v1.8.4]: https://github.com/odinsride/olubalance/compare/v1.8.3...v1.8.4

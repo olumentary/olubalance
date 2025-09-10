@@ -41,6 +41,6 @@ module Olubalance
     end
 
     # olubalance Version
-    config.version = "1.10.0"
+    config.version = "1.11.0"
   end
 end
