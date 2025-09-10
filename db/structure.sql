@@ -1,3 +1,8 @@
+\restrict PEAfgDkUQcYndPKeNgjTU0l0yoTaV0wbpukYq8i1Yd3jN3GNxkgxmBVuV3Eh4MF
+
+-- Dumped from database version 17.6 (Homebrew)
+-- Dumped by pg_dump version 17.6
+
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -726,9 +731,12 @@ ALTER TABLE ONLY public.active_storage_attachments
 -- PostgreSQL database dump complete
 --
 
+\unrestrict PEAfgDkUQcYndPKeNgjTU0l0yoTaV0wbpukYq8i1Yd3jN3GNxkgxmBVuV3Eh4MF
+
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20250910233755'),
 ('20250619000235'),
 ('20250120000003'),
 ('20250120000002'),
