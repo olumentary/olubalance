@@ -21,10 +21,20 @@
             <%= f.label :account_id, "Account", class: "label" %>
             <div class="control">
               <div class="select is-fullwidth <%= 'is-danger' if @transaction.errors[:account_id].any? %>">
-                <%= f.collection_select :account_id, @user_accounts, :id, :name %>
+                <%= f.collection_select :account_id, @user_accounts, :id, :name, 
+                                        { prompt: "Select an account..." }, 
+                                        { selected: @transaction.account_id } %>
               </div>
               <% if @transaction.errors[:account_id].any? %>
                 <p class="help is-danger"><%= @transaction.errors[:account_id].join(', ') %></p>
+              <% end %>
+              <% if current_user.default_account_id.present? && @transaction.account_id == current_user.default_account_id %>
+                <p class="help is-info">
+                  <span class="icon">
+                    <i class="fas fa-info-circle"></i>
+                  </span>
+                  Default account selected based on your settings. You can change this if needed.
+                </p>
               <% end %>
             </div>
           </div>

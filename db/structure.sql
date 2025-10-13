@@ -1,7 +1,7 @@
-\restrict PEAfgDkUQcYndPKeNgjTU0l0yoTaV0wbpukYq8i1Yd3jN3GNxkgxmBVuV3Eh4MF
+\restrict 1Dx7npkjAr7fJLuM7jz9OjM6NomHhhBhCJkguqxdq1s4HnZqcqillQd6jwEcgpT
 
 -- Dumped from database version 17.6 (Homebrew)
--- Dumped by pg_dump version 17.6
+-- Dumped by pg_dump version 18.0
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -369,7 +369,8 @@ CREATE TABLE public.users (
     confirmation_token character varying,
     confirmed_at timestamp without time zone,
     confirmation_sent_at timestamp without time zone,
-    unconfirmed_email character varying
+    unconfirmed_email character varying,
+    default_account_id bigint
 );
 
 
@@ -642,6 +643,13 @@ CREATE UNIQUE INDEX index_users_on_confirmation_token ON public.users USING btre
 
 
 --
+-- Name: index_users_on_default_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_default_account_id ON public.users USING btree (default_account_id);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -696,6 +704,14 @@ ALTER TABLE ONLY public.stashes
 
 
 --
+-- Name: users fk_rails_68e8c5de71; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT fk_rails_68e8c5de71 FOREIGN KEY (default_account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: stash_entries fk_rails_6ebf595ff0; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -731,11 +747,12 @@ ALTER TABLE ONLY public.active_storage_attachments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PEAfgDkUQcYndPKeNgjTU0l0yoTaV0wbpukYq8i1Yd3jN3GNxkgxmBVuV3Eh4MF
+\unrestrict 1Dx7npkjAr7fJLuM7jz9OjM6NomHhhBhCJkguqxdq1s4HnZqcqillQd6jwEcgpT
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251013201933'),
 ('20250910233755'),
 ('20250619000235'),
 ('20250120000003'),

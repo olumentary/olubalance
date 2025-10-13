@@ -4,6 +4,12 @@ class QuickTransactionsController < ApplicationController
 
   def new
     @transaction = Transaction.new
+    # Pre-select the user's default account if they have one set
+    # If no default account is set, @transaction.account_id will remain nil
+    # and the dropdown will show the prompt without any pre-selection
+    if current_user.default_account_id.present?
+      @transaction.account_id = current_user.default_account_id
+    end
   end
 
   def create
