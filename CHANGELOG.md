@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.11.2] - 2025-10-22
+
+### New
+
+- Ability to set a default account for Quick Receipt uploads
+
+### Bugfixes / Maintenance
+
+- Fix for transaction description autocomplete visibility issues
+
 ## [v1.11.0] - 2025-09-10
 
 ### New
@@ -424,7 +434,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.11.0...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.11.2...develop
+[v1.11.2]: https://github.com/odinsride/olubalance/compare/v1.11.0...v1.11.2
 [v1.11.0]: https://github.com/odinsride/olubalance/compare/v1.10.0...v1.11.0
 [v1.10.0]: https://github.com/odinsride/olubalance/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/odinsride/olubalance/compare/v1.8.5...v1.9.0
