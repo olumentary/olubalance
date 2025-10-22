@@ -88,6 +88,27 @@
         </div>
       </div>
 
+      <!-- Default Account for Quick Receipt Uploads -->
+      <div class="columns">
+        <div class="column">
+          <div class="field">
+            <label class="label has-text-grey">Default Account for Quick Receipt Uploads</label>
+            <div class="control has-icons-left">
+              <div class="select is-fullwidth is-primary">
+                <%= f.select :default_account_id, 
+                             options_from_collection_for_select(resource.accounts.where(active: true).order(:name), :id, :name, resource.default_account_id),
+                             { prompt: "Select an account..." },
+                             { class: "select is-fullwidth is-primary" } %>
+                <span class="icon is-small is-left has-text-primary">
+                  <i class="fas fa-credit-card"></i>
+                </span>
+              </div>
+            </div>
+            <p class="help">Choose which account to use by default when uploading receipts on mobile</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Current Password -->
       <div class="columns">
         <div class="column">

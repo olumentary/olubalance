@@ -15,7 +15,19 @@ class User < ApplicationRecord
   validates :first_name, presence: { message: "Please enter your First Name" }
   validates :last_name, presence: { message: "Please enter your Last Name" }
   validates :timezone, presence: { message: "Please select a Time Zone" }
+  validate :default_account_belongs_to_user, if: :default_account_id?
 
   has_many :accounts, dependent: :destroy
   has_many :documents, as: :attachable, dependent: :destroy
+  belongs_to :default_account, class_name: 'Account', optional: true
+
+  private
+
+  def default_account_belongs_to_user
+    return unless default_account_id.present?
+    
+    unless accounts.exists?(id: default_account_id)
+      errors.add(:default_account_id, "must be one of your accounts")
+    end
+  end
 end
