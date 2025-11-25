@@ -163,7 +163,7 @@ RSpec.describe 'Documents', type: :request do
           post documents_path, params: { document: { category: '' } }
         }.not_to change(Document, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
 
       it 'does not create account-level document without account selection' do
@@ -173,7 +173,7 @@ RSpec.describe 'Documents', type: :request do
           post documents_path, params: { document: invalid_attributes }
         }.not_to change(Document, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(assigns(:document).errors[:base]).to include('Account must be selected for Account-level documents')
       end
 
@@ -184,7 +184,7 @@ RSpec.describe 'Documents', type: :request do
           post documents_path, params: { document: tax_attributes }
         }.not_to change(Document, :count)
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end

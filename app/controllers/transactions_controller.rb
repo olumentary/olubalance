@@ -51,8 +51,8 @@ class TransactionsController < ApplicationController
       redirect_to account_transactions_path, notice: "Transaction was successfully created."
     else
       respond_to do |format|
-        format.html { render :new, status: :unprocessable_entity }
-        format.turbo_stream { render :new, status: :unprocessable_entity }
+        format.html { render :new, status: :unprocessable_content }
+        format.turbo_stream { render :new, status: :unprocessable_content }
       end
     end
   end
@@ -128,13 +128,13 @@ class TransactionsController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { render action: "edit", status: :unprocessable_entity }
-        format.turbo_stream { render action: "edit", status: :unprocessable_entity }
+        format.html { render action: "edit", status: :unprocessable_content }
+        format.turbo_stream { render action: "edit", status: :unprocessable_content }
         format.json {
           render json: {
             success: false,
             errors: @transaction.errors.full_messages
-          }, status: :unprocessable_entity, content_type: "application/json"
+          }, status: :unprocessable_content, content_type: "application/json"
         }
       end
     end
@@ -207,7 +207,7 @@ class TransactionsController < ApplicationController
     else
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.replace("flash_messages", partial: "shared/error_messages", locals: { errors: @transaction.errors.full_messages }) }
-        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity }
+        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_content }
       end
     end
   end
@@ -261,7 +261,7 @@ class TransactionsController < ApplicationController
     else
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.replace("flash_messages", partial: "shared/error_messages", locals: { errors: @transaction.errors.full_messages }) }
-        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity }
+        format.json { render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_content }
       end
     end
   end
@@ -282,7 +282,7 @@ class TransactionsController < ApplicationController
     if @transaction.update_date_only(params[:date])
       render json: { success: true, trx_date: @transaction.trx_date }
     else
-      render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_entity
+      render json: { success: false, errors: @transaction.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -307,7 +307,7 @@ class TransactionsController < ApplicationController
       render json: {
         success: false,
         errors: ["No files were selected"]
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
   rescue => e
     Rails.logger.error "Error in update_attachment: #{e.message}"
