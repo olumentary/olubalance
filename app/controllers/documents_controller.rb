@@ -70,7 +70,7 @@ class DocumentsController < ApplicationController
         @document.errors.add(:base, "Account must be selected for Account-level documents")
         @categories = Document::CATEGORIES
         @accounts = current_user.accounts.order(:name)
-        render :new, status: :unprocessable_entity
+        render :new, status: :unprocessable_content
         return
       end
     else
@@ -82,7 +82,7 @@ class DocumentsController < ApplicationController
     else
       @categories = Document::CATEGORIES
       @accounts = current_user.accounts.order(:name)
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -113,7 +113,7 @@ class DocumentsController < ApplicationController
         @document.errors.add(:base, "Account must be selected for Account-level documents")
         @categories = Document::CATEGORIES
         @accounts = current_user.accounts.order(:name)
-        render :edit, status: :unprocessable_entity
+        render :edit, status: :unprocessable_content
         return
       end
     else
@@ -125,7 +125,7 @@ class DocumentsController < ApplicationController
     else
       @categories = Document::CATEGORIES
       @accounts = current_user.accounts.order(:name)
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   rescue ActiveRecord::RecordNotFound
     redirect_to documents_path, alert: 'Document not found or access denied.'

@@ -7,7 +7,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
-ruby "3.4.5"
+ruby "3.4.7"
 
 gem "aws-sdk-s3"
 gem "bootsnap", require: false
@@ -33,6 +33,7 @@ gem "stimulus-rails"
 gem "turbo-rails"
 
 group :development, :test do
+  gem "benchmark"
   gem "brakeman", require: false
   gem "debug", require: "debug/prelude"
   gem "factory_bot_rails"
