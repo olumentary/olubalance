@@ -1,7 +1,3 @@
-<%# Debug: Log pending count in template %>
-<% pending_count = @transactions.select(&:pending?).count %>
-<% Rails.logger.info "Mark pending template - Pending count: #{pending_count}" %>
-
 <%= turbo_stream.replace "transactions_table" do %>
   <!-- Cache bust: <%= Time.current.to_i %> -->
   <div id="transactions_table">

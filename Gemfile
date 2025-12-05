@@ -37,6 +37,7 @@ group :development, :test do
   gem "brakeman", require: false
   gem "debug", require: "debug/prelude"
   gem "factory_bot_rails"
+  gem "openssl", "~> 3.3.1"
   gem "rails-controller-testing"
   gem "rspec-rails", "~> 7.0.0"
   gem "rubocop-rails-omakase", require: false
