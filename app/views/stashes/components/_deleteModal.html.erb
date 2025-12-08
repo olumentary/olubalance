@@ -26,7 +26,10 @@
         >
           Cancel
         </a>
-        <%= link_to "Delete", account_stash_path(id: stash.id), method: :delete, class: "card-footer-item card-modal-close has-text-weight-bold has-background-white has-text-danger" %>
+        <%= link_to "Delete",
+                    account_stash_path(stash.account_id, stash.id),
+                    data: { turbo_method: :delete },
+                    class: "card-footer-item card-modal-close has-text-weight-bold has-background-white has-text-danger" %>
       </footer>
     </div>
   </div>

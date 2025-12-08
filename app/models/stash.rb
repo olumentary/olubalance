@@ -23,14 +23,19 @@ class Stash < ApplicationRecord
   def unstash
     return unless balance.positive?
 
-    transaction = Transaction.new
-    transaction.trx_type = "credit"
-    transaction.trx_date = Time.current
-    transaction.account_id = account_id
-    transaction.description = "Transfer from " + name + " Stash (Stash Deleted)"
-    transaction.amount = balance.abs
-    transaction.skip_pending_default = true
-    transaction.locked = true
-    transaction.save
+    transaction = account.transactions.build(
+      trx_type: "credit",
+      trx_date: Time.current,
+      description: "Transfer from #{name} Stash (Stash Deleted)",
+      amount: balance.abs,
+      skip_pending_default: true,
+      locked: true,
+      transfer: true
+    )
+
+    transaction.save!
+  rescue StandardError => e
+    Rails.logger.error "Failed to unstash funds for stash ##{id}: #{e.message}"
+    throw(:abort)
   end
 end
