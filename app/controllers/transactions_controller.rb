@@ -15,19 +15,22 @@ class TransactionsController < ApplicationController
     session["filters"] ||= {}
     session["filters"].merge!(filter_params)
 
-    @transactions = @account.transactions
-                            .with_attached_attachments
-                            .includes(:transaction_balance)
-                            .then { search_by_description _1 }
-                            .then { apply_pending_order _1 }
-                            .then { apply_order _1 }
-                            .then { apply_id_order _1 }
+    # Build filtered transaction scope (before pagination)
+    filtered_transactions = @account.transactions
+                                    .with_attached_attachments
+                                    .includes(:transaction_balance)
+                                    .then { search_by_description _1 }
+                                    .then { apply_pending_order _1 }
+                                    .then { apply_order _1 }
+                                    .then { apply_id_order _1 }
 
-    @pagy, @transactions = pagy(@transactions)
+    # Calculate pending_balance from filtered transactions (before pagination)
+    # This ensures the balance matches what's visible in the filtered set
+    @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
+
+    # Paginate the filtered transactions
+    @pagy, @transactions = pagy(filtered_transactions)
     @transactions = @transactions.decorate
-
-    # Memoize pending_balance to avoid multiple queries
-    @pending_balance = @account.transactions.where(pending: true).sum(:amount)
 
     # Pre-calculate transaction groupings to avoid repeated collection operations
     group_transactions_for_display
@@ -178,17 +181,23 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      @transactions = @account.transactions
-                              .with_attached_attachments
-                              .includes(:transaction_balance)
-                              .then { search_by_description _1 }
-                              .then { apply_pending_order _1 }
-                              .then { apply_order _1 }
-                              .then { apply_id_order _1 }
+      
+      # Build filtered transaction scope (before pagination)
+      filtered_transactions = @account.transactions
+                                      .with_attached_attachments
+                                      .includes(:transaction_balance)
+                                      .then { search_by_description _1 }
+                                      .then { apply_pending_order _1 }
+                                      .then { apply_order _1 }
+                                      .then { apply_id_order _1 }
+
+      # Calculate pending_balance from filtered transactions (before pagination)
+      # This ensures the balance matches what's visible in the filtered set
+      @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
 
       # Preserve the current page from the request parameters
       current_page = params[:page]&.to_i || 1
-      @pagy, @transactions = pagy(@transactions, page: current_page)
+      @pagy, @transactions = pagy(filtered_transactions, page: current_page)
       @transactions = @transactions.decorate
 
       # Set the correct pagination URL with current page and filters
@@ -201,9 +210,6 @@ class TransactionsController < ApplicationController
         pagination_params[:account_id] = session["filters"]["account_id"]
       end
       @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
-
-      # Memoize pending_balance to avoid multiple queries
-      @pending_balance = @account.transactions.where(pending: true).sum(:amount)
 
       # Pre-calculate transaction groupings
       group_transactions_for_display
@@ -236,17 +242,23 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      @transactions = @account.transactions
-                              .with_attached_attachments
-                              .includes(:transaction_balance)
-                              .then { search_by_description _1 }
-                              .then { apply_pending_order _1 }
-                              .then { apply_order _1 }
-                              .then { apply_id_order _1 }
+      
+      # Build filtered transaction scope (before pagination)
+      filtered_transactions = @account.transactions
+                                      .with_attached_attachments
+                                      .includes(:transaction_balance)
+                                      .then { search_by_description _1 }
+                                      .then { apply_pending_order _1 }
+                                      .then { apply_order _1 }
+                                      .then { apply_id_order _1 }
+
+      # Calculate pending_balance from filtered transactions (before pagination)
+      # This ensures the balance matches what's visible in the filtered set
+      @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
 
       # Preserve the current page from the request parameters
       current_page = params[:page]&.to_i || 1
-      @pagy, @transactions = pagy(@transactions, page: current_page)
+      @pagy, @transactions = pagy(filtered_transactions, page: current_page)
       @transactions = @transactions.decorate
 
       # Set the correct pagination URL with current page and filters
@@ -259,9 +271,6 @@ class TransactionsController < ApplicationController
         pagination_params[:account_id] = session["filters"]["account_id"]
       end
       @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
-
-      # Memoize pending_balance to avoid multiple queries
-      @pending_balance = @account.transactions.where(pending: true).sum(:amount)
 
       # Pre-calculate transaction groupings
       group_transactions_for_display

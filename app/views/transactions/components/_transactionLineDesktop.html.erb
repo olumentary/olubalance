@@ -46,6 +46,11 @@
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
+            <% if transaction.transfer? && transaction.transfer_icon.present? %>
+              <span class="ml-2" title="<%= transaction.transfer_type == 'account_to_account' ? 'Account-to-Account Transfer' : 'Stash Transfer' %>">
+                <%= transaction.transfer_icon %>
+              </span>
+            <% end %>
           </span>
           <input type="text"
                  class="input is-small is-hidden"
@@ -60,6 +65,11 @@
             <% if transaction.attachments.attached? then %>
               <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
                 <i class="fas fa-sm fa-paperclip"></i>
+              </span>
+            <% end %>
+            <% if transaction.transfer? && transaction.transfer_icon.present? %>
+              <span class="ml-2" title="<%= transaction.transfer_type == 'account_to_account' ? 'Account-to-Account Transfer' : 'Stash Transfer' %>">
+                <%= transaction.transfer_icon %>
               </span>
             <% end %>
           </div>

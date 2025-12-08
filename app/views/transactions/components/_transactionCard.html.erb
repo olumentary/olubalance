@@ -64,17 +64,79 @@
     </div>
   </div>
 
-  <% if !@transaction.locked %>
+  <% if @transaction.transfer? %>
+    <div class="card-content">
+      <div class="content">
+        <% if @transaction.account_to_account? && @transaction.counterpart_transaction.present? %>
+          <% counterpart = @transaction.counterpart_transaction %>
+          <div class="box">
+            <p class="title is-4 mb-4">
+              Linked Transaction
+            </p>
+            <p class="mb-1">
+              <strong>Account:</strong> <%= counterpart.account.name %>
+            </p>
+            <p class="mb-1">
+              <strong>Date:</strong> <%= counterpart.trx_date.strftime("%m/%d/%Y") %>
+            </p>
+            <p class="mb-1">
+              <strong>Amount:</strong> <span class="<%= counterpart.amount.negative? ? 'has-text-danger' : 'has-text-success' %>">
+                <%= number_to_currency(counterpart.amount.abs) %>
+              </span>
+            </p>
+            <p class="mb-1">
+              <strong>Description:</strong> <%= counterpart.description %>
+            </p>
+            <p class="mt-3">
+              <%= link_to "View Transaction", account_transaction_path(counterpart.account, counterpart), 
+                  class: "button is-small is-link", 
+                  data: { turbo_frame: "_top" } %>
+            </p>
+          </div>
+        <% elsif @transaction.account_to_stash? && @transaction.stash_entry.present? %>
+          <% stash_entry = @transaction.stash_entry %>
+          <div class="box">
+            <p class="title is-4 mb-4">
+              Linked Transaction
+            </p>
+            <p class="mb-1">
+              <strong>Stash:</strong> <%= stash_entry.stash.name %>
+            </p>
+            <p class="mb-1">
+              <strong>Date:</strong> <%= stash_entry.stash_entry_date.strftime("%m/%d/%Y") %>
+            </p>
+            <p class="mb-1">
+              <strong>Amount:</strong> <span class="<%= stash_entry.amount.negative? ? 'has-text-danger' : 'has-text-success' %>">
+                <%= number_to_currency(stash_entry.amount.abs) %>
+              </span>
+            </p>
+            <p class="mb-1">
+              <strong>Description:</strong> <%= stash_entry.description %>
+            </p>
+            <p class="mt-3">
+              <%= link_to "View Stash", account_stash_path(stash_entry.stash.account, stash_entry.stash), 
+                  class: "button is-small is-link", 
+                  data: { turbo_frame: "_top" } %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if !@transaction.locked || @transaction.transfer? %>
     <footer class="card-footer">
       <!-- Links -->
       <%= link_to edit_account_transaction_path(@transaction.account, @transaction), class: 'card-footer-item has-text-weight-bold' do %>Edit<% end %>
-      <a 
-        class="card-footer-item has-text-weight-bold modal-button" 
-        data-action="click->shared#toggleModal"
-        data-id="delete-transaction-<%= @transaction.id %>"
-      >
-        Delete
-      </a>
+      <% unless @transaction.transfer? %>
+        <a 
+          class="card-footer-item has-text-weight-bold modal-button" 
+          data-action="click->shared#toggleModal"
+          data-id="delete-transaction-<%= @transaction.id %>"
+        >
+          Delete
+        </a>
+      <% end %>
     </footer>
   <% end %>
 </div>
