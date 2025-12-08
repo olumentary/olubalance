@@ -65,9 +65,13 @@ class StashEntry < ApplicationRecord
     transaction.skip_pending_default = true
     transaction.locked = true
     transaction.transfer = true
-    transaction.save
 
-    # Link the transaction to this stash entry
-    update_column(:transaction_id, transaction.id)
+    if transaction.save
+      # Link the transaction to this stash entry only if save succeeded
+      update_column(:transaction_id, transaction.id)
+    else
+      # Log error if transaction save failed
+      Rails.logger.error "Failed to create transaction for stash entry ##{id}: #{transaction.errors.full_messages.join(', ')}"
+    end
   end
 end
