@@ -1,0 +1,37 @@
+<% content_for :title, "Bill Management" %>
+
+<div class="container ob-compact-container">
+  <div class="level is-mobile">
+    <div class="level-left">
+      <div class="level-item">
+        <h1 class="title is-4 has-text-centered-mobile">Bill Management</h1>
+      </div>
+      <div class="level-item is-hidden-touch">
+        <div class="buttons has-addons">
+          <%= link_to "List View", bills_path(view: "list"),
+                      class: "button #{@view_mode == 'list' ? 'is-link' : 'is-light'}" %>
+          <%= link_to "Calendar View", bills_path(view: "calendar"),
+                      class: "button #{@view_mode == 'calendar' ? 'is-link' : 'is-light'}" %>
+        </div>
+      </div>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <%= link_to "New Bill", new_bill_path, class: "button is-link is-small" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @bills.any? %>
+    <% if @view_mode == "calendar" %>
+      <%= render "bills/components/calendar", bills: @bills, reference_date: @reference_date, bills_by_date: @bills_by_date %>
+    <% else %>
+      <%= render "bills/components/list", bills: @bills %>
+    <% end %>
+  <% else %>
+    <div class="notification is-primary">
+      No bills yet. <%= link_to "Create your first bill", new_bill_path, class: "has-text-weight-semibold" %>.
+    </div>
+  <% end %>
+</div>
+

@@ -239,6 +239,25 @@ a.has-text-white.sortable {
   border-radius: 50%;
 }
 
+// Compact padding helpers for mobile-heavy pages (e.g., bills)
+.section.ob-compact-section {
+  padding: 1.75rem 1.25rem;
+
+  @media screen and (max-width: 768px) {
+    padding: 1.1rem 0.75rem;
+  }
+}
+
+.container.ob-compact-container {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+
+  @media screen and (max-width: 768px) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 // Typeahead styles
 [data-controller='typeahead'] {
   .dropdown-menu {

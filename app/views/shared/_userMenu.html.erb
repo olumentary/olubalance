@@ -52,6 +52,13 @@
       Document Center
     <% end %>
 
+    <%= link_to bills_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        🧾
+      </span>
+      Bill Management
+    <% end %>
+
     <%= link_to destroy_user_session_path, class: "navbar-item" do%>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-sign-out-alt"></i>

@@ -1,0 +1,53 @@
+<div class="box">
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <h2 class="title is-5 mb-0"><%= reference_date.strftime("%B %Y") %></h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="table is-bordered is-fullwidth is-narrow">
+      <thead>
+        <tr>
+          <% Date::ABBR_DAYNAMES.each do |day_name| %>
+            <th class="has-text-centered"><%= day_name %></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% calendar_weeks(reference_date).each do |week| %>
+          <tr>
+            <% week.each do |date| %>
+              <% day_bills = bills_by_date[date] || [] %>
+              <td class="<%= 'has-background-light' if date.month != reference_date.month %>">
+                <div class="is-flex is-justify-content-space-between is-align-items-center">
+                  <span class="has-text-weight-semibold"><%= date.day %></span>
+                  <% if day_bills.any? %>
+                    <span class="tag is-link is-light is-rounded"><%= day_bills.size %></span>
+                  <% end %>
+                </div>
+
+                <% day_bills.each do |bill| %>
+                  <div class="mt-2">
+                    <div class="is-flex is-justify-content-space-between is-align-items-center">
+                      <span class="has-text-weight-semibold"><%= bill.description %></span>
+                      <span class="tag is-light is-rounded"><%= bill.frequency_label %></span>
+                    </div>
+                    <div class="is-size-7 has-text-grey">
+                      <span><%= bill.account_display %></span>
+                      <span>&middot;</span>
+                      <span><%= bill.amount_display %></span>
+                    </div>
+                  </div>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
