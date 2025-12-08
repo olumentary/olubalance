@@ -346,14 +346,20 @@ a.has-text-white.sortable {
 
 // Transaction type button styling - make text darker when outlined
 [data-controller='trxtype-radio-buttons'] {
+  .button {
+    border: 1px solid #000000 !important;
+  }
+
   .button.is-outlined {
     // Make text darker for better readability when button is not selected
     color: #4a4a4a !important;
     font-weight: 600;
+    background-color: white !important;
 
     // Ensure hover state also has good contrast
     &:hover {
       color: #363636 !important;
+      background-color: white !important;
     }
   }
 }
