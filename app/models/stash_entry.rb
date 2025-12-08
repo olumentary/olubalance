@@ -6,6 +6,7 @@ class StashEntry < ApplicationRecord
   STASH_REMOVE_DESC = "Stash withdrawal"
 
   belongs_to :stash
+  belongs_to :linked_transaction, class_name: "Transaction", foreign_key: "transaction_id", optional: true
 
   attr_accessor :stash_action
 
@@ -57,12 +58,16 @@ class StashEntry < ApplicationRecord
 
     transaction = Transaction.new
     transaction.trx_type = stash_action == "add" ? "debit" : "credit"
-    transaction.trx_date = Time.current
+    transaction.trx_date = stash_entry_date || Time.current
     transaction.account_id = @stash.account_id
     transaction.description = stash_action == "add" ? desc_add : desc_remove
     transaction.amount = amount.abs
     transaction.skip_pending_default = true
     transaction.locked = true
+    transaction.transfer = true
     transaction.save
+
+    # Link the transaction to this stash entry
+    update_column(:transaction_id, transaction.id)
   end
 end

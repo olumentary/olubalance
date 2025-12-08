@@ -12,8 +12,12 @@ class PerformTransfer
 
   def do_transfer
     Transaction.transaction do
-      create_source_transaction!
-      create_target_transaction!
+      source_transaction = create_source_transaction!
+      target_transaction = create_target_transaction!
+      
+      # Link the transactions together
+      source_transaction.update_column(:counterpart_transaction_id, target_transaction.id)
+      target_transaction.update_column(:counterpart_transaction_id, source_transaction.id)
     end
   end
 
@@ -27,6 +31,7 @@ class PerformTransfer
     transaction.locked = true
     transaction.transfer = true
     transaction.save!
+    transaction
   end
 
   def create_target_transaction!
@@ -39,5 +44,6 @@ class PerformTransfer
     transaction.locked = true
     transaction.transfer = true
     transaction.save!
+    transaction
   end
 end

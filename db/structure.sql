@@ -1,8 +1,3 @@
-\restrict 1Dx7npkjAr7fJLuM7jz9OjM6NomHhhBhCJkguqxdq1s4HnZqcqillQd6jwEcgpT
-
--- Dumped from database version 17.6 (Homebrew)
--- Dumped by pg_dump version 18.0
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -237,7 +232,8 @@ CREATE TABLE public.stash_entries (
     amount numeric,
     stash_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    transaction_id bigint
 );
 
 
@@ -312,7 +308,8 @@ CREATE TABLE public.transactions (
     pending boolean DEFAULT false,
     locked boolean DEFAULT false,
     transfer boolean DEFAULT false,
-    quick_receipt boolean
+    quick_receipt boolean,
+    counterpart_transaction_id bigint
 );
 
 
@@ -622,6 +619,13 @@ CREATE INDEX index_stash_entries_on_stash_id ON public.stash_entries USING btree
 
 
 --
+-- Name: index_stash_entries_on_transaction_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_stash_entries_on_transaction_id ON public.stash_entries USING btree (transaction_id);
+
+
+--
 -- Name: index_stashes_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -633,6 +637,13 @@ CREATE INDEX index_stashes_on_account_id ON public.stashes USING btree (account_
 --
 
 CREATE INDEX index_transactions_on_account_id ON public.transactions USING btree (account_id);
+
+
+--
+-- Name: index_transactions_on_counterpart_transaction_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_counterpart_transaction_id ON public.transactions USING btree (counterpart_transaction_id);
 
 
 --
@@ -696,6 +707,14 @@ ALTER TABLE ONLY public.transactions
 
 
 --
+-- Name: stash_entries fk_rails_44f90c5488; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stash_entries
+    ADD CONSTRAINT fk_rails_44f90c5488 FOREIGN KEY (transaction_id) REFERENCES public.transactions(id);
+
+
+--
 -- Name: stashes fk_rails_5e3266c16e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -736,6 +755,14 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: transactions fk_rails_c318c1af13; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_c318c1af13 FOREIGN KEY (counterpart_transaction_id) REFERENCES public.transactions(id);
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -747,14 +774,13 @@ ALTER TABLE ONLY public.active_storage_attachments
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 1Dx7npkjAr7fJLuM7jz9OjM6NomHhhBhCJkguqxdq1s4HnZqcqillQd6jwEcgpT
-
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251013201933'),
 ('20250910233755'),
 ('20250619000235'),
+('20250120000004'),
 ('20250120000003'),
 ('20250120000002'),
 ('20250120000001'),

@@ -123,4 +123,18 @@ class TransactionDecorator < ApplicationDecorator
     return false if description.nil?
     description.length > 20
   end
+
+  def transfer_type
+    return nil unless transaction.transfer?
+    return "account_to_account" if transaction.account_to_account?
+    return "account_to_stash" if transaction.account_to_stash?
+    nil
+  end
+
+  def transfer_icon
+    return nil unless transaction.transfer?
+    return "↔️" if transaction.account_to_account?
+    return "🏦" if transaction.account_to_stash?
+    nil
+  end
 end
