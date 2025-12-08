@@ -32,7 +32,7 @@
               <span class="heading has-text-grey has-text-weight-semibold">
                 Pending
               </span>
-              <p class="title tag is-warning is-6"><%= @account.pending_balance_display %></p>
+              <p class="title tag is-warning is-6"><%= number_to_currency(@pending_balance) %></p>
             </div>
           </div>
           <div class="dropdown-item">

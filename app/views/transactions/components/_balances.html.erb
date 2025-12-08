@@ -5,10 +5,10 @@
       <p class="heading has-text-grey is-size-7 has-text-weight-bold">Balance (Usable)</p>
     </div>
   </div>
-  <% if @account.pending_balance != 0 %>
+  <% if @pending_balance != 0 %>
     <div class="level-item has-text-centered">
       <div>
-        <p class="title tag is-warning is-6"><%= @account.pending_balance_display %></p>
+        <p class="title tag is-warning is-6"><%= number_to_currency(@pending_balance) %></p>
         <p class="heading has-text-grey is-size-7 has-text-weight-bold">Pending</p>
       </div>
     </div>

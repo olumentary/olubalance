@@ -11,6 +11,11 @@
                 <i class="fas fa-sm fa-paperclip"></i>
               </span>
             <% end %>
+            <% if transaction.transfer? && transaction.transfer_icon.present? %>
+              <span class="ml-1" title="<%= transaction.transfer_type == 'account_to_account' ? 'Account-to-Account Transfer' : 'Stash Transfer' %>">
+                <%= transaction.transfer_icon %>
+              </span>
+            <% end %>
           </div>
         </div>
         <div class="level-right">

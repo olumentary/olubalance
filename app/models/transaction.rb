@@ -5,6 +5,9 @@ class Transaction < ApplicationRecord
   belongs_to :account
   has_one :transaction_balance
 
+  belongs_to :counterpart_transaction, class_name: "Transaction", foreign_key: "counterpart_transaction_id", optional: true
+  has_one :counterpart_transaction_inverse, class_name: "Transaction", foreign_key: "counterpart_transaction_id", dependent: :nullify
+
   has_many_attached :attachments
 
   # Link running_balance to view
@@ -25,6 +28,7 @@ class Transaction < ApplicationRecord
   validate :validate_amount_for_reviewed_transactions
   validate :validate_amount_is_numeric
   validate :validate_account_ownership
+  validate :validate_counterpart_transaction_ownership
 
   # before_post_process :rename_file
 
@@ -36,6 +40,7 @@ class Transaction < ApplicationRecord
   after_create :update_account_balance_create
   after_update :update_account_balance_edit
   after_update :update_account_balance_transfer
+  after_update :update_counterpart_transaction
   after_destroy :update_account_balance_destroy
 
   scope :with_balance, -> { includes(:transaction_balance).references(:transaction_balance) }
@@ -71,6 +76,21 @@ class Transaction < ApplicationRecord
   # Helper method to get the first attachment (for backward compatibility)
   def attachment
     attachments.first
+  end
+
+  # Determine if this is an account-to-account transfer
+  def account_to_account?
+    transfer? && counterpart_transaction.present?
+  end
+
+  # Determine if this is an account-to-stash transfer
+  def account_to_stash?
+    transfer? && stash_entry.present?
+  end
+
+  # Get the stash entry linked to this transaction (if it's a stash transfer)
+  def stash_entry
+    StashEntry.find_by(transaction_id: id)
   end
 
   private
@@ -206,6 +226,100 @@ class Transaction < ApplicationRecord
     end
   end
 
+  def update_counterpart_transaction
+    return unless transfer?
+    return if saved_change_to_locked? # Skip if only locked status changed
+
+    # Update counterpart transaction for account-to-account transfers
+    if account_to_account? && counterpart_transaction.present?
+      counterpart = counterpart_transaction
+      updates = {}
+      amount_changed = false
+      old_counterpart_amount = nil
+
+      # Update date if it changed
+      if saved_change_to_trx_date?
+        updates[:trx_date] = trx_date
+      end
+
+      # Update amount if it changed (maintain opposite sign)
+      if saved_change_to_amount?
+        old_counterpart_amount = counterpart.amount
+        # Counterpart should have opposite sign but same absolute value
+        new_counterpart_amount = amount.negative? ? amount.abs : -amount.abs
+        updates[:amount] = new_counterpart_amount
+        amount_changed = true
+      end
+
+      # Update description if it changed (for consistency)
+      if saved_change_to_description?
+        # Update counterpart description to match
+        if description.include?("Transfer to")
+          # This is a debit, counterpart is credit
+          updates[:description] = "Transfer from #{account.name}"
+        elsif description.include?("Transfer from")
+          # This is a credit, counterpart is debit
+          updates[:description] = "Transfer to #{account.name}"
+        end
+      end
+
+      # Update memo if it changed
+      if saved_change_to_memo?
+        updates[:memo] = memo
+      end
+
+      if updates.any?
+        # Update the counterpart transaction
+        counterpart.update_columns(updates.merge(updated_at: Time.current))
+        
+        # Update counterpart account balance if amount changed
+        if amount_changed && old_counterpart_amount.present?
+          counterpart_account = counterpart.account
+          old_balance = counterpart_account.current_balance
+          # Remove old amount, add new amount
+          new_balance = old_balance - old_counterpart_amount + updates[:amount]
+          counterpart_account.update(current_balance: new_balance)
+        end
+      end
+    end
+
+    # Update stash entry for account-to-stash transfers
+    if account_to_stash? && stash_entry.present?
+      stash_entry_record = stash_entry
+      updates = {}
+      amount_changed = false
+      old_stash_amount = nil
+
+      # Update date if it changed
+      if saved_change_to_trx_date?
+        updates[:stash_entry_date] = trx_date
+      end
+
+      # Update amount if it changed
+      if saved_change_to_amount?
+        old_stash_amount = stash_entry_record.amount
+        # Stash entry amount should match transaction amount (absolute value)
+        # But preserve the original sign of the stash entry (negative for remove, positive for add)
+        new_stash_amount = old_stash_amount.negative? ? -amount.abs : amount.abs
+        updates[:amount] = new_stash_amount
+        amount_changed = true
+      end
+
+      if updates.any?
+        stash_entry_record.update_columns(updates.merge(updated_at: Time.current))
+        
+        # Update stash balance if amount changed
+        if amount_changed && old_stash_amount.present?
+          stash = stash_entry_record.stash
+          old_balance = stash.balance
+          # Remove old amount, add new amount
+          new_balance = old_balance - old_stash_amount + updates[:amount]
+          stash.update(balance: new_balance)
+        end
+      end
+    end
+  end
+
   def attachment_required_for_quick_receipt
     if quick_receipt? && attachments.blank?
       errors.add(:attachments, "are required for quick receipt transactions")
@@ -252,6 +366,20 @@ class Transaction < ApplicationRecord
       # Ensure both accounts belong to the same user
       if current_account && new_account.user_id != current_account.user_id
         errors.add(:account_id, "must belong to the same user")
+      end
+    end
+  end
+
+  def validate_counterpart_transaction_ownership
+    return if counterpart_transaction_id.blank? || new_record?
+
+    if counterpart_transaction_id_changed?
+      counterpart = Transaction.find_by(id: counterpart_transaction_id)
+      return unless counterpart
+
+      # Ensure counterpart transaction belongs to the same user
+      if account.user_id != counterpart.account.user_id
+        errors.add(:counterpart_transaction_id, "must belong to the same user")
       end
     end
   end

@@ -15,14 +15,25 @@ class TransactionsController < ApplicationController
     session["filters"] ||= {}
     session["filters"].merge!(filter_params)
 
-    @transactions = @account.transactions.with_attached_attachments.includes(:transaction_balance)
-                            .then { search_by_description _1 }
-                            .then { apply_pending_order _1 }
-                            .then { apply_order _1 }
-                            .then { apply_id_order _1 }
+    # Build filtered transaction scope (before pagination)
+    filtered_transactions = @account.transactions
+                                    .with_attached_attachments
+                                    .includes(:transaction_balance)
+                                    .then { search_by_description _1 }
+                                    .then { apply_pending_order _1 }
+                                    .then { apply_order _1 }
+                                    .then { apply_id_order _1 }
 
-    @pagy, @transactions = pagy(@transactions)
+    # Calculate pending_balance from filtered transactions (before pagination)
+    # This ensures the balance matches what's visible in the filtered set
+    @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
+
+    # Paginate the filtered transactions
+    @pagy, @transactions = pagy(filtered_transactions)
     @transactions = @transactions.decorate
+
+    # Pre-calculate transaction groupings to avoid repeated collection operations
+    group_transactions_for_display
 
     @stashes = @account.stashes.order(id: :asc).decorate
     @stashed = @account.stashes.sum(:balance)
@@ -170,15 +181,23 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      @transactions = @account.transactions.with_attached_attachments.includes(:transaction_balance)
-                              .then { search_by_description _1 }
-                              .then { apply_pending_order _1 }
-                              .then { apply_order _1 }
-                              .then { apply_id_order _1 }
+      
+      # Build filtered transaction scope (before pagination)
+      filtered_transactions = @account.transactions
+                                      .with_attached_attachments
+                                      .includes(:transaction_balance)
+                                      .then { search_by_description _1 }
+                                      .then { apply_pending_order _1 }
+                                      .then { apply_order _1 }
+                                      .then { apply_id_order _1 }
+
+      # Calculate pending_balance from filtered transactions (before pagination)
+      # This ensures the balance matches what's visible in the filtered set
+      @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
 
       # Preserve the current page from the request parameters
       current_page = params[:page]&.to_i || 1
-      @pagy, @transactions = pagy(@transactions, page: current_page)
+      @pagy, @transactions = pagy(filtered_transactions, page: current_page)
       @transactions = @transactions.decorate
 
       # Set the correct pagination URL with current page and filters
@@ -192,9 +211,8 @@ class TransactionsController < ApplicationController
       end
       @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
 
-      # Debug: Log the pending count
-      pending_count = @transactions.select(&:pending?).count
-      Rails.logger.info "Mark reviewed - Pending count: #{pending_count}, Total transactions: #{@transactions.count}, Current page: #{current_page}"
+      # Pre-calculate transaction groupings
+      group_transactions_for_display
 
       # Set required variables for partials
       @stashes = @account.stashes.order(id: :asc).decorate
@@ -224,15 +242,23 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      @transactions = @account.transactions.with_attached_attachments.includes(:transaction_balance)
-                              .then { search_by_description _1 }
-                              .then { apply_pending_order _1 }
-                              .then { apply_order _1 }
-                              .then { apply_id_order _1 }
+      
+      # Build filtered transaction scope (before pagination)
+      filtered_transactions = @account.transactions
+                                      .with_attached_attachments
+                                      .includes(:transaction_balance)
+                                      .then { search_by_description _1 }
+                                      .then { apply_pending_order _1 }
+                                      .then { apply_order _1 }
+                                      .then { apply_id_order _1 }
+
+      # Calculate pending_balance from filtered transactions (before pagination)
+      # This ensures the balance matches what's visible in the filtered set
+      @pending_balance = filtered_transactions.where(pending: true).sum(:amount)
 
       # Preserve the current page from the request parameters
       current_page = params[:page]&.to_i || 1
-      @pagy, @transactions = pagy(@transactions, page: current_page)
+      @pagy, @transactions = pagy(filtered_transactions, page: current_page)
       @transactions = @transactions.decorate
 
       # Set the correct pagination URL with current page and filters
@@ -246,9 +272,8 @@ class TransactionsController < ApplicationController
       end
       @pagy_url = account_transactions_path(@account) + "?" + pagination_params.to_query
 
-      # Debug: Log the pending count
-      pending_count = @transactions.select(&:pending?).count
-      Rails.logger.info "Mark pending - Pending count: #{pending_count}, Total transactions: #{@transactions.count}, Current page: #{current_page}"
+      # Pre-calculate transaction groupings
+      group_transactions_for_display
 
       # Set required variables for partials
       @stashes = @account.stashes.order(id: :asc).decorate
@@ -449,5 +474,20 @@ class TransactionsController < ApplicationController
 
   def find_transaction
     @transaction = @account.transactions.find(params[:id]).decorate
+  end
+
+  def group_transactions_for_display
+    # Separate quick receipts from other transactions
+    @quick_receipts = @transactions.select(&:quick_receipt?)
+    @other_transactions = @transactions.reject(&:quick_receipt?)
+    
+    # Further separate other transactions into pending and non-pending
+    @pending_transactions = @other_transactions.select(&:pending?)
+    @non_pending_transactions = @other_transactions.reject(&:pending?)
+    
+    # Group non-pending transactions by date for desktop rendering
+    @transactions_by_date = @non_pending_transactions.group_by(&:trx_date).transform_values do |transactions|
+      transactions.sort_by(&:id).reverse
+    end
   end
 end
