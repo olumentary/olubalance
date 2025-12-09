@@ -25,5 +25,22 @@ RSpec.describe BillDecorator do
       expect(bill.calendar_date_for(reference_date).day).to eq(10)
     end
   end
+
+  describe '#monthly_normalized_breakdown' do
+    it 'builds a readable breakdown for monthly bills' do
+      expect(bill.monthly_normalized_breakdown).to include('Monthly')
+      expect(bill.monthly_normalized_breakdown).to include(ActionController::Base.helpers.number_to_currency(150.25))
+    end
+
+    it 'shows every other week math for bi-weekly bills' do
+      biweekly_bill = build(:bill, :bi_weekly, amount: 100).decorate
+      expect(biweekly_bill.monthly_normalized_breakdown).to include('26 / 12')
+    end
+
+    it 'shows two-day math for bi-weekly two day mode' do
+      two_day_bill = build(:bill, :bi_weekly_two_days, amount: 50, day_of_month: 5, second_day_of_month: 20).decorate
+      expect(two_day_bill.monthly_normalized_breakdown).to include('× 2')
+    end
+  end
 end
 

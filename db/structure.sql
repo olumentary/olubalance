@@ -192,7 +192,12 @@ CREATE TABLE public.bills (
     account_id bigint NOT NULL,
     user_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    biweekly_mode character varying,
+    second_day_of_month integer,
+    biweekly_anchor_weekday integer,
+    biweekly_anchor_date date,
+    next_occurrence_month integer
 );
 
 
@@ -882,6 +887,7 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251209120000'),
 ('20251208120000'),
 ('20251013201933'),
 ('20250910233755'),
