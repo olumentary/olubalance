@@ -41,14 +41,7 @@
                 <% day_bills.each do |bill| %>
                   <%= link_to edit_bill_path(bill), class: "mt-2 ob-bill-entry has-background-light" do %>
                     <div class="is-flex is-justify-content-space-between is-align-items-center">
-                      <span class="has-text-weight-semibold"><%= bill.description %></span>
-                    </div>
-                    <div class="is-size-7 has-text-grey">
-                      <span><%= bill.account_display %></span>
-                      <span><%= bill.amount_display %></span>
-                    </div>
-                    <div class="is-size-7 has-text-grey mt-2">
-                      <span class="tag is-primary is-rounded is-size-7"><%= bill.frequency_label %></span>
+                      <span class="has-text-weight-bold is-size-7"><%= bill.description %></span>
                     </div>
 
                     <div class="ob-bill-tooltip">
