@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.12.0] - 2025-12-08
+
+### New
+
+- Bill Management page added which allows entering and tracking recurring income/expenses on various frequencies. Includes list and calendar view
+- Improvements to Transfers: Transfers will be clearly indicated in the transaction log. They will also be linked to their corresponding transaction in the other involved account. If the transfer is for a stash, the transaction will be linked to the stash entry. Transfers can also now be updated, and doing so will also update the corresponding other transaction.
+
+### Bugfixes / Maintenance
+
+- Fix styling of Transaction Type buttons on Transaction form
+- Fix issue with deleting stashes
+
 ## [v1.11.2] - 2025-10-22
 
 ### New
@@ -434,7 +446,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.11.2...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.12.0...develop
+[v1.12.0]: https://github.com/odinsride/olubalance/compare/v1.11.2...v1.12.0
 [v1.11.2]: https://github.com/odinsride/olubalance/compare/v1.11.0...v1.11.2
 [v1.11.0]: https://github.com/odinsride/olubalance/compare/v1.10.0...v1.11.0
 [v1.10.0]: https://github.com/odinsride/olubalance/compare/v1.9.0...v1.10.0

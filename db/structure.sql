@@ -177,6 +177,45 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: bills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bills (
+    id bigint NOT NULL,
+    bill_type character varying NOT NULL,
+    category character varying NOT NULL,
+    description character varying NOT NULL,
+    frequency character varying DEFAULT 'monthly'::character varying NOT NULL,
+    day_of_month integer NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    notes text,
+    account_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bills_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bills_id_seq OWNED BY public.bills.id;
+
+
+--
 -- Name: documents; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -419,6 +458,13 @@ ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: bills id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills ALTER COLUMN id SET DEFAULT nextval('public.bills_id_seq'::regclass);
+
+
+--
 -- Name: documents id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -491,6 +537,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: bills bills_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_pkey PRIMARY KEY (id);
 
 
 --
@@ -581,6 +635,41 @@ CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_b
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
+-- Name: index_bills_on_account_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_account_id ON public.bills USING btree (account_id);
+
+
+--
+-- Name: index_bills_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_user_id ON public.bills USING btree (user_id);
+
+
+--
+-- Name: index_bills_on_user_id_and_bill_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_user_id_and_bill_type ON public.bills USING btree (user_id, bill_type);
+
+
+--
+-- Name: index_bills_on_user_id_and_day_of_month; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_user_id_and_day_of_month ON public.bills USING btree (user_id, day_of_month);
+
+
+--
+-- Name: index_bills_on_user_id_and_frequency; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_user_id_and_frequency ON public.bills USING btree (user_id, frequency);
 
 
 --
@@ -739,6 +828,14 @@ ALTER TABLE ONLY public.stash_entries
 
 
 --
+-- Name: bills fk_rails_79e8aa9e27; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_79e8aa9e27 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -771,12 +868,21 @@ ALTER TABLE ONLY public.active_storage_attachments
 
 
 --
+-- Name: bills fk_rails_f5fcc78f42; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_f5fcc78f42 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251208120000'),
 ('20251013201933'),
 ('20250910233755'),
 ('20250619000235'),

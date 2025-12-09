@@ -42,14 +42,15 @@ class StashesController < ApplicationController
   # DELETE /stashes/1
   def destroy
     @stash.destroy
-    redirect_to account_transactions_path, notice: "Stash was successfully destroyed."
+    redirect_to account_transactions_path(@account), notice: "Stash was successfully destroyed."
   end
 
   private
 
   # Use callbacks to share common setup or constraints between actions.
   def set_stash
-    @stash = @account.stashes.find(params[:id]).decorate
+    @stash = @account.stashes.find(params[:id])
+    @stash = @stash.decorate unless action_name == "destroy"
   end
 
   def find_account

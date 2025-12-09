@@ -1,0 +1,56 @@
+<% grouped_bills_by_type(bills).each do |type, grouped| %>
+  <% next if grouped.empty? %>
+
+  <div class="box mb-4">
+    <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+      <h2 class="title is-5 mb-0"><%= type.humanize.titleize %></h2>
+      <span class="tag is-link is-light"><%= pluralize(grouped.size, "bill") %></span>
+    </div>
+
+    <div class="table-container">
+      <table class="table is-fullwidth is-hoverable is-narrow">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>Description</th>
+            <th class="is-hidden-mobile">Category</th>
+            <th class="is-hidden-mobile">Frequency</th>
+            <th class="has-text-right">Amount</th>
+            <th class="is-hidden-mobile">Account</th>
+            <th class="has-text-centered">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% grouped.each do |bill| %>
+            <tr>
+              <td><%= bill.day_of_month_label %></td>
+              <td>
+                <div><%= bill.description %></div>
+                <div class="is-hidden-tablet is-size-7 has-text-grey">
+                  <span><%= bill.category_label %></span>
+                  <span>&middot;</span>
+                  <span><%= bill.frequency_label %></span>
+                  <span>&middot;</span>
+                  <span><%= bill.account_display %></span>
+                </div>
+              </td>
+              <td class="is-hidden-mobile"><%= bill.category_label %></td>
+              <td class="is-hidden-mobile"><%= bill.frequency_label %></td>
+              <td class="has-text-right"><%= bill.amount_display %></td>
+              <td class="is-hidden-mobile"><%= bill.account_display %></td>
+              <td class="has-text-centered">
+                <div class="buttons is-centered are-small">
+                  <%= link_to "Edit", edit_bill_path(bill), class: "button is-light is-small" %>
+                  <%= button_to "Delete", bill_path(bill), method: :delete,
+                                class: "button is-small is-danger",
+                                data: { turbo_confirm: "Delete this bill?" } %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>
+

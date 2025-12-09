@@ -1,0 +1,110 @@
+<h4 class="title is-4 has-text-link has-text-centered-mobile"><%= @bill.form_name %> Bill</h4>
+
+<%= form_for(@bill) do |f| %>
+  <% if @bill.errors.any? %>
+    <article id="error explanation" class="message is-danger">
+      <div class="message-header">
+        Something went wrong!
+      </div>
+      <div class="message-body content">
+        Please correct the following <span class="has-text-weight-bold"><%= pluralize(@bill.errors.count, "error") %></span>:
+        <ul>
+          <% @bill.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    </article>
+  <% end %>
+
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label has-text-grey">Type</label>
+        <div class="control">
+          <div class="select is-fullwidth is-primary">
+            <%= f.select :bill_type, Bill.bill_types.keys.map { |type| [type.humanize.titleize, type] }, { include_blank: "Select type" }, required: true %>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Category</label>
+        <div class="control">
+          <div class="select is-fullwidth is-primary">
+            <%= f.select :category, Bill.categories.keys.map { |category| [category.humanize.titleize, category] }, { include_blank: "Select category" }, required: true %>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Description</label>
+        <div class="control has-icons-left">
+          <%= f.text_field :description, class: "input is-primary", placeholder: "e.g. Rent or Paycheck",
+                            required: true %>
+          <span class="icon is-small is-left">📝</span>
+        </div>
+      </div>
+
+      <div class="columns">
+        <div class="column is-half">
+          <div class="field">
+            <label class="label has-text-grey">Frequency</label>
+            <div class="control">
+              <div class="select is-fullwidth is-primary">
+                <%= f.select :frequency, Bill.frequencies.keys.map { |freq| [freq.humanize.titleize, freq] }, {}, required: true %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-half">
+          <div class="field">
+            <label class="label has-text-grey">Day of Month</label>
+            <div class="control has-icons-left">
+              <%= f.number_field :day_of_month, class: "input is-primary", min: 1, max: 31,
+                                  required: true %>
+              <span class="icon is-small is-left">📅</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Amount</label>
+        <div class="control has-icons-left">
+          <%= f.number_field :amount, class: "input is-primary", step: 0.01, min: 0.01,
+                              placeholder: "Amount", required: true %>
+          <span class="icon is-small is-left">💵</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Account</label>
+        <div class="control">
+          <div class="select is-fullwidth is-primary">
+            <%= f.select :account_id, @accounts.map { |account| [account.name, account.id] }, {},
+                          required: true %>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Notes</label>
+        <div class="control">
+          <%= f.text_area :notes, class: "textarea is-primary", placeholder: "Optional details" %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-grouped">
+    <div class="control">
+      <%= link_to "Cancel", bills_path(view: params[:view]), class: "button is-link is-outlined has-background-white" %>
+    </div>
+    <div class="control">
+      <%= f.button @bill.button_label, type: 'submit', class: "button is-link" %>
+    </div>
+  </div>
+<% end %>
+
