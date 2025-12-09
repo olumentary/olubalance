@@ -14,6 +14,7 @@ class Account < ApplicationRecord
   has_many :transactions, dependent: :delete_all
   has_many :stashes, dependent: :delete_all
   has_many :documents, as: :attachable, dependent: :destroy
+  has_many :bills, dependent: :destroy
 
   validates :name, presence: true,
                    length: { maximum: 50, minimum: 2 },

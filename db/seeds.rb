@@ -4,6 +4,7 @@ accounts = []
 transactions = []
 stashes = []
 documents = []
+bills = []
 
 # Seed Lists
 trx_type = %w[debit credit]
@@ -81,6 +82,22 @@ stash_names = %w[
 ]
 
 document_categories = %w[Statements Account\ Documentation Correspondence Legal Taxes Other]
+bill_expense_descriptions = [
+  "Rent",
+  "Mortgage",
+  "Internet",
+  "Mobile Phone",
+  "Electric",
+  "Gas Utility",
+  "Water",
+  "Car Insurance",
+  "Health Insurance",
+  "Credit Card Payment",
+  "Streaming Subscription",
+  "Gym Membership",
+  "Groceries",
+  "Fuel"
+]
 
 # Create 3 test accounts
 emails.each do |email|
@@ -292,6 +309,50 @@ accounts.each do |account|
       account: account
     )
   end
+end
+
+# Create Bills
+expense_categories = Bill.categories.keys - ["income"]
+
+users.each do |user|
+  user_accounts = user.accounts
+  next if user_accounts.empty?
+
+  default_account = user.default_account || user_accounts.first
+
+  frequency_plan = [
+    { frequency: "monthly", count: 8 },
+    { frequency: "quarterly", count: 1 },
+    { frequency: "annual", count: 1 }
+  ]
+
+  frequency_plan.each do |plan|
+    plan[:count].times do
+      category = expense_categories.sample
+      bills << Bill.create!(
+        user: user,
+        account: default_account,
+        bill_type: "expense",
+        category: category,
+        description: "#{category.titleize} #{plan[:frequency].titleize} Bill",
+        frequency: plan[:frequency],
+        day_of_month: rand(1..28),
+        amount: Faker::Commerce.price(range: 20..2000.0, as_string: false).round(2)
+      )
+    end
+  end
+
+  # Add an income bill (paycheck) on a bi-weekly cadence
+  bills << Bill.create!(
+    user: user,
+    account: default_account,
+    bill_type: "income",
+    category: "income",
+    description: "Paycheck",
+    frequency: "bi_weekly",
+    day_of_month: rand(1..28),
+    amount: Faker::Commerce.price(range: 1500..4500, as_string: false).round(2)
+  )
 end
 
 # Add stash entries

@@ -239,6 +239,111 @@ a.has-text-white.sortable {
   border-radius: 50%;
 }
 
+// Compact padding helpers for mobile-heavy pages (e.g., bills)
+.section.ob-compact-section {
+  padding: 1.75rem 1.25rem;
+
+  @media screen and (max-width: 768px) {
+    padding: 1.1rem 0.75rem;
+  }
+}
+
+.ob-bills-calendar {
+  table-layout: fixed;
+  overflow: visible;
+}
+
+.ob-bills-calendar-cell {
+  vertical-align: top;
+  width: 14.285%;
+  padding: 0.6rem;
+  height: 100%;
+
+  @media screen and (max-width: 768px) {
+    padding: 0.5rem;
+  }
+}
+
+.ob-bills-calendar-row {
+  height: 180px;
+
+  @media screen and (max-width: 768px) {
+    height: 150px;
+  }
+}
+
+.ob-bills-calendar-wrapper {
+  overflow: visible;
+  position: relative;
+}
+
+.ob-bill-entry {
+  display: block;
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  background: #fff;
+  position: relative;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  z-index: 1;
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+    z-index: 3;
+  }
+}
+
+.ob-bill-tooltip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 25;
+  min-width: 240px;
+  max-width: 280px;
+}
+
+.ob-bill-entry:hover .ob-bill-tooltip,
+.ob-bill-entry:focus .ob-bill-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.ob-stats-columns {
+  margin-left: 0;
+  margin-right: 0;
+
+  > .column {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+.container.ob-compact-container {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+
+  @media screen and (max-width: 768px) {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 // Typeahead styles
 [data-controller='typeahead'] {
   .dropdown-menu {
