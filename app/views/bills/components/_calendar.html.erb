@@ -1,14 +1,23 @@
 <div class="box">
-  <div class="level">
+  <div class="level is-mobile mb-3">
     <div class="level-left">
       <div class="level-item">
-        <h2 class="title is-5 mb-0"><%= reference_date.strftime("%B %Y") %></h2>
+        <%= link_to "‹", bills_path(view: "calendar", month: prev_month), class: "button is-light is-small" %>
+      </div>
+    </div>
+    <div class="level-item has-text-centered is-flex is-align-items-center is-justify-content-center">
+      <h2 class="title is-5 mb-0 mr-2"><%= reference_date.strftime("%B %Y") %></h2>
+      <%= link_to "Today", bills_path(view: "calendar"), class: "button is-link is-light is-small" %>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <%= link_to "›", bills_path(view: "calendar", month: next_month), class: "button is-light is-small" %>
       </div>
     </div>
   </div>
 
-  <div class="table-container">
-    <table class="table is-bordered is-fullwidth is-narrow">
+  <div class="table-container ob-bills-calendar-wrapper">
+    <table class="table is-bordered is-fullwidth is-narrow ob-bills-calendar">
       <thead>
         <tr>
           <% Date::ABBR_DAYNAMES.each do |day_name| %>
@@ -18,10 +27,10 @@
       </thead>
       <tbody>
         <% calendar_weeks(reference_date).each do |week| %>
-          <tr>
+          <tr class="ob-bills-calendar-row">
             <% week.each do |date| %>
               <% day_bills = bills_by_date[date] || [] %>
-              <td class="<%= 'has-background-light' if date.month != reference_date.month %>">
+              <td class="ob-bills-calendar-cell <%= 'has-background-grey-lighter' if date.month != reference_date.month %>">
                 <div class="is-flex is-justify-content-space-between is-align-items-center">
                   <span class="has-text-weight-semibold"><%= date.day %></span>
                   <% if day_bills.any? %>
@@ -30,17 +39,36 @@
                 </div>
 
                 <% day_bills.each do |bill| %>
-                  <div class="mt-2">
+                  <%= link_to edit_bill_path(bill), class: "mt-2 ob-bill-entry has-background-light" do %>
                     <div class="is-flex is-justify-content-space-between is-align-items-center">
                       <span class="has-text-weight-semibold"><%= bill.description %></span>
-                      <span class="tag is-light is-rounded"><%= bill.frequency_label %></span>
                     </div>
                     <div class="is-size-7 has-text-grey">
                       <span><%= bill.account_display %></span>
-                      <span>&middot;</span>
                       <span><%= bill.amount_display %></span>
                     </div>
-                  </div>
+                    <div class="is-size-7 has-text-grey mt-2">
+                      <span class="tag is-primary is-rounded is-size-7"><%= bill.frequency_label %></span>
+                    </div>
+
+                    <div class="ob-bill-tooltip">
+                      <p class="has-text-weight-semibold mb-1"><%= bill.description %></p>
+                      <p class="is-size-7 mb-1">
+                        <span class="tag is-light is-rounded mr-1"><%= bill.bill_type_label %></span>
+                        <span class="tag is-light is-rounded mr-1"><%= bill.category_label %></span>
+                        <span class="tag is-light is-rounded"><%= bill.frequency_label %></span>
+                      </p>
+                      <p class="is-size-7 mb-1">
+                        Amount: <%= bill.amount_display %>
+                      </p>
+                      <p class="is-size-7 mb-1">
+                        Account: <%= bill.account_display %>
+                      </p>
+                      <p class="is-size-7 mb-0">
+                        Notes: <%= bill.notes_display %>
+                      </p>
+                    </div>
+                  <% end %>
                 <% end %>
               </td>
             <% end %>

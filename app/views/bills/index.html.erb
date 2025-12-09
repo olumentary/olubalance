@@ -22,9 +22,22 @@
     </div>
   </div>
 
+  <div class="is-hidden-mobile">
+    <%= render "bills/components/summary_tiles" %>
+  </div>
+
+  <div class="is-hidden-tablet mb-3">
+    <details class="box">
+      <summary class="has-text-link has-text-weight-semibold">Stats</summary>
+      <div class="mt-3">
+        <%= render "bills/components/summary_tiles" %>
+      </div>
+    </details>
+  </div>
+
   <% if @bills.any? %>
     <% if @view_mode == "calendar" %>
-      <%= render "bills/components/calendar", bills: @bills, reference_date: @reference_date, bills_by_date: @bills_by_date %>
+      <%= render "bills/components/calendar", bills: @bills, reference_date: @reference_date, bills_by_date: @bills_by_date, prev_month: @prev_month, next_month: @next_month %>
     <% else %>
       <%= render "bills/components/list", bills: @bills %>
     <% end %>

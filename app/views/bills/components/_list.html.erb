@@ -1,7 +1,7 @@
 <% grouped_bills_by_type(bills).each do |type, grouped| %>
   <% next if grouped.empty? %>
 
-  <div class="box mb-5">
+  <div class="box mb-4">
     <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
       <h2 class="title is-5 mb-0"><%= type.humanize.titleize %></h2>
       <span class="tag is-link is-light"><%= pluralize(grouped.size, "bill") %></span>

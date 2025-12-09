@@ -56,7 +56,7 @@ class Bill < ApplicationRecord
   delegate :name, to: :account, prefix: true
 
   def calendar_date_for(reference_date = Time.zone.today)
-    base_date = reference_date.beginning_of_month
+    base_date = reference_date.to_date.beginning_of_month
     days_in_month = base_date.end_of_month.day
     target_day = [day_of_month, days_in_month].min
     base_date + (target_day - 1).days

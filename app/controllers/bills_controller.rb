@@ -8,9 +8,13 @@ class BillsController < ApplicationController
 
   def index
     @view_mode = params[:view] == "calendar" ? "calendar" : "list"
-    @reference_date = Time.zone.today
+    @reference_date = resolve_reference_month
+    @prev_month = (@reference_date - 1.month).strftime("%Y-%m")
+    @next_month = (@reference_date + 1.month).strftime("%Y-%m")
     @bills = current_user.bills.includes(:account).ordered_for_list.decorate
     @bills_by_date = @bills.group_by { |bill| bill.calendar_date_for(@reference_date) }
+    @bill_totals = monthly_totals(@bills)
+    @bill_remaining = @bill_totals[:income] - @bill_totals.values_at(:expense, :debt_repayment, :payment_plan).sum
   end
 
   def new
@@ -74,6 +78,48 @@ class BillsController < ApplicationController
       category: nil,
       frequency: Bill.frequencies.keys.first
     }
+  end
+
+  def resolve_reference_month
+    return Time.zone.today.beginning_of_month if params[:month].blank?
+
+    Date.strptime(params[:month], "%Y-%m").in_time_zone.beginning_of_month
+  rescue ArgumentError
+    Time.zone.today.beginning_of_month
+  end
+
+  def monthly_totals(bills)
+    totals = {
+      income: 0.to_d,
+      expense: 0.to_d,
+      debt_repayment: 0.to_d,
+      payment_plan: 0.to_d
+    }
+
+    bills.each do |bill|
+      monthly_amount = monthlyized_amount(bill)
+      key = bill.bill_type.to_sym
+      totals[key] += monthly_amount if totals.key?(key)
+    end
+
+    totals
+  end
+
+  def monthlyized_amount(bill)
+    amount = bill.amount.to_d
+
+    case bill.frequency
+    when "monthly"
+      amount
+    when "bi_weekly"
+      amount * BigDecimal("26") / BigDecimal("12")
+    when "quarterly"
+      amount / BigDecimal("3")
+    when "annual"
+      amount / BigDecimal("12")
+    else
+      amount
+    end
   end
 end
 

@@ -1,0 +1,43 @@
+<div class="columns is-multiline is-mobile mb-3 ob-stats-columns">
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Monthly Income</p>
+      <p class="title is-5"><%= number_to_currency(@bill_totals[:income]) %></p>
+    </div>
+  </div>
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Monthly Expenses</p>
+      <p class="title is-5"><%= number_to_currency(@bill_totals[:expense]) %></p>
+    </div>
+  </div>
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Debt Repayments</p>
+      <p class="title is-5"><%= number_to_currency(@bill_totals[:debt_repayment]) %></p>
+    </div>
+  </div>
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Payment Plans</p>
+      <p class="title is-5"><%= number_to_currency(@bill_totals[:payment_plan]) %></p>
+    </div>
+  </div>
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Total Monthly Outflow</p>
+      <p class="title is-5">
+        <%= number_to_currency(@bill_totals.values_at(:expense, :debt_repayment, :payment_plan).sum) %>
+      </p>
+    </div>
+  </div>
+  <div class="column is-one-third-tablet is-full-mobile">
+    <div class="box has-text-centered">
+      <p class="heading">Remaining (Income - Outflow)</p>
+      <p class="title is-4 <%= @bill_remaining.negative? ? 'has-text-danger' : 'has-text-success' %>">
+        <%= number_to_currency(@bill_remaining) %>
+      </p>
+    </div>
+  </div>
+</div>
+
