@@ -133,8 +133,8 @@ class TransactionDecorator < ApplicationDecorator
 
   def transfer_icon
     return nil unless transaction.transfer?
-    return "↔️" if transaction.account_to_account?
-    return "🏦" if transaction.account_to_stash?
+    return h.content_tag(:i, "", class: "fas fa-exchange-alt") if transaction.account_to_account?
+    return h.content_tag(:i, "", class: "fas fa-envelope") if transaction.account_to_stash?
     nil
   end
 end
