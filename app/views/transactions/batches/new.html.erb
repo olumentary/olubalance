@@ -1,0 +1,95 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal is-active">
+    <div class="modal-background" onclick="document.getElementById('modal').innerHTML = ''"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">
+          <% if @bill.present? %>
+            Generate for <%= @bill.description %>
+          <% else %>
+            Generate pending transactions
+          <% end %>
+        </p>
+        <button
+          class="delete"
+          aria-label="close"
+          onclick="document.getElementById('modal').innerHTML = ''"
+        ></button>
+      </header>
+      <section class="modal-card-body">
+        <%= form_with url: new_transactions_batch_path, method: :get, data: { turbo_frame: "modal" }, local: true do %>
+          <% if @bill.present? %>
+            <%= hidden_field_tag :bill_id, @bill.id %>
+            <div class="field">
+              <%= label_tag :month, "Month", class: "label" %>
+              <div class="control">
+                <%= month_field_tag :month, @range[:start_date].strftime("%Y-%m"), class: "input", required: true %>
+              </div>
+              <p class="help">Select the month to generate this bill’s transaction.</p>
+            </div>
+          <% else %>
+            <div class="field">
+              <%= label_tag :start_date, "Start date", class: "label" %>
+              <div class="control">
+                <%= date_field_tag :start_date, @range[:start_date], class: "input", required: true %>
+              </div>
+            </div>
+            <div class="field">
+              <%= label_tag :end_date, "End date", class: "label" %>
+              <div class="control">
+                <%= date_field_tag :end_date, @range[:end_date], class: "input", required: true %>
+              </div>
+              <p class="help">Occurrences within this date range will be generated.</p>
+            </div>
+          <% end %>
+          <%= hidden_field_tag :view, params[:view] if params[:view].present? %>
+          <div class="field is-grouped is-justify-content-flex-end">
+            <div class="control">
+              <%= submit_tag "Update preview", class: "button is-link is-light" %>
+            </div>
+          </div>
+        <% end %>
+
+        <h2 class="title is-6 mt-4">Preview</h2>
+        <% if @preview_items.any? %>
+          <div class="table-container">
+            <table class="table is-fullwidth is-striped is-hoverable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Bill</th>
+                  <th>Account</th>
+                  <th class="has-text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @preview_items.each do |item| %>
+                  <tr>
+                    <td><%= item.trx_date.strftime("%b %-d") %></td>
+                    <td><%= item.bill.description %></td>
+                    <td><%= item.account.name %></td>
+                    <td class="has-text-right"><%= number_to_currency(item.amount) %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="notification is-light">
+            No bill occurrences found for the selected dates.
+          </div>
+        <% end %>
+      </section>
+      <footer class="modal-card-foot is-justify-content-space-between">
+        <button class="button" onclick="document.getElementById('modal').innerHTML = ''">Close</button>
+        <%= button_to "Generate pending transactions",
+                      transactions_batches_path,
+                      method: :post,
+                      params: generation_params(@range, @bill),
+                      class: "button is-link",
+                      data: { turbo_confirm: (@preview_items.any? ? nil : "No transactions will be created. Continue?") } %>
+      </footer>
+    </div>
+  </div>
+<% end %>
+

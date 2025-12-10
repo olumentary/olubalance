@@ -125,4 +125,16 @@ module TransactionsHelper
     return "" unless transaction.amount
     sprintf("%.2f", transaction.amount.abs)
   end
+
+  def bill_generated?(transaction)
+    transaction.bill_transaction_batch_id.present? || transaction.batch_reference.present?
+  end
+
+  def bill_generated_icon(transaction)
+    return "" unless bill_generated?(transaction)
+
+    content_tag(:span, class: "icon is-small ml-1 has-text-grey", title: "Generated from bill") do
+      content_tag(:i, "", class: "fas fa-magic fa-sm")
+    end
+  end
 end

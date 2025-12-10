@@ -12,8 +12,9 @@ class BillsController < ApplicationController
     @prev_month = (@reference_date - 1.month).strftime("%Y-%m")
     @next_month = (@reference_date + 1.month).strftime("%Y-%m")
     @bills = current_user.bills.includes(:account).ordered_for_list.decorate
-    @bills_by_date = @bills.group_by { |bill| bill.calendar_date_for(@reference_date) }
-    @bill_totals = monthly_totals(@bills)
+    @bills_by_date = bills_grouped_by_date(@bills, @reference_date)
+    @bill_totals, @bill_breakdowns = monthly_totals(@bills)
+    @bill_details_by_type = bills_grouped_by_type(@bills)
     @bill_remaining = @bill_totals[:income] - @bill_totals.values_at(:expense, :debt_repayment, :payment_plan).sum
   end
 
@@ -65,7 +66,9 @@ class BillsController < ApplicationController
 
   def bill_params
     params.require(:bill)
-          .permit(:bill_type, :category, :description, :frequency, :day_of_month, :amount, :notes, :account_id)
+          .permit(:bill_type, :category, :description, :frequency, :day_of_month, :second_day_of_month,
+                  :biweekly_mode, :biweekly_anchor_weekday, :biweekly_anchor_date, :next_occurrence_month,
+                  :amount, :notes, :account_id)
           .merge(user_id: current_user.id)
   end
 
@@ -95,31 +98,35 @@ class BillsController < ApplicationController
       debt_repayment: 0.to_d,
       payment_plan: 0.to_d
     }
+    breakdowns = {
+      income: [],
+      expense: [],
+      debt_repayment: [],
+      payment_plan: []
+    }
 
     bills.each do |bill|
-      monthly_amount = monthlyized_amount(bill)
+      monthly_amount = bill.monthly_normalized_amount
       key = bill.bill_type.to_sym
-      totals[key] += monthly_amount if totals.key?(key)
+      next unless totals.key?(key)
+
+      totals[key] += monthly_amount
+      breakdowns[key] << bill.monthly_normalized_breakdown
     end
 
-    totals
+    [totals, breakdowns]
   end
 
-  def monthlyized_amount(bill)
-    amount = bill.amount.to_d
-
-    case bill.frequency
-    when "monthly"
-      amount
-    when "bi_weekly"
-      amount * BigDecimal("26") / BigDecimal("12")
-    when "quarterly"
-      amount / BigDecimal("3")
-    when "annual"
-      amount / BigDecimal("12")
-    else
-      amount
+  def bills_grouped_by_date(bills, reference_date)
+    bills.each_with_object(Hash.new { |hash, key| hash[key] = [] }) do |bill, hash|
+      bill.occurrences_for_month(reference_date).each do |date|
+        hash[date] << bill
+      end
     end
+  end
+
+  def bills_grouped_by_type(bills)
+    bills.group_by { |bill| bill.bill_type.to_sym }
   end
 end
 

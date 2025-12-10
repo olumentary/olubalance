@@ -19,8 +19,27 @@
       <div class="level-item">
         <%= link_to "New Bill", new_bill_path, class: "button is-link is-small" %>
       </div>
+      <div class="level-item">
+        <%= link_to "Transaction batches", transactions_batches_path, class: "button is-light is-small" %>
+      </div>
+      <div class="level-item">
+        <%= link_to "Generate pending transactions",
+                    new_transactions_batch_path(start_date: @reference_date.beginning_of_month, end_date: @reference_date.end_of_month, view: @view_mode),
+                    class: "button is-warning is-small",
+                    data: { turbo_frame: "modal" } %>
+      </div>
     </div>
   </div>
+
+  <% if flash[:undo_batch_id].present? %>
+    <div class="notification is-link is-light is-flex is-align-items-center is-justify-content-space-between">
+      <span>Pending transactions were generated from bills.</span>
+      <%= button_to "Undo", transactions_batch_path(flash[:undo_batch_id]),
+                    method: :delete,
+                    class: "button is-link is-light is-small",
+                    data: { turbo_confirm: "Remove all pending transactions from this batch?" } %>
+    </div>
+  <% end %>
 
   <div class="is-hidden-mobile">
     <%= render "bills/components/summary_tiles" %>
@@ -47,4 +66,6 @@
     </div>
   <% end %>
 </div>
+
+<%= turbo_frame_tag "modal" %>
 

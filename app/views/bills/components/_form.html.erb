@@ -1,6 +1,6 @@
 <h4 class="title is-4 has-text-link has-text-centered-mobile"><%= @bill.form_name %> Bill</h4>
 
-<%= form_for(@bill) do |f| %>
+<%= form_for(@bill, html: { data: { controller: "bill-form" } }) do |f| %>
   <% if @bill.errors.any? %>
     <article id="error explanation" class="message is-danger">
       <div class="message-header">
@@ -52,7 +52,11 @@
             <label class="label has-text-grey">Frequency</label>
             <div class="control">
               <div class="select is-fullwidth is-primary">
-                <%= f.select :frequency, Bill.frequencies.keys.map { |freq| [freq.humanize.titleize, freq] }, {}, required: true %>
+                <%= f.select :frequency,
+                             Bill.frequencies.keys.map { |freq| [freq.humanize.titleize, freq] },
+                             {},
+                             required: true,
+                             data: { bill_form_target: "frequency", action: "change->bill-form#changeFrequency" } %>
               </div>
             </div>
           </div>
@@ -67,6 +71,89 @@
               <span class="icon is-small is-left">📅</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <% current_biweekly_mode = @bill.biweekly_mode.presence || 'two_days' %>
+      <div class="box is-shadowless has-background-light <%= @bill.frequency == "bi_weekly" ? '' : 'is-hidden' %>" data-bill-form-target="biweeklySection">
+        <p class="has-text-weight-semibold mb-2">Bi-Weekly schedule</p>
+        <div class="field">
+          <div class="control">
+            <label class="radio">
+              <%= f.radio_button :biweekly_mode, "two_days",
+                                 checked: current_biweekly_mode == "two_days",
+                                 data: { action: "change->bill-form#changeBiweeklyMode" } %>
+              Two specific days each month
+            </label>
+          </div>
+          <div class="control">
+            <label class="radio">
+              <%= f.radio_button :biweekly_mode, "every_other_week",
+                                 checked: current_biweekly_mode == "every_other_week",
+                                 data: { action: "change->bill-form#changeBiweeklyMode" } %>
+              Every other week (choose weekday + next date)
+            </label>
+          </div>
+        </div>
+
+        <div data-bill-form-target="biweeklyTwoDays" class="<%= current_biweekly_mode == 'two_days' ? '' : 'is-hidden' %>">
+          <div class="columns">
+            <div class="column is-half">
+              <div class="field">
+                <label class="label has-text-grey">Second Day of Month</label>
+                <div class="control has-icons-left">
+                  <%= f.number_field :second_day_of_month, class: "input is-primary", min: 1, max: 31,
+                                      data: { bill_form_target: "secondDay" } %>
+                  <span class="icon is-small is-left">📅</span>
+                </div>
+                <p class="help">We will clamp to the last day when months are shorter.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div data-bill-form-target="biweeklyEveryOtherWeek" class="<%= current_biweekly_mode == 'every_other_week' ? '' : 'is-hidden' %>">
+          <div class="columns">
+            <div class="column is-half">
+              <div class="field">
+                <label class="label has-text-grey">Weekday</label>
+                <div class="control">
+                  <div class="select is-fullwidth is-primary">
+                    <%= f.select :biweekly_anchor_weekday,
+                                 Date::DAYNAMES.each_with_index.map { |name, idx| [name, idx] },
+                                 { include_blank: "Select weekday" },
+                                 data: { bill_form_target: "anchorWeekday" } %>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="column is-half">
+              <div class="field">
+                <label class="label has-text-grey">Next Occurrence Date</label>
+                <div class="control has-icons-left">
+                  <%= f.date_field :biweekly_anchor_date, class: "input is-primary",
+                                   data: { bill_form_target: "anchorDate" } %>
+                  <span class="icon is-small is-left">📅</span>
+                </div>
+                <p class="help">We will repeat every two weeks from this date.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-bill-form-target="nextMonth" class="<%= @bill.frequency.in?(%w[quarterly annual]) ? '' : 'is-hidden' %>">
+        <div class="field">
+          <label class="label has-text-grey">Next Occurrence Month</label>
+          <div class="control">
+            <div class="select is-fullwidth is-primary">
+              <%= f.select :next_occurrence_month,
+                           Date::MONTHNAMES.compact.each_with_index.map { |name, idx| [name, idx + 1] },
+                           { include_blank: "Select month" },
+                           required: @bill.frequency.in?(%w[quarterly annual]) %>
+            </div>
+          </div>
+          <p class="help">We will use this month + day to build future quarterly/annual dates.</p>
         </div>
       </div>
 

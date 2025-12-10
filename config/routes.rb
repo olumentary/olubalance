@@ -47,6 +47,9 @@ Rails.application.routes.draw do
   resources :quick_transactions, only: [ :new, :create ]
   resources :documents, only: %i[index show new create edit update]
   resources :bills, except: %i[show]
+  namespace :transactions do
+    resources :batches, only: %i[index show new create destroy]
+  end
 
   # Mobile home page route
   get "mobile_home" => "static_pages#mobile_home", as: :mobile_home

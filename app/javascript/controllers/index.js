@@ -60,3 +60,9 @@ application.register('typeahead', TypeaheadController);
 
 import DocumentFormController from './document_form_controller';
 application.register('document-form', DocumentFormController);
+
+import BillFormController from './bill_form_controller';
+application.register('bill-form', BillFormController);
+
+import SummaryTilesController from './summary_tiles_controller';
+application.register('summary-tiles', SummaryTilesController);
