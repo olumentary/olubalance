@@ -17,7 +17,7 @@
             <th class="is-hidden-mobile">Frequency</th>
             <th class="has-text-right">Amount</th>
             <th class="is-hidden-mobile">Account</th>
-            <th class="has-text-centered">Actions</th>
+            <th class="has-text-right">&nbsp;</th>
           </tr>
         </thead>
         <tbody>
@@ -38,12 +38,16 @@
               <td class="is-hidden-mobile"><%= bill.frequency_label %></td>
               <td class="has-text-right"><%= bill.amount_display %></td>
               <td class="is-hidden-mobile"><%= bill.account_display %></td>
-              <td class="has-text-centered">
-                <div class="buttons is-centered are-small">
+              <td class="has-text-right">
+                <div class="buttons are-small is-justify-content-flex-end">
                   <%= link_to "Edit", edit_bill_path(bill), class: "button is-light is-small" %>
                   <%= button_to "Delete", bill_path(bill), method: :delete,
                                 class: "button is-small is-danger",
                                 data: { turbo_confirm: "Delete this bill?" } %>
+                  <%= link_to "Generate",
+                              new_transactions_batch_path(bill_id: bill.id),
+                              class: "button is-link is-small",
+                              data: { turbo_frame: "modal" } %>
                 </div>
               </td>
             </tr>

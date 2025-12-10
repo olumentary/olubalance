@@ -177,6 +177,43 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: bill_transaction_batches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bill_transaction_batches (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    reference character varying NOT NULL,
+    period_month date,
+    transactions_count integer DEFAULT 0 NOT NULL,
+    total_amount numeric(12,2) DEFAULT 0.0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    range_start_date date,
+    range_end_date date
+);
+
+
+--
+-- Name: bill_transaction_batches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bill_transaction_batches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bill_transaction_batches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bill_transaction_batches_id_seq OWNED BY public.bill_transaction_batches.id;
+
+
+--
 -- Name: bills; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -353,7 +390,9 @@ CREATE TABLE public.transactions (
     locked boolean DEFAULT false,
     transfer boolean DEFAULT false,
     quick_receipt boolean,
-    counterpart_transaction_id bigint
+    counterpart_transaction_id bigint,
+    batch_reference character varying,
+    bill_transaction_batch_id bigint
 );
 
 
@@ -463,6 +502,13 @@ ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: bill_transaction_batches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_transaction_batches ALTER COLUMN id SET DEFAULT nextval('public.bill_transaction_batches_id_seq'::regclass);
+
+
+--
 -- Name: bills id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -542,6 +588,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: bill_transaction_batches bill_transaction_batches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_transaction_batches
+    ADD CONSTRAINT bill_transaction_batches_pkey PRIMARY KEY (id);
 
 
 --
@@ -643,6 +697,34 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
+-- Name: index_batches_on_user_and_range; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_batches_on_user_and_range ON public.bill_transaction_batches USING btree (user_id, range_start_date, range_end_date);
+
+
+--
+-- Name: index_bill_transaction_batches_on_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_bill_transaction_batches_on_reference ON public.bill_transaction_batches USING btree (reference);
+
+
+--
+-- Name: index_bill_transaction_batches_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bill_transaction_batches_on_user_id ON public.bill_transaction_batches USING btree (user_id);
+
+
+--
+-- Name: index_bill_transaction_batches_on_user_id_and_period_month; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bill_transaction_batches_on_user_id_and_period_month ON public.bill_transaction_batches USING btree (user_id, period_month);
+
+
+--
 -- Name: index_bills_on_account_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -734,6 +816,20 @@ CREATE INDEX index_transactions_on_account_id ON public.transactions USING btree
 
 
 --
+-- Name: index_transactions_on_batch_reference; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_batch_reference ON public.transactions USING btree (batch_reference);
+
+
+--
+-- Name: index_transactions_on_bill_transaction_batch_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_bill_transaction_batch_id ON public.transactions USING btree (bill_transaction_batch_id);
+
+
+--
 -- Name: index_transactions_on_counterpart_transaction_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -798,6 +894,14 @@ CREATE RULE tb_upd_protect AS
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT fk_rails_01f020e267 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: bill_transaction_batches fk_rails_16c90372dc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_transaction_batches
+    ADD CONSTRAINT fk_rails_16c90372dc FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -873,6 +977,14 @@ ALTER TABLE ONLY public.active_storage_attachments
 
 
 --
+-- Name: transactions fk_rails_f0365210d9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_f0365210d9 FOREIGN KEY (bill_transaction_batch_id) REFERENCES public.bill_transaction_batches(id);
+
+
+--
 -- Name: bills fk_rails_f5fcc78f42; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -887,6 +999,8 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251211193000'),
+('20251209131000'),
 ('20251209120000'),
 ('20251208120000'),
 ('20251013201933'),

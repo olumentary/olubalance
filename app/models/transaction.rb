@@ -4,6 +4,7 @@
 class Transaction < ApplicationRecord
   belongs_to :account
   has_one :transaction_balance
+  belongs_to :bill_transaction_batch, optional: true
 
   belongs_to :counterpart_transaction, class_name: "Transaction", foreign_key: "counterpart_transaction_id", optional: true
   has_one :counterpart_transaction_inverse, class_name: "Transaction", foreign_key: "counterpart_transaction_id", dependent: :nullify
@@ -35,6 +36,7 @@ class Transaction < ApplicationRecord
   before_create :set_pending
   before_validation :set_trx_type_for_existing_records
   before_validation :convert_amount
+  before_validation :sync_batch_reference
   before_save :set_account
   before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
   after_create :update_account_balance_create
@@ -150,6 +152,12 @@ class Transaction < ApplicationRecord
         end
       end
     end
+  end
+
+  def sync_batch_reference
+    return if bill_transaction_batch.blank?
+
+    self.batch_reference ||= bill_transaction_batch.reference
   end
 
   def set_account

@@ -20,6 +20,7 @@ class User < ApplicationRecord
   has_many :accounts, dependent: :destroy
   has_many :documents, as: :attachable, dependent: :destroy
   has_many :bills, dependent: :destroy
+  has_many :bill_transaction_batches, dependent: :destroy
   belongs_to :default_account, class_name: 'Account', optional: true
 
   private

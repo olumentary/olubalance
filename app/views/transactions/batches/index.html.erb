@@ -1,0 +1,65 @@
+<% content_for :title, "Transaction Batches" %>
+
+<div class="container ob-compact-container">
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <h1 class="title is-4">Generated batches</h1>
+      </div>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <%= link_to "Back to Bills", bills_path, class: "button is-light" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @batches.any? %>
+    <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Created</th>
+            <th class="has-text-right">Transactions</th>
+            <th class="has-text-right">Total amount</th>
+            <th>Reference</th>
+            <th class="has-text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @batches.each do |batch| %>
+            <% pending_only = batch.transactions.all?(&:pending?) %>
+            <tr>
+              <td><%= batch.month_label %></td>
+              <td><%= l batch.created_at, format: :short %></td>
+              <td class="has-text-right"><%= batch.transactions_count %></td>
+              <td class="has-text-right"><%= number_to_currency(batch.total_amount) %></td>
+              <td><%= batch.reference %></td>
+              <td class="has-text-right">
+                <div class="buttons is-right">
+                  <%= link_to "View", transactions_batch_path(batch), class: "button is-link is-small" %>
+                  <% if pending_only %>
+                    <%= button_to "Undo",
+                                  transactions_batch_path(batch),
+                                  method: :delete,
+                                  class: "button is-danger is-small",
+                                  data: { turbo_confirm: "Remove all pending transactions in this batch?" } %>
+                  <% else %>
+                    <span class="tag is-light is-warning">Partially reviewed</span>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="notification is-light">
+      No batches generated yet.
+    </div>
+  <% end %>
+</div>
+
+
