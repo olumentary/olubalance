@@ -51,6 +51,7 @@
                 <%= transaction.transfer_icon %>
               </span>
             <% end %>
+            <%= bill_generated_icon(transaction) %>
           </span>
           <input type="text"
                  class="input is-small is-hidden"
@@ -72,6 +73,7 @@
                 <%= transaction.transfer_icon %>
               </span>
             <% end %>
+            <%= bill_generated_icon(transaction) %>
           </div>
         <% end %>
       <% end %>

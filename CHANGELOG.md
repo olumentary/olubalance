@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.12.1] - 2025-12-10
+
+### New
+
+- Bill-to-pending transaction generation with batch tracking (bill_transaction_batches, batch references, associations).
+- BillTransactions::Generator service supporting previews, dedupe, per-bill runs, and arbitrary date ranges.
+- Batch history page listing generated batches with undo when pending-only.
+- Per-bill “Generate” buttons on the Bills list; top-level modal now supports date ranges.
+- Navbar icons refreshed: Bill Management (file-invoice-dollar), Document Center (folder-open).
+
+### Changed
+
+- Transactions index now shows a FA magic icon on bill-generated transactions.
+- Transfer icons use FA exchange-alt (account-to-account) and envelope (account-to-stash).
+- Bills action buttons aligned right; Transaction Batches link surfaced on the Bills page.
+
+### Fixed / Stability
+
+- Seeds adjusted to satisfy bill validations: quarterly/annual bills set next_occurrence_month; bi-weekly paycheck seeds set biweekly_mode and second_day_of_month.
+
 ## [v1.12.0] - 2025-12-08
 
 ### New
@@ -446,7 +466,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.12.0...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.12.1...develop
+[v1.12.1]: https://github.com/odinsride/olubalance/compare/v1.12.0...v1.12.1
 [v1.12.0]: https://github.com/odinsride/olubalance/compare/v1.11.2...v1.12.0
 [v1.11.2]: https://github.com/odinsride/olubalance/compare/v1.11.0...v1.11.2
 [v1.11.0]: https://github.com/odinsride/olubalance/compare/v1.10.0...v1.11.0

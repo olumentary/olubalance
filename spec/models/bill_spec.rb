@@ -30,6 +30,29 @@ RSpec.describe Bill, type: :model do
     it { should validate_presence_of(:user) }
   end
 
+  describe 'bi-weekly validation rules' do
+    it 'requires second_day_of_month for two day mode' do
+      bill = build(:bill, frequency: 'bi_weekly', biweekly_mode: 'two_days', second_day_of_month: nil)
+      expect(bill).not_to be_valid
+      expect(bill.errors[:second_day_of_month]).to be_present
+    end
+
+    it 'requires anchor fields for every other week mode' do
+      bill = build(:bill, frequency: 'bi_weekly', biweekly_mode: 'every_other_week', biweekly_anchor_date: nil, biweekly_anchor_weekday: nil)
+      expect(bill).not_to be_valid
+      expect(bill.errors[:biweekly_anchor_date]).to be_present
+      expect(bill.errors[:biweekly_anchor_weekday]).to be_present
+    end
+  end
+
+  describe 'quarterly/annual validation rules' do
+    it 'requires next_occurrence_month for quarterly' do
+      bill = build(:bill, frequency: 'quarterly', next_occurrence_month: nil)
+      expect(bill).not_to be_valid
+      expect(bill.errors[:next_occurrence_month]).to be_present
+    end
+  end
+
   describe '#account_belongs_to_user' do
     let(:user) { create(:user, :confirmed) }
     let(:other_user) { create(:user, :confirmed) }
@@ -54,6 +77,56 @@ RSpec.describe Bill, type: :model do
 
     it 'clamps to the last day of the month when needed' do
       expect(bill.calendar_date_for(reference_date).day).to eq(reference_date.end_of_month.day)
+    end
+  end
+
+  describe '#occurrences_for_month' do
+    let(:reference_date) { Date.new(2025, 1, 1) }
+
+    it 'returns both days for bi-weekly two day mode' do
+      bill = build(:bill, :bi_weekly_two_days, day_of_month: 5, second_day_of_month: 20)
+      expect(bill.occurrences_for_month(reference_date).map(&:day)).to contain_exactly(5, 20)
+    end
+
+    it 'returns clamped dates when needed' do
+      bill = build(:bill, :bi_weekly_two_days, day_of_month: 30, second_day_of_month: 31)
+      dates = bill.occurrences_for_month(Date.new(2025, 2, 1))
+      expect(dates.map(&:day)).to eq([28, 28])
+    end
+
+    it 'returns every other week occurrences for the month' do
+      anchor_date = Date.new(2025, 1, 3) # Friday
+      bill = build(:bill, frequency: 'bi_weekly', biweekly_mode: 'every_other_week', biweekly_anchor_date: anchor_date, biweekly_anchor_weekday: anchor_date.wday, day_of_month: 1)
+      dates = bill.occurrences_for_month(reference_date)
+      expect(dates).to include(anchor_date, anchor_date + 14.days)
+    end
+
+    it 'returns quarterly occurrence when month matches cycle' do
+      bill = build(:bill, :quarterly, next_occurrence_month: 1, day_of_month: 10)
+      expect(bill.occurrences_for_month(reference_date).map(&:day)).to eq([10])
+      expect(bill.occurrences_for_month(Date.new(2025, 2, 1))).to be_empty
+    end
+  end
+
+  describe '#monthly_normalized_amount' do
+    it 'uses 26/12 for every other week' do
+      bill = build(:bill, :bi_weekly, amount: 1200)
+      expect(bill.monthly_normalized_amount).to eq(BigDecimal('1200') * BigDecimal('26') / BigDecimal('12'))
+    end
+
+    it 'uses per-occurrence count for two day mode' do
+      bill = build(:bill, :bi_weekly_two_days, amount: 100, day_of_month: 5, second_day_of_month: 20)
+      expect(bill.monthly_normalized_amount).to eq(200)
+    end
+
+    it 'divides quarterly amounts by 3' do
+      bill = build(:bill, :quarterly, amount: 300)
+      expect(bill.monthly_normalized_amount).to eq(100)
+    end
+
+    it 'divides annual amounts by 12' do
+      bill = build(:bill, :annual, amount: 1200)
+      expect(bill.monthly_normalized_amount).to eq(100)
     end
   end
 end

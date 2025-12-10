@@ -329,7 +329,8 @@ users.each do |user|
   frequency_plan.each do |plan|
     plan[:count].times do
       category = expense_categories.sample
-      bills << Bill.create!(
+
+      attrs = {
         user: user,
         account: default_account,
         bill_type: "expense",
@@ -338,11 +339,19 @@ users.each do |user|
         frequency: plan[:frequency],
         day_of_month: rand(1..28),
         amount: Faker::Commerce.price(range: 20..2000.0, as_string: false).round(2)
-      )
+      }
+
+      if %w[quarterly annual].include?(plan[:frequency])
+        attrs[:next_occurrence_month] = rand(1..12)
+      end
+
+      bills << Bill.create!(attrs)
     end
   end
 
   # Add an income bill (paycheck) on a bi-weekly cadence
+  paycheck_day = rand(1..28)
+  second_day = ((paycheck_day + 14 - 1) % 28) + 1
   bills << Bill.create!(
     user: user,
     account: default_account,
@@ -350,7 +359,9 @@ users.each do |user|
     category: "income",
     description: "Paycheck",
     frequency: "bi_weekly",
-    day_of_month: rand(1..28),
+    day_of_month: paycheck_day,
+    second_day_of_month: second_day,
+    biweekly_mode: "two_days",
     amount: Faker::Commerce.price(range: 1500..4500, as_string: false).round(2)
   )
 end

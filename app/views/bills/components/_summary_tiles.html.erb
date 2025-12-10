@@ -1,24 +1,40 @@
 <div class="columns is-multiline is-mobile mb-3 ob-stats-columns">
+  <% income_payload = summary_bill_payload(@bill_details_by_type[:income] || []) %>
   <div class="column is-one-third-tablet is-full-mobile">
-    <div class="box has-text-centered">
+    <div class="box has-text-centered summary-tile"
+         data-controller="summary-tiles"
+         data-summary-tiles-bills-value="<%= income_payload.to_json %>"
+         data-action="pointerenter->summary-tiles#show pointerleave->summary-tiles#hide focus->summary-tiles#show blur->summary-tiles#hide">
       <p class="heading">Monthly Income</p>
       <p class="title is-5"><%= number_to_currency(@bill_totals[:income]) %></p>
     </div>
   </div>
+  <% expense_payload = summary_bill_payload(@bill_details_by_type[:expense] || []) %>
   <div class="column is-one-third-tablet is-full-mobile">
-    <div class="box has-text-centered">
+    <div class="box has-text-centered summary-tile"
+         data-controller="summary-tiles"
+         data-summary-tiles-bills-value="<%= expense_payload.to_json %>"
+         data-action="pointerenter->summary-tiles#show pointerleave->summary-tiles#hide focus->summary-tiles#show blur->summary-tiles#hide">
       <p class="heading">Monthly Expenses</p>
       <p class="title is-5"><%= number_to_currency(@bill_totals[:expense]) %></p>
     </div>
   </div>
+  <% debt_payload = summary_bill_payload(@bill_details_by_type[:debt_repayment] || []) %>
   <div class="column is-one-third-tablet is-full-mobile">
-    <div class="box has-text-centered">
+    <div class="box has-text-centered summary-tile"
+         data-controller="summary-tiles"
+         data-summary-tiles-bills-value="<%= debt_payload.to_json %>"
+         data-action="pointerenter->summary-tiles#show pointerleave->summary-tiles#hide focus->summary-tiles#show blur->summary-tiles#hide">
       <p class="heading">Debt Repayments</p>
       <p class="title is-5"><%= number_to_currency(@bill_totals[:debt_repayment]) %></p>
     </div>
   </div>
+  <% plan_payload = summary_bill_payload(@bill_details_by_type[:payment_plan] || []) %>
   <div class="column is-one-third-tablet is-full-mobile">
-    <div class="box has-text-centered">
+    <div class="box has-text-centered summary-tile"
+         data-controller="summary-tiles"
+         data-summary-tiles-bills-value="<%= plan_payload.to_json %>"
+         data-action="pointerenter->summary-tiles#show pointerleave->summary-tiles#hide focus->summary-tiles#show blur->summary-tiles#hide">
       <p class="heading">Payment Plans</p>
       <p class="title is-5"><%= number_to_currency(@bill_totals[:payment_plan]) %></p>
     </div>
