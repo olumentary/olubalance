@@ -99,6 +99,32 @@ bill_expense_descriptions = [
   "Fuel"
 ]
 
+default_categories = %w[
+  Groceries
+  Dining
+  Utilities
+  Rent
+  Mortgage
+  Transportation
+  Fuel
+  Healthcare
+  Insurance
+  Entertainment
+  Travel
+  Income
+  Savings
+  Investments
+  Subscriptions
+  Education
+  Gifts
+  Miscellaneous
+]
+
+# Create default categories
+default_categories.each do |category_name|
+  Category.find_or_create_by!(name: category_name, kind: :global, user: nil)
+end
+
 # Create 3 test accounts
 emails.each do |email|
   user = User.new(

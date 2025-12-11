@@ -27,6 +27,7 @@ gem "pg", "~> 1.5.4"
 gem "puma", "~> 7.1"
 gem "rails", "~> 8.1"
 gem "recaptcha"
+gem "ruby-openai", require: "openai"
 gem "redis", "~> 4.4.0", require: [ "redis", "redis/connection/hiredis" ]
 gem "sprockets-rails"
 gem "stimulus-rails"

@@ -18,6 +18,7 @@ class User < ApplicationRecord
   validate :default_account_belongs_to_user, if: :default_account_id?
 
   has_many :accounts, dependent: :destroy
+  has_many :categories, dependent: :destroy
   has_many :documents, as: :attachable, dependent: :destroy
   has_many :bills, dependent: :destroy
   has_many :bill_transaction_batches, dependent: :destroy

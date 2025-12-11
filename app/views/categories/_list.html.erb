@@ -1,0 +1,29 @@
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th class="has-text-centered">In Use</th>
+        <th class="has-text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.each do |category| %>
+        <tr>
+          <td><%= category.name %></td>
+          <td><span class="tag is-light"><%= category_kind_label(category) %></span></td>
+          <td class="has-text-centered"><%= category.try(:transactions_count) || 0 %></td>
+          <td class="has-text-right">
+            <%= button_to "Delete",
+                          category_path(category),
+                          method: :delete,
+                          data: { turbo_stream: true, turbo_confirm: "Remove this category? Transactions will become uncategorized." },
+                          class: "button is-small is-light" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+

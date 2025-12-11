@@ -1,0 +1,33 @@
+<% suggestion = local_assigns[:suggestion] %>
+<% selected_category_id = selected.presence || suggestion&.category&.id %>
+
+<%= turbo_frame_tag "category_select" do %>
+  <div class="field">
+    <label class="label has-text-grey">Category</label>
+    <div class="control">
+      <div class="select is-fullwidth is-primary">
+        <%= select_tag "transaction[category_id]",
+                       category_options(categories, selected_category_id),
+                       class: "is-fullwidth",
+                       data: { category_suggest_target: "select" } %>
+      </div>
+    </div>
+    <% if suggestion&.category.present? %>
+      <p class="help has-text-grey is-size-7">
+        Suggested: <span class="tag is-info is-light"><%= suggestion.category.name %></span>
+        <% if suggestion.confidence %>
+          (<%= "#{(suggestion.confidence * 100).round}% confidence" %>)
+        <% end %>
+      </p>
+    <% end %>
+    <% if local_assigns.fetch(:show_quick_add, true) %>
+      <p class="help has-text-grey is-size-7">
+        Can't find it?
+        <%= link_to "Add a category",
+                    "#",
+                    data: { action: "click->shared#toggleModal", id: "category-modal" } %>
+      </p>
+    <% end %>
+  </div>
+<% end %>
+
