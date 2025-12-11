@@ -8,7 +8,15 @@ class AiCategoryClient
   end
 
   def suggest(description:, categories:)
-    return if client.nil? || categories.blank?
+    if client.nil?
+      Rails.logger.info("AI category suggestion skipped: client not configured")
+      return
+    end
+
+    if categories.blank?
+      Rails.logger.info("AI category suggestion skipped: no categories available")
+      return
+    end
 
     response = client.chat(
       parameters: {
@@ -19,6 +27,7 @@ class AiCategoryClient
     )
 
     content = response.dig("choices", 0, "message", "content").to_s
+    Rails.logger.info("AI category suggestion response: #{content}")
     parsed = parse_response(content, categories)
     return unless parsed&.dig(:category)
 
@@ -27,8 +36,19 @@ class AiCategoryClient
       confidence: parsed[:confidence],
       source: :ai
     )
+  rescue JSON::ParserError => e
+    Rails.logger.warn("AI category suggestion parse error: #{e.message} content=#{content}")
+    nil
+  rescue Faraday::Error => e
+    status = e.response&.dig(:status)
+    log_http_error(e, status)
+    return rate_limited_suggestion if status == 429
+    nil
   rescue StandardError => e
-    Rails.logger.error("AI category suggestion failed: #{e.message}")
+    status = fetch_status_from_error(e)
+    log_http_error(e, status)
+    return rate_limited_suggestion if status == 429
+    Rails.logger.error("AI category suggestion failed: #{e.class} #{e.message}")
     nil
   end
 
@@ -83,6 +103,18 @@ class AiCategoryClient
     return unless ENV["OPENAI_API_KEY"].present?
 
     OpenAI::Client.new
+  end
+
+  def log_http_error(error, status)
+    Rails.logger.warn("AI category suggestion HTTP error status=#{status.inspect} class=#{error.class} message=#{error.message}")
+  end
+
+  def rate_limited_suggestion
+    CategorySuggester::Suggestion.new(
+      category: nil,
+      confidence: nil,
+      source: :ai_rate_limited
+    )
   end
 end
 

@@ -12,6 +12,13 @@
                        data: { category_suggest_target: "select" } %>
       </div>
     </div>
+    <p class="help is-danger is-size-7" data-category-suggest-target="status"></p>
+    <p class="help has-text-grey is-size-7 is-hidden" data-category-suggest-target="spinner">
+      <span class="icon is-small">
+        <i class="fas fa-spinner fa-spin"></i>
+      </span>
+      Categorizing...
+    </p>
     <% if suggestion&.category.present? %>
       <p class="help has-text-grey is-size-7">
         Suggested: <span class="tag is-info is-light"><%= suggestion.category.name %></span>

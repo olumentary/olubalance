@@ -311,17 +311,20 @@ class TransactionsController < ApplicationController
   end
 
   def suggest_category
-    suggestion = category_suggester.suggest(params[:description].to_s)
+    description = params[:description].to_s
+    suggestion = category_suggester.suggest(description)
 
-    if suggestion&.category
-      render json: {
-        category: suggestion.category.name,
-        category_id: suggestion.category.id,
-        confidence: suggestion.confidence
-      }
-    else
-      render json: { category: nil }, status: :not_found
-    end
+    Rails.logger.info(
+      "Category suggestion: description='#{description}', suggestion_source=#{suggestion&.source}, category_id=#{suggestion&.category&.id}, confidence=#{suggestion&.confidence}"
+    )
+
+    render json: {
+      category: suggestion&.category&.name,
+      category_id: suggestion&.category&.id,
+      confidence: suggestion&.confidence,
+      source: suggestion&.source,
+      error: suggestion&.source == :ai_rate_limited ? "ai_rate_limited" : nil
+    }, status: :ok
   end
 
   def update_date
