@@ -1,25 +1,4 @@
 class CreateCategories < ActiveRecord::Migration[7.1]
-  DEFAULT_CATEGORY_NAMES = [
-    "Groceries",
-    "Dining",
-    "Utilities",
-    "Rent",
-    "Mortgage",
-    "Transportation",
-    "Fuel",
-    "Healthcare",
-    "Insurance",
-    "Entertainment",
-    "Travel",
-    "Income",
-    "Savings",
-    "Investments",
-    "Subscriptions",
-    "Education",
-    "Gifts",
-    "Miscellaneous"
-  ].freeze
-
   def change
     create_table :categories do |t|
       t.string :name, null: false
@@ -33,21 +12,6 @@ class CreateCategories < ActiveRecord::Migration[7.1]
 
     change_table :transactions, bulk: true do |t|
       t.references :category, null: true, foreign_key: { on_delete: :nullify }
-    end
-
-    reversible do |dir|
-      dir.up do
-        values_sql = DEFAULT_CATEGORY_NAMES.map do |name|
-          "(#{connection.quote(name)}, 0, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-        end.join(",\n")
-
-        execute <<~SQL
-          INSERT INTO categories (name, kind, user_id, created_at, updated_at)
-          VALUES
-          #{values_sql}
-          ON CONFLICT DO NOTHING
-        SQL
-      end
     end
   end
 end
