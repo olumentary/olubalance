@@ -27,12 +27,15 @@
             </td>
             <td class="has-text-right">
               <div class="buttons are-small is-right">
-                <%= link_to "Edit", edit_matching_rule_path(rule), class: "button is-small is-info is-light" %>
+                <%= link_to "Edit",
+                            edit_matching_rule_path(rule),
+                            class: "button is-small is-light",
+                            data: { turbo_frame: "_top" } %>
                 <%= button_to "Delete",
                               matching_rule_path(rule),
                               method: :delete,
                               data: { turbo_stream: true, turbo_confirm: "Delete this matching rule?" },
-                              class: "button is-small is-danger is-light" %>
+                              class: "button is-small is-danger" %>
               </div>
             </td>
           </tr>

@@ -34,7 +34,11 @@ class MatchingRulesController < ApplicationController
     if @matching_rule.save
       respond_to do |format|
         format.html { redirect_to matching_rules_path, notice: "Matching rule created." }
-        format.turbo_stream { redirect_to matching_rules_path, notice: "Matching rule created." }
+        format.turbo_stream do
+          redirect_to matching_rules_path(format: :html),
+                      notice: "Matching rule created.",
+                      status: :see_other
+        end
       end
     else
       load_categories
@@ -52,7 +56,11 @@ class MatchingRulesController < ApplicationController
     if @matching_rule.update(matching_rule_params)
       respond_to do |format|
         format.html { redirect_to matching_rules_path, notice: "Matching rule updated." }
-        format.turbo_stream { redirect_to matching_rules_path, notice: "Matching rule updated." }
+        format.turbo_stream do
+          redirect_to matching_rules_path(format: :html),
+                      notice: "Matching rule updated.",
+                      status: :see_other
+        end
       end
     else
       load_categories
