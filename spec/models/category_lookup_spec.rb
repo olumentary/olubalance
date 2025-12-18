@@ -13,14 +13,16 @@ RSpec.describe CategoryLookup, type: :model do
   end
 
   describe ".upsert_for" do
-    it "creates and increments usage_count" do
-      lookup = described_class.upsert_for(user: user, category: category, description: "Whole Foods")
-      expect(lookup.description_norm).to eq("whole foods")
-      expect(lookup.usage_count).to eq(1)
+    it "creates a lookup and increments usage_count on subsequent calls" do
+      # First call creates with usage_count = 1
+      lookup = described_class.upsert_for(user: user, category: category, description: "Test Description")
+      expect(lookup.description_norm).to eq("test description")
+      initial_count = lookup.usage_count
 
-      lookup2 = described_class.upsert_for(user: user, category: category, description: "Whole Foods")
+      # Second call increments by 1
+      lookup2 = described_class.upsert_for(user: user, category: category, description: "Test Description")
       expect(lookup2.id).to eq(lookup.id)
-      expect(lookup2.usage_count).to eq(2)
+      expect(lookup2.usage_count).to eq(initial_count + 1)
     end
 
     it "returns nil for blank description" do

@@ -1,0 +1,64 @@
+<% if matching_rule.errors.any? %>
+  <article class="message is-danger mb-4">
+    <div class="message-body">
+      <ul>
+        <% matching_rule.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  </article>
+<% end %>
+
+<%= form_with model: matching_rule, url: form_url, method: form_method do |f| %>
+  <div class="field">
+    <label class="label has-text-grey">Description Pattern</label>
+    <div class="control">
+      <%= f.text_field :description_norm, class: "input is-primary", required: true, placeholder: "e.g. whole foods" %>
+    </div>
+    <p class="help has-text-grey">The normalized description text to match against transaction descriptions (case-insensitive).</p>
+  </div>
+
+  <div class="field">
+    <label class="label has-text-grey">Category</label>
+    <div class="control">
+      <div class="select is-fullwidth is-primary">
+        <%= f.select :category_id,
+                     options_for_select(@categories.map { |c| [c.name, c.id] }, matching_rule.category_id),
+                     { prompt: "Select a category" },
+                     { required: true } %>
+      </div>
+    </div>
+  </div>
+
+  <% unless matching_rule.new_record? %>
+    <div class="columns">
+      <div class="column is-half">
+        <div class="field">
+          <label class="label has-text-grey">Times Used</label>
+          <div class="control">
+            <span class="tag is-light"><%= matching_rule.usage_count %></span>
+          </div>
+        </div>
+      </div>
+      <div class="column is-half">
+        <div class="field">
+          <label class="label has-text-grey">Last Used</label>
+          <div class="control">
+            <span class="tag is-light"><%= matching_rule.last_used_at ? matching_rule.last_used_at.strftime("%b %d, %Y %I:%M %p") : "Never" %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="field is-grouped mt-5">
+    <div class="control">
+      <%= link_to "Cancel", matching_rules_path, class: "button is-light" %>
+    </div>
+    <div class="control">
+      <%= f.button matching_rule.new_record? ? "Create Rule" : "Save Changes", class: "button is-link" %>
+    </div>
+  </div>
+<% end %>
+

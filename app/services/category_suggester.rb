@@ -33,6 +33,9 @@ class CategorySuggester
     category = lookup.category
     return unless category
 
+    # Verify category is still visible to the user (not hidden)
+    return unless available_categories.exists?(id: category.id)
+
     confidence = [0.6 + Math.log(1 + lookup.usage_count) / 5.0, 0.95].min
     Suggestion.new(category: category, confidence: confidence, source: :lookup)
   end

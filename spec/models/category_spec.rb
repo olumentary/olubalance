@@ -38,5 +38,51 @@ RSpec.describe Category, type: :model do
     custom = build(:category, user: create(:user), name: "Travel")
     expect(custom).to be_valid
   end
+
+  describe "#global?" do
+    it "returns true for global categories" do
+      category = build(:category, :global)
+      expect(category.global?).to be true
+    end
+
+    it "returns false for custom categories" do
+      category = build(:category, user: create(:user))
+      expect(category.global?).to be false
+    end
+  end
+
+  describe ".for_user scope" do
+    let(:user) { create(:user) }
+    let!(:global_category) { create(:category, :global, name: "Global") }
+    let!(:user_category) { create(:category, user: user, name: "MyCategory") }
+    let!(:other_user_category) { create(:category, user: create(:user), name: "OtherUser") }
+
+    it "includes global categories" do
+      expect(Category.for_user(user)).to include(global_category)
+    end
+
+    it "includes user's custom categories" do
+      expect(Category.for_user(user)).to include(user_category)
+    end
+
+    it "excludes other users' custom categories" do
+      expect(Category.for_user(user)).not_to include(other_user_category)
+    end
+
+    context "with hidden categories" do
+      before do
+        create(:hidden_category, user: user, category: global_category)
+      end
+
+      it "excludes hidden global categories" do
+        expect(Category.for_user(user)).not_to include(global_category)
+      end
+
+      it "still includes the global category for other users" do
+        other_user = create(:user)
+        expect(Category.for_user(other_user)).to include(global_category)
+      end
+    end
+  end
 end
 

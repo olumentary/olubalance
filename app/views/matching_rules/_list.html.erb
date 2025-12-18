@@ -1,0 +1,49 @@
+<% if matching_rules.any? %>
+  <div class="table-container">
+    <table class="table is-fullwidth is-hoverable">
+      <thead>
+        <tr>
+          <th>Description Pattern</th>
+          <th>Category</th>
+          <th class="has-text-centered">Times Used</th>
+          <th class="has-text-centered">Last Used</th>
+          <th class="has-text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% matching_rules.each do |rule| %>
+          <tr id="<%= dom_id(rule) %>">
+            <td><code class="has-background-light"><%= rule.description_norm %></code></td>
+            <td>
+              <% if rule.category %>
+                <span class="tag is-info is-light"><%= rule.category.name %></span>
+              <% else %>
+                <span class="tag is-warning is-light">No category</span>
+              <% end %>
+            </td>
+            <td class="has-text-centered"><%= rule.usage_count %></td>
+            <td class="has-text-centered has-text-grey is-size-7">
+              <%= rule.last_used_at ? rule.last_used_at.strftime("%b %d, %Y") : "-" %>
+            </td>
+            <td class="has-text-right">
+              <div class="buttons are-small is-right">
+                <%= link_to "Edit", edit_matching_rule_path(rule), class: "button is-small is-info is-light" %>
+                <%= button_to "Delete",
+                              matching_rule_path(rule),
+                              method: :delete,
+                              data: { turbo_stream: true, turbo_confirm: "Delete this matching rule?" },
+                              class: "button is-small is-danger is-light" %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <div class="notification is-light has-text-centered">
+    <p class="has-text-grey">No matching rules found.</p>
+    <p class="has-text-grey is-size-7 mt-2">Matching rules are automatically created when you categorize transactions, or you can create them manually.</p>
+  </div>
+<% end %>
+

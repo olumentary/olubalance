@@ -19,6 +19,8 @@ class User < ApplicationRecord
 
   has_many :accounts, dependent: :destroy
   has_many :categories, dependent: :destroy
+  has_many :hidden_categories, dependent: :destroy
+  has_many :category_lookups, dependent: :destroy
   has_many :documents, as: :attachable, dependent: :destroy
   has_many :bills, dependent: :destroy
   has_many :bill_transaction_batches, dependent: :destroy

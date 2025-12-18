@@ -48,7 +48,8 @@ Rails.application.routes.draw do
   resources :quick_transactions, only: [ :new, :create ]
   resources :documents, only: %i[index show new create edit update]
   resources :bills, except: %i[show]
-  resources :categories, only: %i[index new create destroy]
+  resources :categories
+  resources :matching_rules
   namespace :transactions do
     resources :batches, only: %i[index show new create destroy]
   end

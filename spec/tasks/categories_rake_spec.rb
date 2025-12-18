@@ -29,7 +29,11 @@ RSpec.describe "categories rake tasks" do
 
   it "builds category lookups from existing categorized transactions" do
     category = create(:category)
-    transaction = create(:transaction, :non_pending, description: "Whole Foods", category: category, account: create(:account, user: category.user))
+    account = create(:account, user: category.user)
+    # Create transaction without category first, then set category via update_columns
+    # to bypass the after_commit callback (simulating pre-existing categorized transactions)
+    transaction = create(:transaction, :non_pending, description: "Whole Foods", category: nil, account: account)
+    transaction.update_columns(category_id: category.id)
 
     expect {
       lookup_task.invoke
@@ -37,7 +41,7 @@ RSpec.describe "categories rake tasks" do
 
     lookup = CategoryLookup.last
     expect(lookup.user).to eq(transaction.account.user)
-    expect(lookup.category).to eq(transaction.category)
+    expect(lookup.category).to eq(category)
     expect(lookup.description_norm).to eq("whole foods")
   end
 end

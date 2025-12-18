@@ -1,0 +1,55 @@
+<div class="columns is-vcentered mb-4">
+  <div class="column">
+    <h1 class="title is-4 has-text-link">Matching Rules</h1>
+    <p class="subtitle is-6 has-text-grey">Manage auto-categorization rules based on transaction descriptions.</p>
+  </div>
+  <div class="column has-text-right">
+    <%= link_to "New Rule", new_matching_rule_path, class: "button is-link" %>
+  </div>
+</div>
+
+<div class="box">
+  <h2 class="title is-6 has-text-grey-dark mb-3">Filter Rules</h2>
+  <%= form_with url: matching_rules_path, method: :get, data: { controller: "trxsearch", turbo_frame: "matching_rules_list" } do |f| %>
+    <div class="columns">
+      <div class="column is-5">
+        <div class="field">
+          <label class="label has-text-grey is-size-7">Description contains</label>
+          <div class="control">
+            <%= f.text_field :description,
+                             value: params[:description],
+                             class: "input is-primary is-small",
+                             placeholder: "Search descriptions...",
+                             data: { trxsearch_target: "description", action: "input->trxsearch#submit" } %>
+          </div>
+        </div>
+      </div>
+      <div class="column is-4">
+        <div class="field">
+          <label class="label has-text-grey is-size-7">Category</label>
+          <div class="control">
+            <div class="select is-fullwidth is-primary is-small">
+              <%= f.select :category_id,
+                           options_for_select([["All Categories", ""]] + @categories.map { |c| [c.name, c.id] }, params[:category_id]),
+                           {},
+                           { data: { action: "change->trxsearch#submit" } } %>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-3 is-flex is-align-items-flex-end">
+        <div class="buttons are-small">
+          <%= f.submit "Filter", class: "button is-link is-small" %>
+          <%= link_to "Clear", matching_rules_path, class: "button is-light is-small", data: { action: "click->trxsearch#clear" } %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<div class="box">
+  <turbo-frame id="matching_rules_list">
+    <%= render "list", matching_rules: @matching_rules %>
+  </turbo-frame>
+</div>
+

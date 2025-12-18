@@ -1,0 +1,58 @@
+<div class="columns is-vcentered mb-4">
+  <div class="column">
+    <h1 class="title is-4 has-text-link">Edit Category</h1>
+    <p class="subtitle is-6 has-text-grey">
+      <% if @category.global? %>
+        Renaming a default category will create your own copy and hide the original.
+      <% else %>
+        Update your custom category name.
+      <% end %>
+    </p>
+  </div>
+  <div class="column has-text-right">
+    <%= link_to "Back to Categories", categories_path, class: "button is-link is-light" %>
+  </div>
+</div>
+
+<div class="box">
+  <% if @category.errors.any? %>
+    <article class="message is-danger mb-4">
+      <div class="message-body">
+        <ul>
+          <% @category.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    </article>
+  <% end %>
+
+  <%= form_with model: @category, url: category_path(@category), method: :patch do |f| %>
+    <div class="field">
+      <label class="label has-text-grey">Name</label>
+      <div class="control">
+        <%= f.text_field :name, class: "input is-primary", required: true %>
+      </div>
+      <% if @category.global? %>
+        <p class="help has-text-grey">This is a default category. Renaming it will create a custom copy for you.</p>
+      <% end %>
+    </div>
+
+    <div class="field">
+      <label class="label has-text-grey">Type</label>
+      <div class="control">
+        <span class="tag is-light"><%= @category.global? ? "Default" : "Custom" %></span>
+      </div>
+    </div>
+
+    <div class="field is-grouped mt-5">
+      <div class="control">
+        <%= link_to "Cancel", categories_path, class: "button is-light" %>
+      </div>
+      <div class="control">
+        <%= f.button "Save Changes", class: "button is-link" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+

@@ -376,6 +376,38 @@ ALTER SEQUENCE public.documents_id_seq OWNED BY public.documents.id;
 
 
 --
+-- Name: hidden_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hidden_categories (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    category_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hidden_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hidden_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hidden_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hidden_categories_id_seq OWNED BY public.hidden_categories.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -620,6 +652,13 @@ ALTER TABLE ONLY public.documents ALTER COLUMN id SET DEFAULT nextval('public.do
 
 
 --
+-- Name: hidden_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories ALTER COLUMN id SET DEFAULT nextval('public.hidden_categories_id_seq'::regclass);
+
+
+--
 -- Name: stash_entries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -725,6 +764,14 @@ ALTER TABLE ONLY public.category_lookups
 
 ALTER TABLE ONLY public.documents
     ADD CONSTRAINT documents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hidden_categories hidden_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT hidden_categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -943,6 +990,27 @@ CREATE INDEX index_documents_on_tax_year ON public.documents USING btree (tax_ye
 
 
 --
+-- Name: index_hidden_categories_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hidden_categories_on_category_id ON public.hidden_categories USING btree (category_id);
+
+
+--
+-- Name: index_hidden_categories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hidden_categories_on_user_id ON public.hidden_categories USING btree (user_id);
+
+
+--
+-- Name: index_hidden_categories_on_user_id_and_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hidden_categories_on_user_id_and_category_id ON public.hidden_categories USING btree (user_id, category_id);
+
+
+--
 -- Name: index_stash_entries_on_stash_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1083,6 +1151,14 @@ ALTER TABLE ONLY public.stash_entries
 
 
 --
+-- Name: hidden_categories fk_rails_450714abe8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT fk_rails_450714abe8 FOREIGN KEY (category_id) REFERENCES public.categories(id);
+
+
+--
 -- Name: category_lookups fk_rails_5566223128; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1128,6 +1204,14 @@ ALTER TABLE ONLY public.stash_entries
 
 ALTER TABLE ONLY public.bills
     ADD CONSTRAINT fk_rails_79e8aa9e27 FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: hidden_categories fk_rails_8cc52c7c0b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT fk_rails_8cc52c7c0b FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1194,6 +1278,7 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251211193000'),
+('20251211140000'),
 ('20251211130000'),
 ('20251211120000'),
 ('20251209131000'),
