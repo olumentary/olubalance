@@ -69,6 +69,11 @@ table.ob-table {
     }
   }
 
+  tr:not(.has-background-light):hover td {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    cursor: pointer;
+  }
+
   td.has-text-centered,
   th.has-text-centered {
     .ob-cell-content {
