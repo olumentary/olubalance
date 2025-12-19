@@ -6,7 +6,8 @@ class TransfersController < ApplicationController
     transfer = PerformTransfer.new(
       params[:transfer_from_account],
       params[:transfer_to_account],
-      params[:transfer_amount]
+      params[:transfer_amount],
+      params[:transfer_date]
     )
 
     if transfer.do_transfer
@@ -22,7 +23,8 @@ class TransfersController < ApplicationController
     params.require(:transfer).permit(
       :transfer_from_account,
       :transfer_to_account,
-      :transfer_amount
+      :transfer_amount,
+      :transfer_date
     )
   end
 end
