@@ -4,11 +4,16 @@
     <p class="subtitle is-6 has-text-grey">Update the description pattern or category for this rule.</p>
   </div>
   <div class="column has-text-right">
-    <%= link_to "Back to Rules", matching_rules_path, class: "button is-link is-light" %>
+    <%= link_to "Back to Rules", matching_rules_path(description: params[:description], category_id: params[:category_id]), class: "button is-link is-light" %>
   </div>
 </div>
 
 <div class="box">
-  <%= render "form", matching_rule: @matching_rule, form_url: matching_rule_path(@matching_rule), form_method: :patch %>
+  <%= render "form",
+             matching_rule: @matching_rule,
+             form_url: matching_rule_path(@matching_rule, description: params[:description], category_id: params[:category_id]),
+             form_method: :patch,
+             description: params[:description],
+             category_id: params[:category_id] %>
 </div>
 

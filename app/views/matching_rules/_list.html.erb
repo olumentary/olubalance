@@ -28,7 +28,7 @@
             <td class="has-text-right">
               <div class="buttons are-small is-right">
                 <%= link_to "Edit",
-                            edit_matching_rule_path(rule),
+                            edit_matching_rule_path(rule, description: params[:description], category_id: params[:category_id]),
                             class: "button is-small is-light",
                             data: { turbo_frame: "_top" } %>
                 <%= button_to "Delete",

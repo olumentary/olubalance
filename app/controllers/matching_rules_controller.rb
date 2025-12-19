@@ -33,9 +33,12 @@ class MatchingRulesController < ApplicationController
 
     if @matching_rule.save
       respond_to do |format|
-        format.html { redirect_to matching_rules_path, notice: "Matching rule created." }
+        format.html do
+          redirect_to matching_rules_path(description: params[:description], category_id: params[:category_id]),
+                      notice: "Matching rule created."
+        end
         format.turbo_stream do
-          redirect_to matching_rules_path(format: :html),
+          redirect_to matching_rules_path(format: :html, description: params[:description], category_id: params[:category_id]),
                       notice: "Matching rule created.",
                       status: :see_other
         end
@@ -55,9 +58,12 @@ class MatchingRulesController < ApplicationController
   def update
     if @matching_rule.update(matching_rule_params)
       respond_to do |format|
-        format.html { redirect_to matching_rules_path, notice: "Matching rule updated." }
+        format.html do
+          redirect_to matching_rules_path(description: params[:description], category_id: params[:category_id]),
+                      notice: "Matching rule updated."
+        end
         format.turbo_stream do
-          redirect_to matching_rules_path(format: :html),
+          redirect_to matching_rules_path(format: :html, description: params[:description], category_id: params[:category_id]),
                       notice: "Matching rule updated.",
                       status: :see_other
         end
