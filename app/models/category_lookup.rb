@@ -9,6 +9,8 @@ class CategoryLookup < ApplicationRecord
 
   before_validation :normalize_description
 
+  after_save :update_matching_transactions, if: :saved_change_to_category_id?
+
   scope :for_user, ->(user) { where(user_id: user.id) }
 
   def self.normalize(text)
@@ -43,6 +45,16 @@ class CategoryLookup < ApplicationRecord
   end
 
   private
+
+  def update_matching_transactions
+    # Find all transactions for this user that normalize to the same description
+    # and update their category. We use a subquery for accounts to avoid 
+    # ambiguous column errors during the UPDATE statement.
+    Transaction.where(account_id: Account.where(user_id: user_id).select(:id))
+               .where("trim(regexp_replace(lower(transactions.description), '\\s+', ' ', 'g')) = ?", description_norm)
+               .where("transactions.category_id IS DISTINCT FROM ?", category_id)
+               .update_all(category_id: category_id, updated_at: Time.current)
+  end
 
   def normalize_description
     self.description_norm = self.class.normalize(description_norm.presence || description_norm_was || "")

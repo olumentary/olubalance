@@ -108,10 +108,11 @@ namespace :categories do
   desc "Seed default global categories"
   task seed_defaults: :environment do
     defaults = [
-      "Groceries", "Dining", "Utilities", "Rent", "Mortgage",
-      "Transportation", "Fuel", "Healthcare", "Insurance",
-      "Entertainment", "Travel", "Income", "Savings",
-      "Investments", "Subscriptions", "Education", "Gifts", "Miscellaneous"
+      "Groceries", "Dining", "Utilities", "Housing",
+      "Auto", "Transportation", "Fuel", "Health", "Insurance",
+      "Entertainment", "Travel", "Transfer", "Income", "Savings",
+      "Investments", "Subscriptions", "Education", "Gifts", "Miscellaneous",
+      "Family", "Taxes", "Credit Card Payment", "Investments"
     ]
 
     puts "Seeding #{defaults.size} default global categories..."
