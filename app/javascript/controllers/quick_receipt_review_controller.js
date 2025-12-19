@@ -12,11 +12,30 @@ export default class extends Controller {
 
     // Add event listener for Escape key
     document.addEventListener('keydown', this.handleKeydown.bind(this));
+
+    // Observe changes to the modal's classes to detect when it's opened
+    this.observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const currentClassList = this.element.classList;
+          if (currentClassList.contains('is-active')) {
+            this.clearFormFields();
+          }
+        }
+      });
+    });
+
+    this.observer.observe(this.element, { attributes: true });
   }
 
   disconnect() {
     // Remove event listener when controller disconnects
     document.removeEventListener('keydown', this.handleKeydown.bind(this));
+
+    // Disconnect the observer
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
   handleKeydown(event) {
@@ -51,6 +70,19 @@ export default class extends Controller {
     // Extract transaction ID from the modal ID
     const modalId = this.element.id;
     return modalId.replace('quick-receipt-review-modal-', '');
+  }
+
+  clearFormFields() {
+    // Clear description, amount, and memo fields
+    const descriptionField = this.formTarget.querySelector('input[name="transaction[description]"]');
+    const amountField = this.formTarget.querySelector('input[name="transaction[amount]"]');
+    const memoField = this.formTarget.querySelector('input[name="transaction[memo]"]');
+    const categoryField = this.formTarget.querySelector('select[name="transaction[category_id]"]');
+
+    if (descriptionField) descriptionField.value = '';
+    if (amountField) amountField.value = '';
+    if (memoField) memoField.value = '';
+    if (categoryField) categoryField.value = '';
   }
 
   saveTransaction() {

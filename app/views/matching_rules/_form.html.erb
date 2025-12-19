@@ -54,7 +54,7 @@
 
   <div class="field is-grouped mt-5">
     <div class="control">
-      <%= link_to "Cancel", matching_rules_path, class: "button is-light" %>
+      <%= link_to "Cancel", matching_rules_path(description: local_assigns[:description], category_id: local_assigns[:category_id]), class: "button is-light" %>
     </div>
     <div class="control">
       <%= f.button matching_rule.new_record? ? "Create Rule" : "Save Changes", class: "button is-link" %>

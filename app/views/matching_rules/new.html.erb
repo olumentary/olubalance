@@ -4,11 +4,16 @@
     <p class="subtitle is-6 has-text-grey">Create a rule to auto-categorize transactions with this description.</p>
   </div>
   <div class="column has-text-right">
-    <%= link_to "Back to Rules", matching_rules_path, class: "button is-link is-light" %>
+    <%= link_to "Back to Rules", matching_rules_path(description: params[:description], category_id: params[:category_id]), class: "button is-link is-light" %>
   </div>
 </div>
 
 <div class="box">
-  <%= render "form", matching_rule: @matching_rule, form_url: matching_rules_path, form_method: :post %>
+  <%= render "form",
+             matching_rule: @matching_rule,
+             form_url: matching_rules_path(description: params[:description], category_id: params[:category_id]),
+             form_method: :post,
+             description: params[:description],
+             category_id: params[:category_id] %>
 </div>
 

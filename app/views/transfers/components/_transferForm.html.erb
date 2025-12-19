@@ -14,6 +14,12 @@
   </div>
 
   <div class="field">
+    <div class="control">
+      <%= f.date_field :transfer_date, class: "input is-primary", value: Date.current %>
+    </div>
+  </div>
+
+  <div class="field">
     <div class="control has-icons-left">
       <%= f.text_field :transfer_amount, class: "input is-primary",
                                 placeholder: "Amount" %>

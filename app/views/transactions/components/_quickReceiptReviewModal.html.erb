@@ -40,7 +40,8 @@
                           html: { 
                             data: { 
                               "quick-receipt-review-target": "form",
-                              controller: "trxform"
+                              controller: "trxform category-suggest",
+                              category_suggest_url_value: suggest_category_account_transactions_path(transaction.account)
                             }
                           }) do |f| %>
                 
@@ -109,7 +110,8 @@
                                                 placeholder: "Description",
                                                 data: { 
                                                   typeahead_target: "input",
-                                                  action: "input->typeahead#search blur->typeahead#hideSuggestions"
+                                                  category_suggest_target: "input",
+                                                  action: "input->typeahead#search blur->typeahead#hideSuggestions blur->category-suggest#suggest"
                                                 } %>
                     <span class="icon is-small is-left has-text-primary">
                       <i class="fas fa-file-alt"></i>
@@ -119,6 +121,8 @@
                     </div>
                   </div>
                 </div>
+
+                <%= render "categories/select", categories: categories, selected: transaction.category_id, show_quick_add: false %>
 
                 <!-- Amount -->
                 <div class="field">

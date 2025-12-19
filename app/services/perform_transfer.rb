@@ -4,10 +4,11 @@
 # debit transaction in the originating account,
 # and a credit transaction in the target acccount
 class PerformTransfer
-  def initialize(source_account_id, target_account_id, amount)
+  def initialize(source_account_id, target_account_id, amount, date = Time.current)
     @source_account = Account.find(source_account_id).decorate
     @target_account = Account.find(target_account_id).decorate
     @amount = amount
+    @date = date
   end
 
   def do_transfer
@@ -24,7 +25,7 @@ class PerformTransfer
   def create_source_transaction!
     transaction = Transaction.new
     transaction.trx_type = "debit"
-    transaction.trx_date = Time.current
+    transaction.trx_date = @date
     transaction.account_id = @source_account.id
     transaction.description = "Transfer to " + @target_account.name
     transaction.amount = @amount.to_d.abs
@@ -37,7 +38,7 @@ class PerformTransfer
   def create_target_transaction!
     transaction = Transaction.new
     transaction.trx_type = "credit"
-    transaction.trx_date = Time.current
+    transaction.trx_date = @date
     transaction.account_id = @target_account.id
     transaction.description = "Transfer from " + @source_account.name
     transaction.amount = @amount.to_d.abs

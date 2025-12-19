@@ -4,7 +4,7 @@
     <p class="subtitle is-6 has-text-grey">Manage auto-categorization rules based on transaction descriptions.</p>
   </div>
   <div class="column has-text-right">
-    <%= link_to "New Rule", new_matching_rule_path, class: "button is-link" %>
+    <%= link_to "New Rule", new_matching_rule_path(description: params[:description], category_id: params[:category_id]), class: "button is-link" %>
   </div>
 </div>
 

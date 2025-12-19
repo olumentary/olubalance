@@ -9,7 +9,7 @@ class TransactionsController < ApplicationController
   before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [ :new, :create, :edit, :update, :index ]
-  before_action :load_categories, only: %i[new create edit update]
+  before_action :load_categories, only: %i[new create edit update index]
 
   # Index action to render all transactions
   def index
