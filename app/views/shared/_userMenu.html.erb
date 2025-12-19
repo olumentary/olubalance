@@ -59,6 +59,36 @@
       Bill Management
     <% end %>
 
+    <div class="dropdown is-hoverable ob-category-management-dropdown" data-controller="dropdown">
+      <div class="dropdown-trigger">
+        <a class="navbar-item" aria-haspopup="true" aria-controls="category-management-menu" data-action="click->dropdown#toggle" data-dropdown-target="button" aria-expanded="false">
+          <span class="icon has-text-link is-medium ob-icon-rpad">
+            <i class="fas fa-tags"></i>
+          </span>
+          Category Management
+          <span class="icon is-small">
+            <i class="fas fa-angle-down" aria-hidden="true"></i>
+          </span>
+        </a>
+      </div>
+      <div class="dropdown-menu" id="category-management-menu" role="menu" data-dropdown-target="menu">
+        <div class="dropdown-content">
+          <%= link_to categories_path, class: "dropdown-item" do %>
+            <span class="icon has-text-link is-small">
+              <i class="fas fa-list"></i>
+            </span>
+            <span>Manage Categories</span>
+          <% end %>
+          <%= link_to matching_rules_path, class: "dropdown-item" do %>
+            <span class="icon has-text-link is-small">
+              <i class="fas fa-magic"></i>
+            </span>
+            <span>Manage Matching Rules</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
     <%= link_to destroy_user_session_path, class: "navbar-item" do%>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-sign-out-alt"></i>

@@ -1,0 +1,26 @@
+<div class="columns is-vcentered mb-4">
+  <div class="column">
+    <h1 class="title is-4 has-text-link">Categories</h1>
+    <p class="subtitle is-6 has-text-grey">Manage standard and custom categories.</p>
+  </div>
+  <div class="column has-text-right">
+    <%= link_to "Back to Accounts", accounts_path, class: "button is-link is-light" %>
+  </div>
+</div>
+
+<div class="box">
+  <h2 class="title is-5 has-text-grey-dark">Create a category</h2>
+  <p class="subtitle is-7 has-text-grey">Custom categories are tied to your user.</p>
+  <%= render "form", category: @category %>
+</div>
+
+<div class="box">
+  <h2 class="title is-5 has-text-grey-dark">Existing categories</h2>
+  <p class="subtitle is-7 has-text-grey">Deleting a category will set existing transactions to uncategorized.</p>
+  <turbo-frame id="categories_list">
+    <%= render "list", categories: @categories_with_counts %>
+  </turbo-frame>
+</div>
+
+<%= render "categories/modal" %>
+

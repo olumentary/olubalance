@@ -79,6 +79,16 @@
       <% end %>
     </td>
 
+    <td class="<%= transaction.reviewed_weight %>">
+      <div class="ob-cell-content">
+        <% if transaction.category.present? %>
+          <span class="tag is-info is-light"><%= transaction.category.name %></span>
+        <% else %>
+          <span class="has-text-grey is-size-7">Uncategorized</span>
+        <% end %>
+      </div>
+    </td>
+
     <td class="has-text-right <%= transaction.reviewed_weight %>"
         <% if transaction.pending? %>
         data-controller="inline-edit"

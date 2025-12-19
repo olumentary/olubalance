@@ -107,6 +107,31 @@ RSpec.describe Transaction, type: :model do
   it { should belong_to(:account) }
   # it { is_expected.to have_one(:transaction_balance) }
 
+  describe "category ownership validation" do
+    let(:user) { FactoryBot.create(:user) }
+    let(:other_user) { FactoryBot.create(:user) }
+    let(:account) { FactoryBot.create(:account, user: user) }
+    let(:category) { FactoryBot.create(:category, user: user) }
+    let(:global_category) { FactoryBot.create(:category, :global) }
+
+    it "allows a category that belongs to the account's user" do
+      transaction = FactoryBot.build(:transaction, :non_pending, account: account, category: category)
+      expect(transaction).to be_valid
+    end
+
+    it "rejects a category belonging to a different user" do
+      other_category = FactoryBot.create(:category, user: other_user)
+      transaction = FactoryBot.build(:transaction, :non_pending, account: account, category: other_category)
+      expect(transaction).not_to be_valid
+      expect(transaction.errors[:category_id]).to include("must belong to the same user")
+    end
+
+    it "allows a global category" do
+      transaction = FactoryBot.build(:transaction, :non_pending, account: account, category: global_category)
+      expect(transaction).to be_valid
+    end
+  end
+
   describe 'amount validation and balance updates' do
     let(:user) { FactoryBot.create(:user) }
     let(:account) { FactoryBot.create(:account, user: user, starting_balance: 1000) }

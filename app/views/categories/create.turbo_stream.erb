@@ -1,0 +1,12 @@
+<%= turbo_stream.replace "category_select" do %>
+  <%= render "categories/select", categories: @categories, selected: @selected_category_id %>
+<% end %>
+
+<%= turbo_stream.replace "categories_list" do %>
+  <%= render "categories/list", categories: @categories_with_counts %>
+<% end %>
+
+<%= turbo_stream.replace "category-modal" do %>
+  <%= render "categories/modal" %>
+<% end %>
+

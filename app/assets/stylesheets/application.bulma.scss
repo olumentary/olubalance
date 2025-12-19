@@ -92,6 +92,41 @@ a.navbar-link {
   width: 18rem;
 }
 
+// User menu nested dropdown: flyout to the right on desktop
+@media screen and (min-width: 769px) {
+  .ob-category-management-dropdown {
+    display: block;
+    width: 100%;
+
+    .dropdown-trigger {
+      width: 100%;
+    }
+
+    .dropdown-trigger > .navbar-item {
+      width: 100%;
+    }
+
+    .dropdown-menu {
+      top: 0;
+      left: 100%;
+      right: auto;
+      margin-left: 0.1rem;
+      z-index: 60;
+      width: 100%; // match parent dropdown width (i.e., `.ob-main-menu`)
+      min-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .dropdown-content {
+      width: 100%;
+    }
+
+    .dropdown-item {
+      white-space: normal; // allow wrapping so content doesn't force a wider menu
+    }
+  }
+}
+
 .has-rounded-corners {
   border-radius: 8px !important;
   overflow: hidden;

@@ -1,0 +1,16 @@
+<%= turbo_frame_tag "category_form" do %>
+  <%= form_with model: category, url: categories_path, data: { turbo_stream: true } do |f| %>
+    <div class="field has-addons">
+      <div class="control is-expanded">
+        <%= f.text_field :name,
+                         class: "input is-primary",
+                         placeholder: "e.g. Groceries",
+                         required: true %>
+      </div>
+      <div class="control">
+        <%= f.button "Add", class: "button is-link" %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+

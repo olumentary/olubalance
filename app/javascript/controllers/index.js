@@ -66,3 +66,6 @@ application.register('bill-form', BillFormController);
 
 import SummaryTilesController from './summary_tiles_controller';
 application.register('summary-tiles', SummaryTilesController);
+
+import CategorySuggestController from './category_suggest_controller';
+application.register('category-suggest', CategorySuggestController);

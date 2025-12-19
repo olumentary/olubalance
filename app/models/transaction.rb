@@ -3,6 +3,7 @@
 # A transaction record which belongs to one account. Can have multiple attached files
 class Transaction < ApplicationRecord
   belongs_to :account
+  belongs_to :category, optional: true
   has_one :transaction_balance
   belongs_to :bill_transaction_batch, optional: true
 
@@ -30,6 +31,7 @@ class Transaction < ApplicationRecord
   validate :validate_amount_is_numeric
   validate :validate_account_ownership
   validate :validate_counterpart_transaction_ownership
+  validate :validate_category_ownership
 
   # before_post_process :rename_file
 
@@ -44,6 +46,7 @@ class Transaction < ApplicationRecord
   after_update :update_account_balance_transfer
   after_update :update_counterpart_transaction
   after_destroy :update_account_balance_destroy
+  after_commit :update_category_lookup_cache, on: %i[create update], if: -> { category_id.present? && description.present? }
 
   scope :with_balance, -> { includes(:transaction_balance).references(:transaction_balance) }
   scope :desc, -> { order("pending DESC, trx_date DESC, id DESC") }
@@ -390,5 +393,25 @@ class Transaction < ApplicationRecord
         errors.add(:counterpart_transaction_id, "must belong to the same user")
       end
     end
+  end
+
+  def validate_category_ownership
+    return if category.blank?
+
+    if category.user_id.present? && category.user_id != account.user_id
+      errors.add(:category_id, "must belong to the same user")
+    end
+  end
+
+  def update_category_lookup_cache
+    return unless account&.user_id
+
+    CategoryLookup.upsert_for(
+      user: account.user,
+      category: category,
+      description: description
+    )
+  rescue StandardError => e
+    Rails.logger.error "Category lookup update failed for transaction #{id}: #{e.message}"
   end
 end
