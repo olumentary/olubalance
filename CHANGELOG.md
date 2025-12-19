@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.13.1] - 2025-12-19
+
+### Changed
+
+- Transaction category matching rules page: When filtering and editing matching rules, the filter now stays upon update of the matching rule
+- Transaction list: Transaction lines now have a hover state so you can more easily see which transaction will be impacted by using the actions buttons
+- Account to account transfers now support specifying a date of transfer
+
+### Fixed
+
+- Quick Receipt review modal now clears fields when reviewing multiple transactions in succession
+
 ## [v1.13.0] - 2025-12-18
 
 ### New
@@ -473,7 +485,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.0...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.1...develop
+[v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.13.0...v1.13.1
 [v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.12.1...v1.13.0
 [v1.12.1]: https://github.com/odinsride/olubalance/compare/v1.12.0...v1.12.1
 [v1.12.0]: https://github.com/odinsride/olubalance/compare/v1.11.2...v1.12.0
