@@ -1,4 +1,4 @@
-<%= form_for([@transaction.account, @transaction]) do |f| %>
+<%= form_for([@transaction.account, @transaction], html: { data: { controller: "category-suggest", category_suggest_url_value: suggest_category_account_transactions_path(@transaction.account) } }) do |f| %>
   <% if @transaction.errors.any? %>
     <article id="error_explanation" class="message is-danger">
       <div class="message-header">
@@ -88,7 +88,8 @@
                                         placeholder: "Description",
                                         data: { 
                                           typeahead_target: "input",
-                                          action: "input->typeahead#search blur->typeahead#hideSuggestions"
+                                          category_suggest_target: "input",
+                                          action: "input->typeahead#search blur->typeahead#hideSuggestions blur->category-suggest#suggest"
                                         } %>
           <span class="icon is-small is-left has-text-primary">
             <i class="fas fa-file-alt"></i>
@@ -98,6 +99,8 @@
           </div>
         </div>
       </div>
+
+      <%= render "categories/select", categories: @categories, selected: @transaction.category_id, suggestion: @category_suggestion %>
 
       <!-- Amount -->
       <div class="field">

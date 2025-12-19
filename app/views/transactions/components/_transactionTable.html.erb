@@ -10,6 +10,11 @@
         Description
       </div>
     </th>
+    <th class="is-hidden-mobile">
+      <div class="ob-cell-content">
+        Category
+      </div>
+    </th>
     <th class="has-text-right is-hidden-mobile">
       <div class="ob-cell-content">
         Amount
@@ -35,7 +40,7 @@
 
     <% if @quick_receipts.any? %>
       <tr class="has-background-light is-hidden-mobile">
-        <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+        <td colspan="6" class="has-text-weight-bold has-text-grey py-3">
           Quick Receipt Uploads
         </td>
       </tr>
@@ -45,7 +50,7 @@
 
     <% if @pending_transactions.any? %>
       <tr class="has-background-light is-hidden-mobile">
-        <td colspan="5" class="has-text-weight-bold has-text-grey py-3">
+        <td colspan="6" class="has-text-weight-bold has-text-grey py-3">
           Pending Transactions
         </td>
       </tr>
@@ -55,7 +60,7 @@
     <% @transactions_by_date.each do |date, sorted_transactions| %>
       <% end_of_day_balance = sorted_transactions.first.running_balance %>
       <tr class="has-background-light is-hidden-mobile">
-        <td colspan="3" class="has-text-weight-bold has-text-grey py-3">
+        <td colspan="4" class="has-text-weight-bold has-text-grey py-3">
           <%= date.strftime("%A, %B %d, %Y") %>
         </td>
         <td class="has-text-right has-text-weight-bold has-text-grey py-3">

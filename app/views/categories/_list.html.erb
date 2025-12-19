@@ -1,0 +1,36 @@
+<div class="table-container">
+  <table class="table is-fullwidth is-hoverable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th class="has-text-centered">In Use</th>
+        <th class="has-text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% categories.each do |category| %>
+        <tr>
+          <td><%= category.name %></td>
+          <td><span class="tag is-light"><%= category_kind_label(category) %></span></td>
+          <td class="has-text-centered"><%= category.try(:transactions_count) || 0 %></td>
+          <td class="has-text-right">
+            <div class="buttons are-small is-right">
+              <%= link_to "Edit",
+                          edit_category_path(category),
+                          class: "button is-small is-light",
+                          data: { turbo_frame: "_top" } %>
+              <% delete_confirm = category.global? ? "Hide this default category? Your transactions will become uncategorized." : "Delete this category? Transactions will become uncategorized." %>
+              <%= button_to (category.global? ? "Hide" : "Delete"),
+                            category_path(category),
+                            method: :delete,
+                            data: { turbo_stream: true, turbo_confirm: delete_confirm },
+                            class: "button is-small is-danger" %>
+            </div>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+

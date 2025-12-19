@@ -9,6 +9,7 @@ class TransactionsController < ApplicationController
   before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [ :new, :create, :edit, :update, :index ]
+  before_action :load_categories, only: %i[new create edit update]
 
   # Index action to render all transactions
   def index
@@ -18,7 +19,7 @@ class TransactionsController < ApplicationController
     # Build filtered transaction scope (before pagination)
     filtered_transactions = @account.transactions
                                     .with_attached_attachments
-                                    .includes(:transaction_balance)
+                                    .includes(:transaction_balance, :category)
                                     .then { search_by_description _1 }
                                     .then { apply_pending_order _1 }
                                     .then { apply_order _1 }
@@ -57,11 +58,13 @@ class TransactionsController < ApplicationController
   # Create action saves the trasaction into database
   def create
     @transaction = @account.transactions.build(transaction_params).decorate
+    apply_category_suggestion(@transaction)
 
     if @transaction.save
       redirect_to account_transactions_path, notice: "Transaction was successfully created."
     else
       respond_to do |format|
+        @category_suggestion ||= category_suggester.suggest(@transaction.description)
         format.html { render :new, status: :unprocessable_content }
         format.turbo_stream { render :new, status: :unprocessable_content }
       end
@@ -92,7 +95,10 @@ class TransactionsController < ApplicationController
     account_changed = params[:transaction]&.key?(:account_id) && 
                      params[:transaction][:account_id].to_i != @transaction.account_id
 
-    if @transaction.update(transaction_params_without_attachments)
+    @transaction.assign_attributes(transaction_params_without_attachments)
+    apply_category_suggestion(@transaction)
+
+    if @transaction.save
       # Attach new files if any were provided
       if new_attachments.present?
         files = Array(new_attachments)
@@ -139,6 +145,7 @@ class TransactionsController < ApplicationController
       end
     else
       respond_to do |format|
+        @category_suggestion ||= category_suggester.suggest(@transaction.description)
         format.html { render action: "edit", status: :unprocessable_content }
         format.turbo_stream { render action: "edit", status: :unprocessable_content }
         format.json {
@@ -185,7 +192,7 @@ class TransactionsController < ApplicationController
       # Build filtered transaction scope (before pagination)
       filtered_transactions = @account.transactions
                                       .with_attached_attachments
-                                      .includes(:transaction_balance)
+                                      .includes(:transaction_balance, :category)
                                       .then { search_by_description _1 }
                                       .then { apply_pending_order _1 }
                                       .then { apply_order _1 }
@@ -246,7 +253,7 @@ class TransactionsController < ApplicationController
       # Build filtered transaction scope (before pagination)
       filtered_transactions = @account.transactions
                                       .with_attached_attachments
-                                      .includes(:transaction_balance)
+                                      .includes(:transaction_balance, :category)
                                       .then { search_by_description _1 }
                                       .then { apply_pending_order _1 }
                                       .then { apply_order _1 }
@@ -301,6 +308,23 @@ class TransactionsController < ApplicationController
                          .first(10)
 
     render json: descriptions
+  end
+
+  def suggest_category
+    description = params[:description].to_s
+    suggestion = category_suggester.suggest(description)
+
+    Rails.logger.info(
+      "Category suggestion: description='#{description}', suggestion_source=#{suggestion&.source}, category_id=#{suggestion&.category&.id}, confidence=#{suggestion&.confidence}"
+    )
+
+    render json: {
+      category: suggestion&.category&.name,
+      category_id: suggestion&.category&.id,
+      confidence: suggestion&.confidence,
+      source: suggestion&.source,
+      error: suggestion&.source == :ai_rate_limited ? "ai_rate_limited" : nil
+    }, status: :ok
   end
 
   def update_date
@@ -411,10 +435,13 @@ class TransactionsController < ApplicationController
           trx_type: params[:transaction][:trx_type],
           trx_date: params[:transaction][:trx_date],
           memo: params[:transaction][:memo],
-          account_id: params[:transaction][:account_id]
+          account_id: params[:transaction][:account_id],
+          category_id: params[:transaction][:category_id]
         }
       elsif params[:transaction]&.key?(:description)
         { description: params[:transaction][:description] }
+      elsif params[:transaction]&.key?(:category_id)
+        { category_id: params[:transaction][:category_id] }
       elsif params[:transaction]&.key?(:amount) && params[:transaction]&.key?(:trx_type)
         # Handle both amount and trx_type together for type toggle
         { amount: params[:transaction][:amount], trx_type: params[:transaction][:trx_type] }
@@ -429,7 +456,7 @@ class TransactionsController < ApplicationController
       end
     else
       params.require(:transaction) \
-            .permit(:trx_date, :description, :amount, :trx_type, :memo, { attachments: [] }, :page, :locked, :transfer, :account_id, :pending)
+            .permit(:trx_date, :description, :amount, :trx_type, :memo, { attachments: [] }, :page, :locked, :transfer, :account_id, :pending, :category_id)
     end
   end
 
@@ -474,6 +501,27 @@ class TransactionsController < ApplicationController
 
   def find_transaction
     @transaction = @account.transactions.find(params[:id]).decorate
+  end
+
+  def load_categories
+    @categories = Category.for_user(current_user).ordered
+  end
+
+  def category_suggester
+    @category_suggester ||= CategorySuggester.new(user: current_user)
+  end
+
+  def apply_category_suggestion(transaction)
+    return if transaction.category_id.present? || transaction.description.blank?
+
+    suggestion = category_suggester.suggest(transaction.description)
+    return if suggestion.nil?
+
+    if suggestion.confidence >= 0.75
+      transaction.category = suggestion.category
+    else
+      @category_suggestion = suggestion
+    end
   end
 
   def group_transactions_for_display

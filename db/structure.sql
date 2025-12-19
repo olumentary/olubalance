@@ -11,6 +11,20 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
+
+--
 -- Name: account_types; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -258,6 +272,74 @@ ALTER SEQUENCE public.bills_id_seq OWNED BY public.bills.id;
 
 
 --
+-- Name: categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.categories (
+    id bigint NOT NULL,
+    name character varying NOT NULL,
+    kind integer DEFAULT 0 NOT NULL,
+    user_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
+
+
+--
+-- Name: category_lookups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.category_lookups (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    category_id bigint NOT NULL,
+    description_norm text NOT NULL,
+    usage_count integer DEFAULT 1 NOT NULL,
+    last_used_at timestamp(6) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: category_lookups_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.category_lookups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: category_lookups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.category_lookups_id_seq OWNED BY public.category_lookups.id;
+
+
+--
 -- Name: documents; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -291,6 +373,38 @@ CREATE SEQUENCE public.documents_id_seq
 --
 
 ALTER SEQUENCE public.documents_id_seq OWNED BY public.documents.id;
+
+
+--
+-- Name: hidden_categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.hidden_categories (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    category_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: hidden_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.hidden_categories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: hidden_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.hidden_categories_id_seq OWNED BY public.hidden_categories.id;
 
 
 --
@@ -392,7 +506,8 @@ CREATE TABLE public.transactions (
     quick_receipt boolean,
     counterpart_transaction_id bigint,
     batch_reference character varying,
-    bill_transaction_batch_id bigint
+    bill_transaction_batch_id bigint,
+    category_id bigint
 );
 
 
@@ -516,10 +631,31 @@ ALTER TABLE ONLY public.bills ALTER COLUMN id SET DEFAULT nextval('public.bills_
 
 
 --
+-- Name: categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- Name: category_lookups id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.category_lookups ALTER COLUMN id SET DEFAULT nextval('public.category_lookups_id_seq'::regclass);
+
+
+--
 -- Name: documents id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.documents ALTER COLUMN id SET DEFAULT nextval('public.documents_id_seq'::regclass);
+
+
+--
+-- Name: hidden_categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories ALTER COLUMN id SET DEFAULT nextval('public.hidden_categories_id_seq'::regclass);
 
 
 --
@@ -607,11 +743,35 @@ ALTER TABLE ONLY public.bills
 
 
 --
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: category_lookups category_lookups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.category_lookups
+    ADD CONSTRAINT category_lookups_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: documents documents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.documents
     ADD CONSTRAINT documents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hidden_categories hidden_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT hidden_categories_pkey PRIMARY KEY (id);
 
 
 --
@@ -760,6 +920,48 @@ CREATE INDEX index_bills_on_user_id_and_frequency ON public.bills USING btree (u
 
 
 --
+-- Name: index_categories_on_user_and_lower_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_categories_on_user_and_lower_name ON public.categories USING btree (lower((name)::text), COALESCE(user_id, (0)::bigint));
+
+
+--
+-- Name: index_categories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_categories_on_user_id ON public.categories USING btree (user_id);
+
+
+--
+-- Name: index_category_lookups_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_category_lookups_on_category_id ON public.category_lookups USING btree (category_id);
+
+
+--
+-- Name: index_category_lookups_on_description_norm_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_category_lookups_on_description_norm_trgm ON public.category_lookups USING gin (description_norm public.gin_trgm_ops);
+
+
+--
+-- Name: index_category_lookups_on_user_and_description_norm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_category_lookups_on_user_and_description_norm ON public.category_lookups USING btree (user_id, description_norm);
+
+
+--
+-- Name: index_category_lookups_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_category_lookups_on_user_id ON public.category_lookups USING btree (user_id);
+
+
+--
 -- Name: index_documents_on_attachable; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -785,6 +987,27 @@ CREATE INDEX index_documents_on_document_date ON public.documents USING btree (d
 --
 
 CREATE INDEX index_documents_on_tax_year ON public.documents USING btree (tax_year);
+
+
+--
+-- Name: index_hidden_categories_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hidden_categories_on_category_id ON public.hidden_categories USING btree (category_id);
+
+
+--
+-- Name: index_hidden_categories_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_hidden_categories_on_user_id ON public.hidden_categories USING btree (user_id);
+
+
+--
+-- Name: index_hidden_categories_on_user_id_and_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_hidden_categories_on_user_id_and_category_id ON public.hidden_categories USING btree (user_id, category_id);
 
 
 --
@@ -827,6 +1050,13 @@ CREATE INDEX index_transactions_on_batch_reference ON public.transactions USING 
 --
 
 CREATE INDEX index_transactions_on_bill_transaction_batch_id ON public.transactions USING btree (bill_transaction_batch_id);
+
+
+--
+-- Name: index_transactions_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_transactions_on_category_id ON public.transactions USING btree (category_id);
 
 
 --
@@ -897,6 +1127,14 @@ ALTER TABLE ONLY public.transactions
 
 
 --
+-- Name: transactions fk_rails_0ea2ad3927; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_rails_0ea2ad3927 FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE SET NULL;
+
+
+--
 -- Name: bill_transaction_batches fk_rails_16c90372dc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -913,11 +1151,35 @@ ALTER TABLE ONLY public.stash_entries
 
 
 --
+-- Name: hidden_categories fk_rails_450714abe8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT fk_rails_450714abe8 FOREIGN KEY (category_id) REFERENCES public.categories(id);
+
+
+--
+-- Name: category_lookups fk_rails_5566223128; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.category_lookups
+    ADD CONSTRAINT fk_rails_5566223128 FOREIGN KEY (category_id) REFERENCES public.categories(id);
+
+
+--
 -- Name: stashes fk_rails_5e3266c16e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.stashes
     ADD CONSTRAINT fk_rails_5e3266c16e FOREIGN KEY (account_id) REFERENCES public.accounts(id);
+
+
+--
+-- Name: category_lookups fk_rails_608d7393f1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.category_lookups
+    ADD CONSTRAINT fk_rails_608d7393f1 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -945,6 +1207,14 @@ ALTER TABLE ONLY public.bills
 
 
 --
+-- Name: hidden_categories fk_rails_8cc52c7c0b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.hidden_categories
+    ADD CONSTRAINT fk_rails_8cc52c7c0b FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -958,6 +1228,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.accounts
     ADD CONSTRAINT fk_rails_b1e30bebc8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: categories fk_rails_b8e2f7adfc; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT fk_rails_b8e2f7adfc FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1000,6 +1278,9 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20251211193000'),
+('20251211140000'),
+('20251211130000'),
+('20251211120000'),
 ('20251209131000'),
 ('20251209120000'),
 ('20251208120000'),

@@ -17,6 +17,9 @@
               </span>
             <% end %>
             <%= bill_generated_icon(transaction) %>
+            <% if transaction.category.present? %>
+              <span class="tag is-info is-light is-rounded is-size-7 ml-2"><%= transaction.category.name %></span>
+            <% end %>
           </div>
         </div>
         <div class="level-right">

@@ -1,0 +1,13 @@
+<div id="category-modal" class="modal">
+  <div class="modal-background" data-action="click->shared#toggleModal" data-id="category-modal"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Add Category</p>
+      <button class="delete" aria-label="close" data-action="click->shared#toggleModal" data-id="category-modal"></button>
+    </header>
+    <section class="modal-card-body">
+      <turbo-frame id="category_modal" src="<%= new_category_path %>"></turbo-frame>
+    </section>
+  </div>
+</div>
+

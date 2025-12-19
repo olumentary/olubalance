@@ -1,0 +1,14 @@
+<div class="columns is-vcentered mb-4">
+  <div class="column">
+    <h1 class="title is-4 has-text-link">New Matching Rule</h1>
+    <p class="subtitle is-6 has-text-grey">Create a rule to auto-categorize transactions with this description.</p>
+  </div>
+  <div class="column has-text-right">
+    <%= link_to "Back to Rules", matching_rules_path, class: "button is-link is-light" %>
+  </div>
+</div>
+
+<div class="box">
+  <%= render "form", matching_rule: @matching_rule, form_url: matching_rules_path, form_method: :post %>
+</div>
+
