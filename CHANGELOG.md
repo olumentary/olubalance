@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.13.0] - 2025-12-18
+
+### New
+
+- Transaction Categories - transactions support categories, and will be auto categorized based on the description using AI and cached to lookup rules for future categorization suggestions.
+- Categories and Matching Rules can be managed via separate screens
+
 ## [v1.12.1] - 2025-12-10
 
 ### New
@@ -466,7 +473,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.12.1...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.0...develop
+[v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.12.1...v1.13.0
 [v1.12.1]: https://github.com/odinsride/olubalance/compare/v1.12.0...v1.12.1
 [v1.12.0]: https://github.com/odinsride/olubalance/compare/v1.11.2...v1.12.0
 [v1.11.2]: https://github.com/odinsride/olubalance/compare/v1.11.0...v1.11.2
