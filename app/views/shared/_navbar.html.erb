@@ -1,4 +1,4 @@
-<nav class="navbar has-shadow is-spaced" role="navigation" aria-label="main-navigation" data-controller="nav">
+<nav class="navbar is-spaced" role="navigation" aria-label="main-navigation" data-controller="nav">
   <div class="navbar-brand">
     <%= link_to root_path, class: "navbar-item" do %>
       <%= image_tag 'logo.png' %>
@@ -14,21 +14,20 @@
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
     </a>
   </div>
 
   <div class="navbar-menu" id="navMenu" data-nav-target="menu">
 
-    <%= render "shared/userMenu" if user_signed_in? %>
-
-    <%= render "shared/environment" if !Rails.env.production? %>
+    <div class="navbar-start">
+      <%= render "shared/environment" if !Rails.env.production? %>
+      <%= render "shared/search" if user_signed_in? %>
+    </div>
     
     <div class="navbar-end">
-      <div class="navbar-item">
-        <div class="buttons">
-          <%= render "shared/guestlinks" if !user_signed_in? %>
-        </div>
-      </div>
+      <%= render "shared/authedLinks" if user_signed_in? %>
+      <%= render "shared/guestlinks" if !user_signed_in? %>
     </div>
   </div>
 </nav>
