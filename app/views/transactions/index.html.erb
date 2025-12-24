@@ -14,7 +14,12 @@
   </div>
 <% end %>
 
-<%= render partial: "transactions/components/transactionList" %>
-<div id="transactions-pagination">
-  <%= render partial: "transactions/components/pagination" %>
-</div>
+<turbo-frame id="transactions_list">
+  <div class="is-hidden-mobile mb-3">
+    <%= render partial: "transactions/components/transactionCount" %>
+  </div>
+  <%= render partial: "transactions/components/transactionList" %>
+  <div id="transactions-pagination">
+    <%= render partial: "transactions/components/pagination" %>
+  </div>
+</turbo-frame>

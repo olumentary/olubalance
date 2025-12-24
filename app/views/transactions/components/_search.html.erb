@@ -1,11 +1,5 @@
-<div class="level-item is-hidden-mobile">
-  <span class="has-text-weight-semibold mr-5">
-		<%= @pagy.count %>
-	</span>
-	<%= 'transaction'.pluralize(@pagy.count) %>
-</div>
 <div class="level-item" id="transaction-search">
-  <%= form_with url: account_transactions_path, method: :get, data: { turbo_action: "replace", controller: "trxsearch", turbo_permanent: "" } do |form| %>
+  <%= form_with url: account_transactions_path, method: :get, data: { controller: "trxsearch", turbo_frame: "transactions_list" } do |form| %>
     <div class="field">
       <div class="control has-icons-right">
         <%= form.text_field :description, 
