@@ -1,0 +1,24 @@
+<tr class="is-clickable" onclick="window.location='<%= account_transaction_path(transaction.account, transaction) %>'">
+  <td class="has-text-centered has-text-grey">
+    <%= transaction.trx_date_display %>
+  </td>
+  <td>
+    <div class="has-text-weight-semibold">
+      <%= transaction.trx_desc_display %>
+    </div>
+    <div class="is-size-7 has-text-grey">
+      <%= transaction.account.name %>
+    </div>
+  </td>
+  <td>
+    <% if transaction.category.present? %>
+      <span class="tag is-info is-light"><%= transaction.category.name %></span>
+    <% else %>
+      <span class="has-text-grey is-size-7">Uncategorized</span>
+    <% end %>
+  </td>
+  <td class="has-text-right <%= transaction.amount_color %>">
+    <%= transaction.amount_decorated %>
+  </td>
+</tr>
+

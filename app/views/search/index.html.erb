@@ -1,0 +1,50 @@
+<div class="container is-fluid py-5">
+  <div class="columns is-centered">
+    <div class="column is-10-desktop">
+      <div class="level mb-5">
+        <div class="level-left">
+          <h1 class="title is-3 mb-3">
+            Transaction Search
+          </h1>
+        </div>
+      </div>
+
+      <%= render "filters" %>
+
+      <turbo-frame id="search_results">
+        <div class="box p-0 overflow-hidden">
+          <table class="table is-hoverable is-fullwidth mb-0">
+            <thead class="has-background-light">
+              <tr>
+                <th class="has-text-centered" style="width: 120px;">Date</th>
+                <th>Description / Account</th>
+                <th style="width: 150px;">Category</th>
+                <th class="has-text-right" style="width: 120px;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @transactions.any? %>
+                <%= render partial: "transaction_row", collection: @transactions, as: :transaction %>
+              <% else %>
+                <tr>
+                  <td colspan="4" class="has-text-centered py-6 has-text-grey">
+                    <% if params[:query].present? || params[:account_id].present? || params[:category_id].present? || params[:start_date].present? || params[:end_date].present? %>
+                      No transactions found matching your criteria.
+                    <% else %>
+                      Start searching by typing in the search box above.
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4">
+          <%== pagy_bulma_nav(@pagy) if @pagy.pages > 1 %>
+        </div>
+      </turbo-frame>
+    </div>
+  </div>
+</div>
+

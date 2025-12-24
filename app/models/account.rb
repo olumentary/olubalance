@@ -48,6 +48,9 @@ class Account < ApplicationRecord
     in: account_types.keys
   }
 
+  scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
+
   # Sum of Pending Transactions
   def pending_balance
     transactions.where(pending: true).sum(:amount)

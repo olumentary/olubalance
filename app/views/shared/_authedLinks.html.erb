@@ -1,0 +1,79 @@
+<!-- Home Link -->
+<%= link_to accounts_path, class: "navbar-item" do %>
+  Home
+<% end %>
+
+<!-- Document Center Link -->
+<%= link_to documents_path, class: "navbar-item" do %>
+  Document Center
+<% end %>
+
+<!-- Bill Management Link -->
+
+<%= link_to bills_path, class: "navbar-item" do %>
+  Bill Management
+<% end %>
+
+<!-- Administrative Links --> 
+<div class="navbar-item has-dropdown is-hoverable">
+  <a class="navbar-link has-text-grey-dark">
+    Administration
+  </a>
+
+  <div class="navbar-dropdown is-right ob-main-menu">
+    <%= link_to accounts_inactive_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-archive"></i>
+      </span>
+      Inactive Accounts
+    <% end %>
+
+    <%= link_to accounts_summary_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-calendar-day"></i>
+      </span>
+      Daily Summary
+    <% end %>
+
+    <%= link_to categories_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-list"></i>
+      </span>
+      Category Settings
+    <% end %>
+    <%= link_to matching_rules_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-magic"></i>
+      </span>
+      Matching Rules
+    <% end %>
+  </div>
+</div>
+
+<div class="navbar-item has-dropdown is-hoverable">
+  <a class="navbar-link has-text-grey-dark">
+    <span><%= current_user.full_name %></span>
+  </a>
+
+  <div class="navbar-dropdown is-right ob-main-menu">
+    <div class="navbar-item">
+      <%= render "shared/userDetails" %>
+    </div>
+
+    <hr class="navbar-divider"/>
+
+    <%= link_to edit_user_registration_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-cog"></i>
+      </span>
+      Profile
+    <% end %>
+
+    <%= link_to destroy_user_session_path, class: "navbar-item" do%>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-sign-out-alt"></i>
+      </span>
+      Logout
+    <% end %>
+  </div>
+</div>

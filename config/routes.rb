@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   resources :bills, except: %i[show]
   resources :categories
   resources :matching_rules
+  resources :search, only: [:index]
   namespace :transactions do
     resources :batches, only: %i[index show new create destroy]
   end
