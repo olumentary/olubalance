@@ -61,6 +61,16 @@ class Transaction < ApplicationRecord
             .matches("%#{query.downcase}%"))
   }
 
+  scope :fuzzy_search, lambda { |query|
+    return all if query.blank?
+    
+    # Using pg_trgm similarity function for fuzzy matching
+    # We filter by a threshold (0.2 is usually a good starting point)
+    # and order by highest similarity
+    where("description % ?", query)
+      .order(Arel.sql("similarity(description, #{connection.quote(query)}) DESC"))
+  }
+
   # Determine the transaction_type for existing records based on amount
   def transaction_type
     # new_record? is checked first to prevent a nil class error

@@ -1,0 +1,61 @@
+<div class="box mb-4">
+  <%= form_with url: search_index_path, method: :get, data: { turbo_frame: "search_results", turbo_action: "advance" }, class: "search-filters" do |f| %>
+    <div class="columns is-multiline">
+      <div class="column is-12">
+        <div class="field has-addons">
+          <div class="control is-expanded">
+            <%= f.text_field :query, value: params[:query], placeholder: "Search transactions...", class: "input" %>
+          </div>
+          <div class="control">
+            <%= f.submit "Search", class: "button is-primary" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <%= f.label :account_id, "Account", class: "label is-small" %>
+          <div class="control">
+            <div class="select is-fullwidth is-small">
+              <%= f.select :account_id, options_from_collection_for_select(@user_accounts, :id, :name, params[:account_id]), include_blank: "All Accounts" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <%= f.label :category_id, "Category", class: "label is-small" %>
+          <div class="control">
+            <div class="select is-fullwidth is-small">
+              <%= f.select :category_id, options_from_collection_for_select(@categories, :id, :name, params[:category_id]), include_blank: "All Categories" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <%= f.label :start_date, "From Date", class: "label is-small" %>
+          <div class="control">
+            <%= f.date_field :start_date, value: params[:start_date], class: "input is-small" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <%= f.label :end_date, "To Date", class: "label is-small" %>
+          <div class="control">
+            <%= f.date_field :end_date, value: params[:end_date], class: "input is-small" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-12 has-text-right">
+        <%= link_to "Clear Filters", search_index_path, class: "button is-light is-small" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+

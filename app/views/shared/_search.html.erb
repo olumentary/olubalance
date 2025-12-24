@@ -1,12 +1,13 @@
 <div class="navbar-item">
-  <div class="field has-addons">
+  <%= form_with url: search_index_path, method: :get, class: "field has-addons" do |form| %>
     <div class="control">
-      <input class="input is-small" type="text" placeholder="Transaction search">
+      <%= form.text_field :query, 
+                         placeholder: "Transaction search", 
+                         class: "input is-small", 
+                         value: params[:query] %>
     </div>
     <div class="control">
-      <a class="button is-primary is-small">
-        Search
-      </a>
+      <%= form.submit "Search", class: "button is-primary is-small" %>
     </div>
-  </div>
+  <% end %>
 </div>
