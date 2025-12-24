@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v1.13.2] - 2025-12-23
+
+### New
+
+- Global Transaction search feature added
+
+### Fixed
+
+- Transaction list filtering bug fixed which caused full page reload after typing a few characters
+- Transaction category display UI bug fixed for mobile
+
 ## [v1.13.1] - 2025-12-19
 
 ### Changed
@@ -485,8 +496,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.1...develop
-[v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.13.0...v1.13.1
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.2...develop
+[v1.13.2]: https://github.com/odinsride/olubalance/compare/v1.13.1...v1.13.2
+[v1.13.1]: https://github.com/odinsride/olubalance/compare/v1.13.0...v1.13.1
 [v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.12.1...v1.13.0
 [v1.12.1]: https://github.com/odinsride/olubalance/compare/v1.12.0...v1.12.1
 [v1.12.0]: https://github.com/odinsride/olubalance/compare/v1.11.2...v1.12.0
