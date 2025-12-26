@@ -1,0 +1,65 @@
+<div class="box mb-4">
+  <%= form_with url: reports_path, method: :get, data: { turbo_frame: "reports_charts" } do |f| %>
+    <div class="columns is-multiline">
+      <div class="column is-3">
+        <div class="field">
+          <label class="label is-small">Start Date</label>
+          <div class="control">
+            <%= date_field_tag :start_date, @start_date, class: "input is-small" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <label class="label is-small">End Date</label>
+          <div class="control">
+            <%= date_field_tag :end_date, @end_date, class: "input is-small" %>
+          </div>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <label class="label is-small">Accounts</label>
+          <div class="control">
+            <div class="select is-small is-fullwidth is-multiple">
+              <%= select_tag :account_ids,
+                             options_from_collection_for_select(@accounts, :id, :name, @selected_account_ids),
+                             multiple: true,
+                             class: "is-small",
+                             size: 3 %>
+            </div>
+          </div>
+          <p class="help">Hold Ctrl/Cmd to select multiple</p>
+        </div>
+      </div>
+
+      <div class="column is-3">
+        <div class="field">
+          <label class="label is-small">Categories</label>
+          <div class="control">
+            <div class="select is-small is-fullwidth is-multiple">
+              <%= select_tag :category_ids,
+                             options_from_collection_for_select(@categories, :id, :name, @selected_category_ids),
+                             multiple: true,
+                             class: "is-small",
+                             size: 3 %>
+            </div>
+          </div>
+          <p class="help">Hold Ctrl/Cmd to select multiple</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-grouped">
+      <div class="control">
+        <%= submit_tag "Apply Filters", class: "button is-link is-small" %>
+      </div>
+      <div class="control">
+        <%= link_to "Reset", reports_path, class: "button is-light is-small" %>
+      </div>
+    </div>
+  <% end %>
+</div>
+

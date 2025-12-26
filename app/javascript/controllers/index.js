@@ -69,3 +69,6 @@ application.register('summary-tiles', SummaryTilesController);
 
 import CategorySuggestController from './category_suggest_controller';
 application.register('category-suggest', CategorySuggestController);
+
+import ReportsChartController from './reports_chart_controller';
+application.register('reports-chart', ReportsChartController);

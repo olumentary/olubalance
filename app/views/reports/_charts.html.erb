@@ -1,0 +1,125 @@
+<%= turbo_frame_tag "reports_charts" do %>
+  <!-- Summary Statistics -->
+  <div class="columns mb-5">
+    <div class="column is-3">
+      <div class="box has-background-link-light">
+        <p class="heading">Current Period</p>
+        <p class="title is-4"><%= number_to_currency(@report_data[:totals][:current]) %></p>
+        <p class="subtitle is-7 has-text-grey"><%= @report_data[:current_period][:label] %></p>
+      </div>
+    </div>
+    <div class="column is-3">
+      <div class="box has-background-grey-lighter">
+        <p class="heading">Previous Period</p>
+        <p class="title is-4"><%= number_to_currency(@report_data[:totals][:previous]) %></p>
+        <p class="subtitle is-7 has-text-grey"><%= @report_data[:previous_period][:label] %></p>
+      </div>
+    </div>
+    <div class="column is-3">
+      <div class="box <%= @report_data[:totals][:difference] > 0 ? 'has-background-danger-light' : 'has-background-success-light' %>">
+        <p class="heading">Difference</p>
+        <p class="title is-4">
+          <%= @report_data[:totals][:difference] > 0 ? '+' : '' %><%= number_to_currency(@report_data[:totals][:difference]) %>
+        </p>
+        <p class="subtitle is-7 has-text-grey">
+          <%= @report_data[:totals][:percentage_change] > 0 ? '↑' : '↓' %>
+          <%= @report_data[:totals][:percentage_change].abs %>% vs previous
+        </p>
+      </div>
+    </div>
+    <div class="column is-3">
+      <div class="box">
+        <p class="heading">Categories</p>
+        <p class="title is-4"><%= @report_data[:categories].size %></p>
+        <p class="subtitle is-7 has-text-grey">with spending</p>
+      </div>
+    </div>
+  </div>
+
+  <% if @report_data[:categories].any? %>
+    <div class="columns">
+      <!-- Bar Chart: Category Spending Comparison -->
+      <div class="column is-7">
+        <div class="box">
+          <h2 class="title is-5 mb-4">📊 Spending by Category</h2>
+          <div class="chart-container" style="position: relative; height: 400px;">
+            <canvas id="spending-bar-chart"
+                    data-controller="reports-chart"
+                    data-reports-chart-type-value="bar"
+                    data-reports-chart-labels-value="<%= @report_data[:categories].to_json %>"
+                    data-reports-chart-current-data-value="<%= @report_data[:current_period][:data].to_json %>"
+                    data-reports-chart-previous-data-value="<%= @report_data[:previous_period][:data].to_json %>"
+                    data-reports-chart-current-label-value="<%= @report_data[:current_period][:label] %>"
+                    data-reports-chart-previous-label-value="<%= @report_data[:previous_period][:label] %>">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donut Chart: Category Breakdown -->
+      <div class="column is-5">
+        <div class="box">
+          <h2 class="title is-5 mb-4">🍩 Category Breakdown</h2>
+          <div class="chart-container" style="position: relative; height: 400px;">
+            <canvas id="spending-donut-chart"
+                    data-controller="reports-chart"
+                    data-reports-chart-type-value="doughnut"
+                    data-reports-chart-labels-value="<%= @report_data[:categories].to_json %>"
+                    data-reports-chart-current-data-value="<%= @report_data[:current_period][:data].to_json %>">
+            </canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Spending Table -->
+    <div class="box">
+      <h2 class="title is-5 mb-4">📋 Detailed Breakdown</h2>
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="has-text-right"><%= @report_data[:current_period][:label] %></th>
+            <th class="has-text-right"><%= @report_data[:previous_period][:label] %></th>
+            <th class="has-text-right">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @report_data[:categories].each_with_index do |category, index| %>
+            <% current = @report_data[:current_period][:data][index] || 0 %>
+            <% previous = @report_data[:previous_period][:data][index] || 0 %>
+            <% change = current - previous %>
+            <% pct_change = previous > 0 ? ((change / previous) * 100).round(1) : 0 %>
+            <tr>
+              <td><%= category %></td>
+              <td class="has-text-right"><%= number_to_currency(current) %></td>
+              <td class="has-text-right"><%= number_to_currency(previous) %></td>
+              <td class="has-text-right <%= change > 0 ? 'has-text-danger' : 'has-text-success' %>">
+                <%= change > 0 ? '+' : '' %><%= number_to_currency(change) %>
+                <span class="is-size-7">(<%= pct_change > 0 ? '+' : '' %><%= pct_change %>%)</span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="has-background-light">
+            <th>Total</th>
+            <th class="has-text-right"><%= number_to_currency(@report_data[:totals][:current]) %></th>
+            <th class="has-text-right"><%= number_to_currency(@report_data[:totals][:previous]) %></th>
+            <th class="has-text-right <%= @report_data[:totals][:difference] > 0 ? 'has-text-danger' : 'has-text-success' %>">
+              <%= @report_data[:totals][:difference] > 0 ? '+' : '' %><%= number_to_currency(@report_data[:totals][:difference]) %>
+              <span class="is-size-7">(<%= @report_data[:totals][:percentage_change] > 0 ? '+' : '' %><%= @report_data[:totals][:percentage_change] %>%)</span>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% else %>
+    <div class="box has-text-centered py-6">
+      <p class="is-size-4 mb-2">📭</p>
+      <p class="has-text-grey">No spending data found for the selected filters.</p>
+      <p class="has-text-grey is-size-7">Try adjusting your date range or filters.</p>
+    </div>
+  <% end %>
+<% end %>
+

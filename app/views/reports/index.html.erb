@@ -1,0 +1,16 @@
+<div class="container">
+  <nav class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <h1 class="title is-4">📊 Spending Reports</h1>
+      </div>
+    </div>
+  </nav>
+
+  <%= render "filters" %>
+
+  <turbo-frame id="reports_charts">
+    <%= render "charts" %>
+  </turbo-frame>
+</div>
+

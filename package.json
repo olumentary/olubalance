@@ -9,6 +9,7 @@
     "animate.css": "^4.1.1",
     "bulma": "^1.0.0",
     "bulma-toast": "^2.2.0",
+    "chart.js": "^4.5.1",
     "esbuild": "^0.25.0",
     "sass": "^1.88.0"
   },
