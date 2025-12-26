@@ -5,10 +5,10 @@ require "rails_helper"
 RSpec.describe AiCategoryClient do
   describe "#suggest" do
     it "returns a suggestion when the response maps to a known category" do
-      category = create(:category, :global, name: "Groceries")
+      category = create(:category, :global, name: "Groceries-Rspec")
       fake_response = {
         "choices" => [
-          { "message" => { "content" => { category: "Groceries", confidence: 0.8 }.to_json } }
+          { "message" => { "content" => { category: "Groceries-Rspec", confidence: 0.8 }.to_json } }
         ]
       }
       client = described_class.new(client: instance_double(OpenAI::Client, chat: fake_response))
