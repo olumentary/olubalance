@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Bills', type: :request do
   let(:user) { create(:user, :confirmed) }
   let!(:account) { create(:account, user: user) }
+  let!(:category) { create(:category, :global) }
 
   before do
     sign_in user
@@ -51,7 +52,7 @@ RSpec.describe 'Bills', type: :request do
       {
         bill: {
           bill_type: 'expense',
-          category: 'housing',
+          category_id: category.id,
           description: 'Rent',
           frequency: 'monthly',
           day_of_month: 1,
@@ -81,7 +82,6 @@ RSpec.describe 'Bills', type: :request do
         bill: valid_params[:bill].merge(
           frequency: 'bi_weekly',
           bill_type: 'income',
-          category: 'income',
           day_of_month: 5,
           biweekly_mode: 'two_days',
           second_day_of_month: 20
@@ -100,7 +100,6 @@ RSpec.describe 'Bills', type: :request do
         bill: valid_params[:bill].merge(
           frequency: 'bi_weekly',
           bill_type: 'expense',
-          category: 'housing',
           day_of_month: 1,
           biweekly_mode: 'every_other_week',
           biweekly_anchor_date: anchor_date,

@@ -10,7 +10,7 @@ class BillDecorator < ApplicationDecorator
   end
 
   def category_label
-    category.humanize.titleize
+    category&.name || '—'
   end
 
   def frequency_label

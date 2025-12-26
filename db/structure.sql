@@ -234,7 +234,6 @@ ALTER SEQUENCE public.bill_transaction_batches_id_seq OWNED BY public.bill_trans
 CREATE TABLE public.bills (
     id bigint NOT NULL,
     bill_type character varying NOT NULL,
-    category character varying NOT NULL,
     description character varying NOT NULL,
     frequency character varying DEFAULT 'monthly'::character varying NOT NULL,
     day_of_month integer NOT NULL,
@@ -248,7 +247,8 @@ CREATE TABLE public.bills (
     second_day_of_month integer,
     biweekly_anchor_weekday integer,
     biweekly_anchor_date date,
-    next_occurrence_month integer
+    next_occurrence_month integer,
+    category_id bigint
 );
 
 
@@ -892,6 +892,13 @@ CREATE INDEX index_bills_on_account_id ON public.bills USING btree (account_id);
 
 
 --
+-- Name: index_bills_on_category_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bills_on_category_id ON public.bills USING btree (category_id);
+
+
+--
 -- Name: index_bills_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1159,6 +1166,14 @@ ALTER TABLE ONLY public.hidden_categories
 
 
 --
+-- Name: bills fk_rails_497ba0b958; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT fk_rails_497ba0b958 FOREIGN KEY (category_id) REFERENCES public.categories(id);
+
+
+--
 -- Name: category_lookups fk_rails_5566223128; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1277,6 +1292,7 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20251226000001'),
 ('20251211193000'),
 ('20251211140000'),
 ('20251211130000'),

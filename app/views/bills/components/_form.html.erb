@@ -32,7 +32,7 @@
         <label class="label has-text-grey">Category</label>
         <div class="control">
           <div class="select is-fullwidth is-primary">
-            <%= f.select :category, Bill.categories.keys.map { |category| [category.humanize.titleize, category] }, { include_blank: "Select category" }, required: true %>
+            <%= f.select :category_id, @categories.map { |category| [category.name, category.id] }, { include_blank: "Select category" }, required: true %>
           </div>
         </div>
       </div>

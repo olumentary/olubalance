@@ -3,7 +3,21 @@
 require 'rails_helper'
 
 RSpec.describe BillDecorator do
-  let(:bill) { build(:bill, day_of_month: 10, amount: 150.25).decorate }
+  let(:category) { create(:category, :global, name: 'Test Category') }
+  let(:bill) { build(:bill, day_of_month: 10, amount: 150.25, category: category).decorate }
+
+  describe '#category_label' do
+    it 'returns the category name' do
+      expect(bill.category_label).to eq('Test Category')
+    end
+
+    it 'returns a dash when category is nil' do
+      bill_without_category = build(:bill, day_of_month: 10, amount: 150.25)
+      bill_without_category.category = nil
+      decorated = bill_without_category.decorate
+      expect(decorated.category_label).to eq('—')
+    end
+  end
 
   describe '#amount_display' do
     it 'formats amount as currency' do

@@ -10,11 +10,11 @@ RSpec.describe Bill, type: :model do
   describe 'associations' do
     it { should belong_to(:account) }
     it { should belong_to(:user) }
+    it { should belong_to(:category) }
   end
 
   describe 'enums' do
     it { should define_enum_for(:bill_type).with_values(income: 'income', expense: 'expense', debt_repayment: 'debt_repayment', payment_plan: 'payment_plan').with_prefix.backed_by_column_of_type(:string) }
-    it { should define_enum_for(:category).with_values(income: 'income', utility: 'utility', family: 'family', auto: 'auto', food: 'food', housing: 'housing', misc: 'misc', internet: 'internet', health: 'health', insurance: 'insurance', phone: 'phone', credit_card: 'credit_card', taxes: 'taxes').with_prefix.backed_by_column_of_type(:string) }
     it { should define_enum_for(:frequency).with_values(monthly: 'monthly', bi_weekly: 'bi_weekly', quarterly: 'quarterly', annual: 'annual').backed_by_column_of_type(:string) }
   end
 
@@ -28,6 +28,7 @@ RSpec.describe Bill, type: :model do
     it { should validate_length_of(:notes).is_at_most(2000) }
     it { should validate_presence_of(:account) }
     it { should validate_presence_of(:user) }
+    it { should validate_presence_of(:category) }
   end
 
   describe 'bi-weekly validation rules' do
@@ -78,6 +79,31 @@ RSpec.describe Bill, type: :model do
       bill = build(:bill, user: user, account: other_account)
       expect(bill).not_to be_valid
       expect(bill.errors[:account_id]).to include("must belong to your profile")
+    end
+  end
+
+  describe '#category_accessible_to_user' do
+    let(:user) { create(:user, :confirmed) }
+    let(:other_user) { create(:user, :confirmed) }
+    let(:account) { create(:account, user: user) }
+    let(:global_category) { create(:category, :global) }
+    let(:user_category) { create(:category, user: user) }
+    let(:other_user_category) { create(:category, user: other_user) }
+
+    it 'is valid when the category is global' do
+      bill = build(:bill, user: user, account: account, category: global_category)
+      expect(bill).to be_valid
+    end
+
+    it 'is valid when the category belongs to the user' do
+      bill = build(:bill, user: user, account: account, category: user_category)
+      expect(bill).to be_valid
+    end
+
+    it 'is invalid when the category belongs to another user' do
+      bill = build(:bill, user: user, account: account, category: other_user_category)
+      expect(bill).not_to be_valid
+      expect(bill.errors[:category_id]).to include("must be a global category or belong to your profile")
     end
   end
 

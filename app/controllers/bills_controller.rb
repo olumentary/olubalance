@@ -11,7 +11,7 @@ class BillsController < ApplicationController
     @reference_date = resolve_reference_month
     @prev_month = (@reference_date - 1.month).strftime("%Y-%m")
     @next_month = (@reference_date + 1.month).strftime("%Y-%m")
-    @bills = current_user.bills.includes(:account).ordered_for_list.decorate
+    @bills = current_user.bills.includes(:account, :category).ordered_for_list.decorate
     @bills_by_date = bills_grouped_by_date(@bills, @reference_date)
     @bill_totals, @bill_breakdowns = monthly_totals(@bills)
     @bill_details_by_type = bills_grouped_by_type(@bills)
@@ -52,6 +52,7 @@ class BillsController < ApplicationController
 
   def load_accounts
     @accounts = current_user.accounts.where(active: true).order(:name)
+    @categories = Category.for_user(current_user).ordered
   end
 
   def ensure_accounts_present
@@ -61,12 +62,12 @@ class BillsController < ApplicationController
   end
 
   def set_bill
-    @bill = current_user.bills.includes(:account).find(params[:id]).decorate
+    @bill = current_user.bills.includes(:account, :category).find(params[:id]).decorate
   end
 
   def bill_params
     params.require(:bill)
-          .permit(:bill_type, :category, :description, :frequency, :day_of_month, :second_day_of_month,
+          .permit(:bill_type, :category_id, :description, :frequency, :day_of_month, :second_day_of_month,
                   :biweekly_mode, :biweekly_anchor_weekday, :biweekly_anchor_date, :next_occurrence_month,
                   :amount, :notes, :account_id)
           .merge(user_id: current_user.id)
@@ -78,7 +79,6 @@ class BillsController < ApplicationController
     {
       account: default_account,
       bill_type: nil,
-      category: nil,
       frequency: Bill.frequencies.keys.first
     }
   end
