@@ -30,6 +30,7 @@ RSpec.describe PerformTransfer, type: :model do
         expect(source_transaction.amount).to eq -amount.to_d
         expect(source_transaction.locked).to be true
         expect(source_transaction.transfer).to be true
+        expect(source_transaction.category.name).to eq 'Transfer'
       end
 
       it 'creates a target account transaction' do
@@ -40,6 +41,7 @@ RSpec.describe PerformTransfer, type: :model do
         expect(target_transaction.amount).to eq amount.to_d
         expect(target_transaction.locked).to be true
         expect(target_transaction.transfer).to be true
+        expect(target_transaction.category.name).to eq 'Transfer'
       end
     end
   end

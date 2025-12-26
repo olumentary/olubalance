@@ -128,5 +128,13 @@ namespace :categories do
 
     puts "Done."
   end
+
+  desc "Assign Transfer category to all transfer transactions missing a category"
+  task backfill_transfers: :environment do
+    transfer_category = Category.transfer_category
+    updated = Transaction.where(transfer: true, category_id: nil)
+                         .update_all(category_id: transfer_category.id)
+    puts "Updated #{updated} transfer transactions"
+  end
 end
 

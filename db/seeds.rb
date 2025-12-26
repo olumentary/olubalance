@@ -115,6 +115,17 @@ emails.each do |email|
   users << user
 end
 
+# Create global categories
+category_names = %w[
+  Groceries Dining Utilities Housing Auto Transportation Fuel Health Insurance
+  Entertainment Travel Transfer Income Savings Investments Subscriptions
+  Education Gifts Miscellaneous Family Taxes
+]
+
+category_names.each do |name|
+  Category.find_or_create_by!(name: name, kind: :global)
+end
+
 # Create 5 accounts for each user
 users.each do |user|
   selected_accounts = []
@@ -312,7 +323,8 @@ accounts.each do |account|
 end
 
 # Create Bills
-expense_categories = Bill.categories.keys - ["income"]
+expense_categories = Category.where(kind: :global).where.not(name: 'Income').to_a
+income_category = Category.find_by(name: 'Income', kind: :global)
 
 users.each do |user|
   user_accounts = user.accounts
@@ -335,7 +347,7 @@ users.each do |user|
         account: default_account,
         bill_type: "expense",
         category: category,
-        description: "#{category.titleize} #{plan[:frequency].titleize} Bill",
+        description: "#{category.name.titleize} #{plan[:frequency].titleize} Bill",
         frequency: plan[:frequency],
         day_of_month: rand(1..28),
         amount: Faker::Commerce.price(range: 20..2000.0, as_string: false).round(2)
@@ -356,7 +368,7 @@ users.each do |user|
     user: user,
     account: default_account,
     bill_type: "income",
-    category: "income",
+    category: income_category,
     description: "Paycheck",
     frequency: "bi_weekly",
     day_of_month: paycheck_day,

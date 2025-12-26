@@ -34,8 +34,8 @@ RSpec.describe Category, type: :model do
   end
 
   it "allows a custom category to reuse a global name" do
-    create(:category, :global, name: "Travel")
-    custom = build(:category, user: create(:user), name: "Travel")
+    create(:category, :global, name: "Reuse-Global")
+    custom = build(:category, user: create(:user), name: "Reuse-Global")
     expect(custom).to be_valid
   end
 

@@ -21,6 +21,7 @@ RSpec.describe Stash, type: :model do
       }.to change(account.transactions, :count).by(1)
       expect(account.transactions.last.amount).to eq (stash_balance)
       expect(account.transactions.last.description).to include ('Deleted')
+      expect(account.transactions.last.category.name).to eq 'Transfer'
       account.reload
       expect(account.current_balance).to eq (account.starting_balance + stash_balance)
     end

@@ -24,6 +24,10 @@ class Category < ApplicationRecord
     user_id.nil?
   end
 
+  def self.transfer_category
+    find_or_create_by!(name: 'Transfer', kind: :global, user_id: nil)
+  end
+
   private
 
   def normalize_name

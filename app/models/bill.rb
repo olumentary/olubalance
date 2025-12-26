@@ -3,28 +3,13 @@
 class Bill < ApplicationRecord
   belongs_to :account
   belongs_to :user
+  belongs_to :category
 
   enum :bill_type, {
     income: "income",
     expense: "expense",
     debt_repayment: "debt_repayment",
     payment_plan: "payment_plan"
-  }, prefix: true
-
-  enum :category, {
-    income: "income",
-    utility: "utility",
-    family: "family",
-    auto: "auto",
-    food: "food",
-    housing: "housing",
-    misc: "misc",
-    internet: "internet",
-    health: "health",
-    insurance: "insurance",
-    phone: "phone",
-    credit_card: "credit_card",
-    taxes: "taxes"
   }, prefix: true
 
   enum :frequency, {
@@ -35,7 +20,7 @@ class Bill < ApplicationRecord
   }, default: :monthly
 
   validates :bill_type, presence: true, inclusion: { in: bill_types.keys }
-  validates :category, presence: true, inclusion: { in: categories.keys }
+  validates :category, presence: true
   validates :frequency, inclusion: { in: frequencies.keys }
   validates :description, presence: true, length: { maximum: 150 }
   validates :day_of_month, presence: true,
@@ -50,6 +35,7 @@ class Bill < ApplicationRecord
   validates :user, presence: true
 
   validate :account_belongs_to_user
+  validate :category_accessible_to_user
   validate :anchor_weekday_matches_date
 
   with_options if: -> { frequency == "bi_weekly" } do
@@ -61,12 +47,14 @@ class Bill < ApplicationRecord
                 greater_than_or_equal_to: 1,
                 less_than_or_equal_to: 31
               },
-              if: -> { biweekly_mode == "two_days" }
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "two_days" }
     validates :biweekly_anchor_weekday,
               presence: true,
               inclusion: { in: 0..6 },
-              if: -> { biweekly_mode == "every_other_week" }
-    validates :biweekly_anchor_date, presence: true, if: -> { biweekly_mode == "every_other_week" }
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "every_other_week" }
+    validates :biweekly_anchor_date,
+              presence: true,
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "every_other_week" }
   end
 
   with_options if: -> { frequency.in?(%w[quarterly annual]) } do
@@ -182,6 +170,13 @@ class Bill < ApplicationRecord
     return if account.user_id == user_id
 
     errors.add(:account_id, "must belong to your profile")
+  end
+
+  def category_accessible_to_user
+    return if category.blank? || user.blank?
+    return if category.user_id.nil? || category.user_id == user_id
+
+    errors.add(:category_id, "must be a global category or belong to your profile")
   end
 
   def set_anchor_weekday_from_date

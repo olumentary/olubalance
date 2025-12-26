@@ -5,7 +5,7 @@ require "ostruct"
 
 module BillTransactions
   class Generator
-    PreviewItem = Struct.new(:bill, :account, :trx_date, :amount, :description, keyword_init: true) do
+    PreviewItem = Struct.new(:bill, :account, :category, :trx_date, :amount, :description, keyword_init: true) do
       def trx_type
         amount.negative? ? "debit" : "credit"
       end
@@ -17,7 +17,7 @@ module BillTransactions
 
     def preview(period_month: nil, start_date: nil, end_date: nil, bill: nil)
       range = normalize_range(period_month: period_month, start_date: start_date, end_date: end_date)
-      bills = bill.present? ? Array(bill) : @user.bills.includes(:account)
+      bills = bill.present? ? Array(bill) : @user.bills.includes(:account, :category)
 
       bills.flat_map do |b|
         occurrences_for_bill(b, range)
@@ -57,6 +57,7 @@ module BillTransactions
         items_to_create.each do |item|
           created << Transaction.create!(
             account: item.account,
+            category: item.category,
             trx_date: item.trx_date,
             description: item.description,
             amount: item.amount,
@@ -85,12 +86,19 @@ module BillTransactions
       occurrences = []
       month_cursor = start_date.beginning_of_month
       while month_cursor <= end_date
-        bill.occurrences_for_month(month_cursor).each do |date|
+        dates = if bill.frequency.in?(%w[quarterly annual])
+                  [clamp_date(bill.day_of_month, month_cursor)]
+                else
+                  bill.occurrences_for_month(month_cursor)
+                end
+
+        dates.each do |date|
           next if date < start_date || date > end_date
 
           occurrences << PreviewItem.new(
             bill: bill,
             account: bill.account,
+            category: bill.category,
             trx_date: date,
             amount: signed_amount(bill),
             description: bill.description
@@ -104,7 +112,20 @@ module BillTransactions
 
     def signed_amount(bill)
       amount = bill.amount.to_d
+
+      case bill.frequency
+      when "quarterly"
+        amount /= 3
+      when "annual"
+        amount /= 12
+      end
+
       bill.bill_type == "income" ? amount : -amount
+    end
+
+    def clamp_date(day, month_start)
+      clamped_day = [day, month_start.end_of_month.day].min
+      month_start + (clamped_day - 1).days
     end
 
     def existing_keys(range)

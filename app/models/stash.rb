@@ -26,6 +26,7 @@ class Stash < ApplicationRecord
     transaction = account.transactions.build(
       trx_type: "credit",
       trx_date: Time.current,
+      category_id: Category.transfer_category.id,
       description: "Transfer from #{name} Stash (Stash Deleted)",
       amount: balance.abs,
       skip_pending_default: true,

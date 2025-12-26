@@ -5,7 +5,7 @@ FactoryBot.define do
     association :account
     user { account.user }
     bill_type { 'expense' }
-    category { 'housing' }
+    category { association :category, :global }
     description { 'Sample Bill' }
     frequency { 'monthly' }
     day_of_month { 15 }
@@ -19,7 +19,6 @@ FactoryBot.define do
 
     trait :income do
       bill_type { 'income' }
-      category { 'income' }
     end
 
     trait :annual do

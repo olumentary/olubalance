@@ -21,7 +21,7 @@ RSpec.describe CategorySuggester do
     end
 
     it "falls back to AI when no lookup exists" do
-      ai_category = create(:category, :global, name: "Dining")
+      ai_category = create(:category, :global, name: "Dining-Rspec")
       ai_client = instance_double(AiCategoryClient)
       allow(ai_client).to receive(:suggest).and_return(
         CategorySuggester::Suggestion.new(category: ai_category, confidence: 0.6, source: :ai)
