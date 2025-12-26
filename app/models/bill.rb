@@ -61,12 +61,14 @@ class Bill < ApplicationRecord
                 greater_than_or_equal_to: 1,
                 less_than_or_equal_to: 31
               },
-              if: -> { biweekly_mode == "two_days" }
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "two_days" }
     validates :biweekly_anchor_weekday,
               presence: true,
               inclusion: { in: 0..6 },
-              if: -> { biweekly_mode == "every_other_week" }
-    validates :biweekly_anchor_date, presence: true, if: -> { biweekly_mode == "every_other_week" }
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "every_other_week" }
+    validates :biweekly_anchor_date,
+              presence: true,
+              if: -> { frequency == "bi_weekly" && biweekly_mode == "every_other_week" }
   end
 
   with_options if: -> { frequency.in?(%w[quarterly annual]) } do

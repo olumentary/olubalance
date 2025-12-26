@@ -43,6 +43,16 @@ RSpec.describe Bill, type: :model do
       expect(bill.errors[:biweekly_anchor_date]).to be_present
       expect(bill.errors[:biweekly_anchor_weekday]).to be_present
     end
+
+    it 'does not require bi-weekly fields for monthly frequency' do
+      bill = build(:bill, frequency: 'monthly', biweekly_mode: 'two_days', second_day_of_month: nil)
+      expect(bill).to be_valid
+
+      bill.biweekly_mode = 'every_other_week'
+      bill.biweekly_anchor_date = nil
+      bill.biweekly_anchor_weekday = nil
+      expect(bill).to be_valid
+    end
   end
 
   describe 'quarterly/annual validation rules' do
