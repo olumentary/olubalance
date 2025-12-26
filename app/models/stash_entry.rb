@@ -60,6 +60,7 @@ class StashEntry < ApplicationRecord
     transaction.trx_type = stash_action == "add" ? "debit" : "credit"
     transaction.trx_date = stash_entry_date || Time.current
     transaction.account_id = @stash.account_id
+    transaction.category_id = Category.transfer_category.id
     transaction.description = stash_action == "add" ? desc_add : desc_remove
     transaction.amount = amount.abs
     transaction.skip_pending_default = true

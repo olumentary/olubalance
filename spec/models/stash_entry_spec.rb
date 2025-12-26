@@ -46,6 +46,7 @@ RSpec.describe StashEntry, type: :model do
       expect(transaction.account_id).to eq stash.account_id
       expect(transaction.description).to eq 'Transfer to ' + stash.name + ' Stash'
       expect(transaction.locked).to be true
+      expect(transaction.category.name).to eq 'Transfer'
     end
   end
 

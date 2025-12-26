@@ -27,6 +27,7 @@ class PerformTransfer
     transaction.trx_type = "debit"
     transaction.trx_date = @date
     transaction.account_id = @source_account.id
+    transaction.category_id = Category.transfer_category.id
     transaction.description = "Transfer to " + @target_account.name
     transaction.amount = @amount.to_d.abs
     transaction.locked = true
@@ -40,6 +41,7 @@ class PerformTransfer
     transaction.trx_type = "credit"
     transaction.trx_date = @date
     transaction.account_id = @target_account.id
+    transaction.category_id = Category.transfer_category.id
     transaction.description = "Transfer from " + @source_account.name
     transaction.amount = @amount.to_d.abs
     transaction.locked = true
