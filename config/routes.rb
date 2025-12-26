@@ -51,6 +51,7 @@ Rails.application.routes.draw do
   resources :categories
   resources :matching_rules
   resources :search, only: [:index]
+  resources :reports, only: [:index]
   namespace :transactions do
     resources :batches, only: %i[index show new create destroy]
   end
