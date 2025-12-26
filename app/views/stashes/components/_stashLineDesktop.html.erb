@@ -29,7 +29,7 @@
                 <span class="is-size-7 has-text-grey"><%= stash.balance_display %> saved out of <%= stash.goal_display %></span></span>
               </div>
           </div>
-          <progress class="progress is-link" value="<%= stash.balance %>" max="<%= stash.goal %>"><%= stash.balance %></progress>
+          <progress class="progress is-link" value="<%= stash.progress %>" max="100"><%= stash.progress %>%</progress>
         <% end %>
       </div>
       

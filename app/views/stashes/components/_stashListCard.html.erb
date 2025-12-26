@@ -8,7 +8,7 @@
                   <p class="is-size-7 ml-5 has-tooltip has-tooltip-bottom" data-tooltip="Stash details">
                     <strong><%= stash.name %></strong>
                   </p>
-                  <progress class="progress is-link is-small" value="<%= stash.balance %>" max="<%= stash.goal %>"><%= stash.balance %></progress>
+                  <progress class="progress is-primary is-small" value="<%= stash.progress %>" max="100"><%= stash.progress %>%</progress>
                   <p class="is-size-7 has-text-centered">
                     <span class="has-text-grey has-text-weight-semibold"><%= stash.balance_display %> / <%= stash.goal_display %></span></span>
                   </p>
