@@ -23,6 +23,8 @@ class StashDecorator < ApplicationDecorator
   end
 
   def progress
+    return 0 if object.goal.zero?
+
     (object.balance / object.goal * 100.00).round
   end
 

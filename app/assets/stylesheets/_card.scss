@@ -51,17 +51,8 @@
     }
 
     progress {
-      background-color: white;
       border: 1px solid ob.$link;
       margin-bottom: 0.3rem;
-    }
-
-    progress::-webkit-progress-bar {
-      background-color: white;
-    }
-
-    progress::-moz-progress-bar {
-      background-color: white;
     }
   }
 }
