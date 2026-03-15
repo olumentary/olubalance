@@ -11,12 +11,11 @@ class SearchController < ApplicationController
     # Get base scope of transactions belonging to current user
     @transactions = Transaction.joins(:account).where(accounts: { user_id: current_user.id })
 
-    # Apply fuzzy search if query is present
-    if params[:query].present?
-      @transactions = @transactions.fuzzy_search(params[:query])
-    else
-      @transactions = @transactions.order(trx_date: :desc, id: :desc)
-    end
+    # Apply search if query is present
+    @transactions = @transactions.search(params[:query]) if params[:query].present?
+
+    # Apply sorting
+    apply_sorting
 
     # Apply filters
     apply_filters
@@ -39,6 +38,17 @@ class SearchController < ApplicationController
 
   def load_categories
     @categories = Category.for_user(current_user).ordered
+  end
+
+  def apply_sorting
+    allowed_columns = { "date" => "trx_date", "description" => "description", "amount" => "amount" }
+    column = allowed_columns[params[:sort_by]] || "trx_date"
+    direction = params[:sort_dir] == "asc" ? :asc : :desc
+
+    @sort_by = params[:sort_by].presence || "date"
+    @sort_dir = direction.to_s
+
+    @transactions = @transactions.order(column => direction, id: :desc)
   end
 
   def apply_filters
