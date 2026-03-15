@@ -1,5 +1,8 @@
 <div class="box mb-4">
-  <%= form_with url: search_index_path, method: :get, data: { turbo_frame: "search_results", turbo_action: "advance" }, class: "search-filters" do |f| %>
+  <%= form_with url: search_index_path, method: :get, data: { turbo_frame: "search_results", turbo_action: "advance", sortable_header_target: "form" }, class: "search-filters" do |f| %>
+    <%= hidden_field_tag :sort_by, @sort_by || "date", data: { sortable_header_target: "sortBy" } %>
+    <%= hidden_field_tag :sort_dir, @sort_dir || "desc", data: { sortable_header_target: "sortDir" } %>
+
     <div class="columns is-multiline">
       <div class="column is-12">
         <div class="field has-addons">
@@ -58,4 +61,3 @@
     </div>
   <% end %>
 </div>
-

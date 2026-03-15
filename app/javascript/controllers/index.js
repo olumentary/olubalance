@@ -72,3 +72,6 @@ application.register('category-suggest', CategorySuggestController);
 
 import ReportsChartController from './reports_chart_controller';
 application.register('reports-chart', ReportsChartController);
+
+import SortableHeaderController from './sortable_header_controller';
+application.register('sortable-header', SortableHeaderController);
