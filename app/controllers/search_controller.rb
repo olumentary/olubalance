@@ -11,12 +11,11 @@ class SearchController < ApplicationController
     # Get base scope of transactions belonging to current user
     @transactions = Transaction.joins(:account).where(accounts: { user_id: current_user.id })
 
-    # Apply fuzzy search if query is present
-    if params[:query].present?
-      @transactions = @transactions.fuzzy_search(params[:query])
-    else
-      @transactions = @transactions.order(trx_date: :desc, id: :desc)
-    end
+    # Apply search if query is present
+    @transactions = @transactions.search(params[:query]) if params[:query].present?
+
+    # Always sort by most recent first
+    @transactions = @transactions.order(trx_date: :desc, id: :desc)
 
     # Apply filters
     apply_filters
