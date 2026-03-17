@@ -138,10 +138,10 @@ GEM
       irb (~> 1.10)
       reline (>= 0.3.8)
     debug_inspector (1.2.0)
-    devise (4.9.4)
+    devise (5.0.3)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
-      railties (>= 4.1.0)
+      railties (>= 7.0)
       responders
       warden (~> 1.2.3)
     diff-lcs (1.6.2)
@@ -214,7 +214,7 @@ GEM
       launchy (>= 2.2, < 4)
     lint_roller (1.1.0)
     logger (1.7.0)
-    loofah (2.25.0)
+    loofah (2.25.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.12.0)
     mail (2.9.0)
@@ -483,7 +483,7 @@ DEPENDENCIES
   connection_pool (~> 2.4)
   cssbundling-rails
   debug
-  devise (~> 4.9.0)
+  devise (~> 5.0.3)
   draper (~> 4.0.2)
   factory_bot_rails
   faker
