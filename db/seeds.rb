@@ -511,3 +511,48 @@ accounts.each do |account|
 end
 
 puts "Created #{documents.length} documents"
+
+# Pagination testing account
+# Creates a dedicated user with 55 pending transactions (4 pages at 15/page)
+# so inline edit and mark-reviewed behavior across pages can be verified.
+puts "Creating pagination test account..."
+
+pagination_user = User.create!(
+  email: 'pagination@test.com',
+  password: 'topsecret',
+  password_confirmation: 'topsecret',
+  first_name: 'Pagination',
+  last_name: 'Tester',
+  timezone: 'Eastern Time (US & Canada)',
+  confirmed_at: DateTime.now
+)
+pagination_user.skip_confirmation!
+
+pagination_account = Account.create!(
+  name: 'Pagination Test Checking',
+  last_four: 9999,
+  starting_balance: 5000.00,
+  account_type: 'checking',
+  user: pagination_user
+)
+
+pending_descriptions = [
+  'Amazon Order', 'Target Run', 'Walmart Groceries', 'Gas Station Fill-up',
+  'Netflix Subscription', 'Spotify Premium', 'Gym Membership', 'Utility Bill',
+  'Restaurant Dinner', 'Coffee Shop', 'Online Purchase', 'Home Depot',
+  'Car Wash', 'Pharmacy', 'Doctor Copay', 'Book Store', 'Fast Food',
+  'Grocery Store', 'Hardware Store', 'Clothing Store'
+]
+
+55.times do |i|
+  Transaction.create!(
+    trx_date: Faker::Date.backward(days: 30),
+    description: "#{pending_descriptions[i % pending_descriptions.length]} #{i + 1}",
+    amount: Faker::Number.between(from: 5.00, to: 200.00).to_f.round(2),
+    trx_type: 'debit',
+    pending: true,
+    account: pagination_account
+  )
+end
+
+puts "Pagination test account created: email=pagination@test.com password=topsecret (55 pending transactions)"

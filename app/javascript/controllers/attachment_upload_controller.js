@@ -67,7 +67,7 @@ export default class extends Controller {
 
         // Refresh the page after a short delay to show updated state
         setTimeout(() => {
-          window.location.reload();
+          Turbo.visit(window.location.href, { action: 'replace' });
         }, 1500);
       } else {
         this.showError(data.errors.join(', '));
