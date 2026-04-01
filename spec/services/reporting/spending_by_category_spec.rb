@@ -57,9 +57,9 @@ RSpec.describe Reporting::SpendingByCategory do
         create(:transaction, :non_pending, account: account, category: category1,
                amount: -120, trx_date: Date.current, trx_type: "debit", pending: false)
 
-        # Previous period (last month)
+        # Previous period (last day of previous month, always within computed prev_start..prev_end)
         create(:transaction, :non_pending, account: account, category: category1,
-               amount: -100, trx_date: Date.current.beginning_of_month - 10.days, trx_type: "debit", pending: false)
+               amount: -100, trx_date: Date.current.beginning_of_month - 1.day, trx_type: "debit", pending: false)
       end
 
       it "returns spending for both periods" do

@@ -37,7 +37,7 @@ export default class extends Controller {
       .then(data => {
         if (data.success) {
           // Refresh the page to update balances and other dependent data
-          window.location.reload();
+          Turbo.visit(window.location.href, { action: 'replace' });
         } else {
           throw new Error(data.error || 'Update failed');
         }
