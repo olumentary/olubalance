@@ -252,43 +252,92 @@ accounts.each do |account|
     )
   end
 
-  # Create 10 transactions with multiple attachments for the first account only (for migration testing)
-  if account == accounts.first
-    10.times do |i|
+  # Create transactions with attachments for staging migration tests.
+  # We seed the first checking account of each user so that every user has
+  # attachment data, giving a more realistic staging volume (varied file sizes
+  # and types) that exercises batching and resumability.
+  user_first_checking = accounts.select { |a| a.account_type == 'checking' && a.user_id == account.user_id }.first
+  if account == user_first_checking
+    # Helper: generate a synthetic text-based file of approximately `size_kb` kilobytes.
+    # Avoids binary asset dependencies while still producing varied byte sizes.
+    generate_text_receipt = lambda do |label, size_kb|
+      line  = "#{label} | #{Faker::Commerce::MerchantName rescue 'Vendor'} | #{Faker::Date.backward(days: 30)} | $#{rand(1..500)}.#{rand(10..99)}\n"
+      lines = (size_kb * 1024 / [line.bytesize, 1].max) + 1
+      StringIO.new((line * lines)[0, size_kb * 1024])
+    end
+
+    generate_csv_receipt = lambda do |label, rows|
+      header = "Date,Description,Amount,Category,Reference\n"
+      body   = rows.times.map do |r|
+        "#{Date.today - r},#{label} item #{r + 1},$#{rand(1..200)}.#{rand(10..99)},#{%w[Groceries Dining Fuel Travel].sample},REF-#{SecureRandom.hex(4).upcase}"
+      end.join("\n")
+      StringIO.new(header + body)
+    end
+
+    # 25 transactions — varied attachment counts, sizes, and content types.
+    # This gives ~40 blobs per user account, ~120 total across 3 seed users,
+    # enough to exercise BATCH_SIZE, pause, and cancel/resume behaviour.
+    25.times do |i|
       t = Transaction.create!(
-            trx_date: Faker::Date.backward(days: 1),
-            description: "Migration Test Transaction #{i + 1}",
-            amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
-            trx_type: 'debit',
-            skip_pending_default: true,
-            account: account
-          )
-      
-      # Attach multiple files to demonstrate multiple attachments support
-      # Primary receipt image
-      t.attachments.attach(
-        io: File.open('app/assets/images/logo.png'), 
-        filename: "receipt-#{i + 1}.png", 
-        content_type: 'image/png'
+        trx_date:             Faker::Date.backward(days: 30),
+        description:          "Migration Test Transaction #{i + 1}",
+        amount:               Faker::Number.between(from: 1.00, to: 500.00).to_f.round(2),
+        trx_type:             'debit',
+        skip_pending_default: true,
+        account:              account
       )
-      
-      # Additional supporting documents (simulate multiple attachments)
-      if i % 3 == 0  # Every 3rd transaction gets 2 additional attachments
+
+      case i % 5
+      when 0
+        # Single small PNG receipt (~real image from assets)
         t.attachments.attach(
-          io: File.open('app/assets/images/logo.png'), 
-          filename: "supporting-doc-#{i + 1}-1.png", 
+          io:           File.open('app/assets/images/logo.png'),
+          filename:     "receipt-#{i + 1}.png",
+          content_type: 'image/png'
+        )
+      when 1
+        # Single small plain-text receipt (~2 KB)
+        t.attachments.attach(
+          io:           generate_text_receipt.call("TXT Receipt #{i + 1}", 2),
+          filename:     "receipt-#{i + 1}.txt",
+          content_type: 'text/plain'
+        )
+      when 2
+        # Medium text receipt (~20 KB) — exercises streaming path more visibly
+        t.attachments.attach(
+          io:           generate_text_receipt.call("MED Receipt #{i + 1}", 20),
+          filename:     "receipt-#{i + 1}.txt",
+          content_type: 'text/plain'
+        )
+      when 3
+        # CSV-formatted receipt with 50 line items (~3 KB)
+        t.attachments.attach(
+          io:           generate_csv_receipt.call("CSV Receipt #{i + 1}", 50),
+          filename:     "receipt-#{i + 1}.csv",
+          content_type: 'text/csv'
+        )
+        # Plus a secondary supporting PNG document
+        t.attachments.attach(
+          io:           File.open('app/assets/images/logo.png'),
+          filename:     "supporting-doc-#{i + 1}.png",
+          content_type: 'image/png'
+        )
+      when 4
+        # Three attachments: PNG + large text (~50 KB) + CSV
+        t.attachments.attach(
+          io:           File.open('app/assets/images/logo.png'),
+          filename:     "receipt-#{i + 1}-primary.png",
           content_type: 'image/png'
         )
         t.attachments.attach(
-          io: File.open('app/assets/images/logo.png'), 
-          filename: "supporting-doc-#{i + 1}-2.png", 
-          content_type: 'image/png'
+          io:           generate_text_receipt.call("LG Receipt #{i + 1}", 50),
+          filename:     "receipt-#{i + 1}-detail.txt",
+          content_type: 'text/plain'
         )
-      elsif i % 2 == 0  # Every 2nd transaction gets 1 additional attachment
         t.attachments.attach(
-          io: File.open('app/assets/images/logo.png'), 
-          filename: "supporting-doc-#{i + 1}.png", 
-          content_type: 'image/png'
+          io:           generate_csv_receipt.call("CSV Detail #{i + 1}", 100),
+          filename:     "receipt-#{i + 1}-items.csv",
+          content_type: 'text/csv'
         )
       end
     end

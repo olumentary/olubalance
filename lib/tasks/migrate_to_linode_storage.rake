@@ -1,890 +1,766 @@
 # frozen_string_literal: true
 
+# ─── Shared helpers ───────────────────────────────────────────────────────────
+# These are defined at the top level so they are available to all tasks below.
+
+def storage_format_bytes(bytes)
+  return '0 B' unless bytes&.positive?
+  units = %w[B KB MB GB]
+  exp   = [( Math.log(bytes) / Math.log(1024) ).floor, units.length - 1].min
+  "#{(bytes.to_f / 1024**exp).round(1)} #{units[exp]}"
+end
+
+def storage_format_eta(seconds)
+  return 'unknown' unless seconds&.positive? && seconds.finite?
+  h, rem = seconds.divmod(3600)
+  m, s   = rem.divmod(60)
+  parts  = []
+  parts << "#{h.to_i}h" if h >= 1
+  parts << "#{m.to_i}m" if m >= 1
+  parts << "#{s.to_i}s"
+  parts.join(' ')
+end
+
+def storage_print_progress(count, total, start_time, blob, note = nil)
+  elapsed = [Time.now - start_time, 0.001].max
+  eta     = storage_format_eta((elapsed / count) * (total - count))
+  pct     = total > 0 ? (count * 100.0 / total).round(1) : 0
+  line    = "[#{count}/#{total} #{pct}%] Blob #{blob.id} (#{blob.filename})"
+  line   += " — #{note}" if note
+  line   += " | ETA #{eta}"
+  puts line
+end
+
+def build_s3_client(access_key_id:, secret_access_key:, region:, endpoint:)
+  require 'aws-sdk-s3'
+  Aws::S3::Client.new(
+    access_key_id:     access_key_id,
+    secret_access_key: secret_access_key,
+    region:            region,
+    endpoint:          endpoint,
+    force_path_style:  true
+  )
+end
+
+# ─── Tasks ────────────────────────────────────────────────────────────────────
+
 namespace :storage do
-  desc 'Migrate transaction attachments from AWS S3 to Linode S3-compatible storage (DEPRECATED - use migrate_blobs_to_linode instead)'
+  desc 'Migrate transaction attachments from AWS S3 to Linode (DEPRECATED — use migrate_blobs_to_linode)'
   task migrate_to_linode: :environment do
-    puts "⚠️  This migration method is deprecated and may not work correctly."
-    puts "Please use 'bundle exec rails storage:migrate_blobs_to_linode' instead."
-    puts ""
-    puts "The migrate_blobs_to_linode method is more robust and handles the migration"
-    puts "at the blob level, which is the recommended approach for ActiveStorage migrations."
-    puts ""
-    puts "To run the recommended migration:"
-    puts "  bundle exec rails storage:migrate_blobs_to_linode"
-    puts ""
-    puts "Or use the migration script:"
-    puts "  bin/migrate_to_linode"
-    puts ""
+    puts "This migration method is deprecated and may not work correctly."
+    puts "Please use: bundle exec rails storage:migrate_blobs_to_linode"
     exit 1
   end
-  
-  desc 'Migrate using ActiveStorage blob records (more robust method)'
+
+  desc <<~DESC
+    Migrate ActiveStorage blobs to Linode object storage (resumable, chunked).
+
+    Uses an in-place strategy: downloads each blob from the source service and
+    uploads it to Linode under the SAME key, then updates service_name in the DB.
+    This means active_storage_blobs.service_name is the single source of truth —
+    re-running the task automatically skips already-migrated blobs.
+
+    Options (via ENV):
+      SOURCE_SERVICE=amazon   Service name to migrate from (default: amazon)
+      BATCH_SIZE=N            Stop after migrating N blobs this run (default: 0 = all)
+      BATCH_PAUSE=N           Sleep N seconds every 100 blobs, e.g. to throttle (default: 0)
+      DRY_RUN=1               List blobs that would be migrated without making changes
+  DESC
   task migrate_blobs_to_linode: :environment do
-    puts "Starting migration of ActiveStorage blobs from AWS S3 to Linode..."
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    
-    # First, let's see what service names are actually in the database
-    puts "Current blob service distribution:"
-    ActiveStorage::Blob.group(:service_name).count.each do |service, count|
-      puts "  #{service}: #{count} blobs"
-    end
+    require 'tempfile'
+
+    batch_limit = ENV.fetch('BATCH_SIZE', 0).to_i
+    batch_pause = ENV.fetch('BATCH_PAUSE', 0).to_i
+    dry_run     = ENV['DRY_RUN'].present?
+    source_name = ENV.fetch('SOURCE_SERVICE', 'amazon')
+    dest_name   = 'linode'
+
+    puts "=== Linode Storage Migration ==="
+    puts "Source service : #{source_name}"
+    puts "Batch limit    : #{batch_limit > 0 ? batch_limit : 'unlimited (all pending)'}"
+    puts "Batch pause    : #{batch_pause > 0 ? "#{batch_pause}s every 100 blobs" : 'none'}"
+    puts "Mode           : #{dry_run ? 'DRY RUN — no changes will be made' : 'LIVE'}"
     puts ""
-    
-    # Find all blobs that are currently stored on AWS
-    current_service = Rails.application.config.active_storage.service.to_s
-    aws_service_name = current_service
-    puts "Looking for blobs with service_name: #{aws_service_name}"
-    
-    aws_blobs = ActiveStorage::Blob.joins(:attachments)
-                                   .where(service_name: aws_service_name)
-                                   .distinct
-    
-    total_blobs = aws_blobs.count
-    puts "Found #{total_blobs} blobs to migrate"
-    
-    if total_blobs == 0
-      puts "No blobs found to migrate. Exiting."
-      puts "\nBlob migration completed!"
-    else
-      migrated_count = 0
-      failed_count = 0
-      failed_blobs = []
-      
-      aws_blobs.find_each do |blob|
+
+    # Fail fast if the destination service is not configured
+    begin
+      dest_service = ActiveStorage::Blob.services.fetch(dest_name)
+    rescue => e
+      abort "Cannot load '#{dest_name}' storage service: #{e.message}\n" \
+            "Verify config/storage.yml and LINODE_* environment variables."
+    end
+
+    # Only include blobs that belong to at least one attachment (orphan blobs are excluded)
+    scope = ActiveStorage::Blob
+              .joins(:attachments)
+              .where(service_name: source_name)
+              .distinct
+              .order(:id)
+
+    total_pending = scope.count
+
+    puts "Current blob distribution:"
+    ActiveStorage::Blob.group(:service_name).count.each { |svc, n| puts "  #{svc}: #{n}" }
+    puts ""
+    puts "Blobs pending migration: #{total_pending}"
+    puts ""
+
+    if total_pending == 0
+      puts "Nothing to migrate — all blobs are already on Linode, or there are no blobs."
+      next
+    end
+
+    if dry_run
+      limit = [batch_limit > 0 ? batch_limit : 50, 50].min
+      puts "Blobs that would be migrated (showing up to #{limit}):"
+      scope.limit(limit).each do |blob|
+        puts "  Blob #{blob.id}: #{blob.filename} (#{storage_format_bytes(blob.byte_size)}, key: #{blob.key})"
+      end
+      puts "  ... and #{total_pending - limit} more" if total_pending > limit
+      puts ""
+      puts "Re-run without DRY_RUN=1 to perform the migration."
+      next
+    end
+
+    # Graceful shutdown: finish the in-flight blob, then print summary and exit
+    shutdown  = false
+    prev_int  = Signal.trap('INT')  { puts "\nInterrupt — finishing current blob then stopping..."; shutdown = true }
+    prev_term = Signal.trap('TERM') { shutdown = true }
+
+    migrated_count = 0
+    skipped_count  = 0   # already in Linode bucket; only needed a DB update
+    failed_count   = 0
+    failures       = []
+    start_time     = Time.now
+
+    scope.find_each(batch_size: 100) do |blob|
+      break if shutdown
+      break if batch_limit > 0 && migrated_count >= batch_limit
+
       begin
-        puts "Migrating blob #{blob.id} (#{blob.filename})"
-        
-        # Download the file from AWS S3
-        puts "  Downloading from AWS S3..."
-        downloaded_file = blob.download
-        
-        # Create a new blob record for Linode with a unique key
-        puts "  Creating new blob record for Linode..."
-        new_key = "linode-migrated-#{SecureRandom.hex(16)}"
-        new_blob = ActiveStorage::Blob.create!(
-          key: new_key,
-          filename: blob.filename,
-          content_type: blob.content_type,
-          metadata: blob.metadata,
-          byte_size: blob.byte_size,
-          checksum: blob.checksum,
-          service_name: 'linode'
-        )
-        
-        puts "    New blob created:"
-        puts "      ID: #{new_blob.id}"
-        puts "      Key: #{new_blob.key}"
-        puts "      Filename: #{new_blob.filename}"
-        puts "      Service: #{new_blob.service_name}"
-        
-        # Upload the file to Linode using the new blob
-        puts "  Uploading to Linode..."
-        puts "    Blob key: #{new_blob.key}"
-        puts "    Blob filename: #{new_blob.filename}"
-        puts "    Blob size: #{downloaded_file.bytesize} bytes"
-        puts "    Target service: 'linode'"
-        
-        begin
-          new_blob.upload(StringIO.new(downloaded_file))
-          puts "    ✓ Upload call completed without error"
-        rescue => e
-          puts "    ✗ Upload failed: #{e.message}"
-          puts "    Error class: #{e.class}"
-          puts "    Backtrace: #{e.backtrace.first(5).join("\n      ")}"
-          # Clean up the new blob if upload fails
-          new_blob.destroy
-          raise e
+        # If the file is already in the Linode bucket (e.g. a previous run uploaded
+        # the file but crashed before updating service_name), just flip service_name.
+        if dest_service.exist?(blob.key)
+          blob.update_column(:service_name, dest_name)
+          migrated_count += 1
+          skipped_count  += 1
+          storage_print_progress(migrated_count, total_pending, start_time, blob,
+                                 'already in Linode bucket — DB record updated')
+          next
         end
-        
-        # Verify the file was actually uploaded to Linode
-        puts "  Verifying upload to Linode..."
-        begin
-          # Try to download a small portion to verify it's accessible
-          puts "    Attempting to open file for verification..."
-          new_blob.open do |file|
-            data = file.read(1)
-            puts "    ✓ File opened successfully, read #{data.bytesize} bytes"
-          end
-          puts "  ✓ File verified on Linode"
-        rescue => e
-          puts "  ✗ File verification failed: #{e.message}"
-          puts "    Error class: #{e.class}"
-          puts "    Backtrace: #{e.backtrace.first(5).join("\n      ")}"
-          # Clean up the new blob if verification fails
-          new_blob.destroy
-          raise e
+
+        source_service = blob.service  # resolved automatically from blob.service_name
+
+        ext = blob.filename.extension_with_delimiter.presence || '.tmp'
+        Tempfile.create(["blob-#{blob.id}", ext]) do |tmp|
+          tmp.binmode
+          source_service.download(blob.key) { |chunk| tmp.write(chunk) }
+          tmp.rewind
+          dest_service.upload(blob.key, tmp, checksum: blob.checksum)
         end
-        
-        # Update all attachments to use the new blob
-        puts "  Updating attachments to use new blob..."
-        blob.attachments.update_all(blob_id: new_blob.id)
-        puts "    ✓ Attachments updated"
-        
-        # Delete the old blob record
-        puts "  Cleaning up old blob record..."
-        blob.destroy
-        puts "    ✓ Old blob record deleted"
-        
-        puts "  ✓ Successfully migrated"
+
+        blob.update_column(:service_name, dest_name)
         migrated_count += 1
-        
+        storage_print_progress(migrated_count, total_pending, start_time, blob,
+                               storage_format_bytes(blob.byte_size))
+
+        sleep(batch_pause) if batch_pause > 0 && (migrated_count % 100).zero?
+
       rescue => e
-        puts "  ✗ Error migrating blob #{blob.id}: #{e.message}"
         failed_count += 1
-        failed_blobs << { id: blob.id, filename: blob.filename, error: e.message }
-        
-        # Ensure we're back to original storage service
-        Rails.application.config.active_storage.service = original_service
+        failures << { id: blob.id, filename: blob.filename.to_s, error: "#{e.class}: #{e.message}" }
+        puts "  [FAILED] Blob #{blob.id} (#{blob.filename}): #{e.class}: #{e.message}"
       end
     end
-    
-    # Print summary
-    puts "\n" + "="*50
-    puts "BLOB MIGRATION SUMMARY"
-    puts "="*50
-    puts "Total blobs: #{total_blobs}"
-    puts "Successfully migrated: #{migrated_count}"
-    puts "Failed: #{failed_count}"
-    
-    if failed_blobs.any?
-      puts "\nFailed blobs:"
-      failed_blobs.each do |failure|
-        puts "  Blob #{failure[:id]} (#{failure[:filename]}): #{failure[:error]}"
-      end
+
+    # Restore original signal handlers
+    Signal.trap('INT',  prev_int  || 'DEFAULT')
+    Signal.trap('TERM', prev_term || 'DEFAULT')
+
+    elapsed   = (Time.now - start_time).round(1)
+    remaining = scope.count   # re-query after the run for an accurate final count
+
+    puts ""
+    puts "=" * 60
+    puts "MIGRATION SUMMARY"
+    puts "=" * 60
+    puts "Elapsed time          : #{elapsed}s"
+    puts "Migrated this run     : #{migrated_count}"
+    puts "  (DB-only fixes)     : #{skipped_count}" if skipped_count > 0
+    puts "Failed                : #{failed_count}"
+    puts "Still pending         : #{remaining}"
+    puts "Stopped early (signal): yes" if shutdown
+
+    if failures.any?
+      puts ""
+      puts "Failed blobs:"
+      failures.each { |f| puts "  Blob #{f[:id]} (#{f[:filename]}): #{f[:error]}" }
     end
-    
-    puts "\nBlob migration completed!"
+
+    puts ""
+    if remaining > 0 && shutdown
+      puts "#{remaining} blob(s) still pending. Re-run to resume (already-migrated blobs are skipped)."
+    elsif remaining > 0
+      puts "#{remaining} blob(s) still pending. Re-run to continue."
+    else
+      puts "All blobs have been migrated to Linode."
     end
   end
-  
-  desc 'Verify migration by checking attachment accessibility on Linode'
+
+  desc 'Verify migration: check that every Linode blob actually exists in the Linode bucket'
   task verify_linode_migration: :environment do
     puts "Verifying Linode migration..."
-    
-    # Switch to Linode storage
-    original_service = Rails.application.config.active_storage.service
-    Rails.application.config.active_storage.service = :linode
-    
-    total_attachments = Transaction.joins(:attachments_attachments).count
-    verified_count = 0
-    failed_count = 0
-    
-    Transaction.joins(:attachments_attachments).find_each do |transaction|
-      begin
-        attachment = transaction.attachment
-        
-        if attachment.attached?
-          # Try to access the attachment by downloading a small portion
-          # This verifies the file is accessible without needing URL generation
-          begin
-            # Try to read the first few bytes to verify accessibility
-            attachment.open do |file|
-              file.read(1) # Just read 1 byte to verify the file is accessible
-            end
-            puts "  ✓ Transaction #{transaction.id}: #{attachment.filename} - Accessible"
-            verified_count += 1
-          rescue => e
-            puts "  ✗ Transaction #{transaction.id}: #{attachment.filename} - Not accessible: #{e.message}"
-            failed_count += 1
-          end
-        else
-          puts "  ✗ Transaction #{transaction.id}: No attachment found"
-          failed_count += 1
-        end
-      rescue => e
-        puts "  ✗ Transaction #{transaction.id}: Error - #{e.message}"
-        failed_count += 1
+    puts ""
+
+    begin
+      linode_service = ActiveStorage::Blob.services.fetch(:linode)
+    rescue => e
+      abort "Cannot load 'linode' service: #{e.message}"
+    end
+
+    linode_blobs  = ActiveStorage::Blob.joins(:attachments).where(service_name: 'linode').distinct
+    total         = linode_blobs.count
+    verified      = 0
+    missing_count = 0
+    missing_blobs = []
+
+    puts "Blobs with service_name='linode': #{total}"
+    puts ""
+
+    linode_blobs.find_each(batch_size: 100) do |blob|
+      if linode_service.exist?(blob.key)
+        verified += 1
+        puts "  ✓ Blob #{blob.id} (#{blob.filename})"
+      else
+        missing_count += 1
+        missing_blobs << blob
+        puts "  ✗ Blob #{blob.id} (#{blob.filename}) — NOT FOUND in Linode (key: #{blob.key})"
       end
     end
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    
-    puts "\n" + "="*50
+
+    puts ""
+    puts "=" * 60
     puts "VERIFICATION SUMMARY"
-    puts "="*50
-    puts "Total attachments: #{total_attachments}"
-    puts "Verified: #{verified_count}"
-    puts "Failed: #{failed_count}"
-  end
-  
-  desc 'Clean up old AWS S3 attachments after successful migration'
-  task cleanup_aws_attachments: :environment do
-    puts "WARNING: This will permanently delete all attachments from AWS S3!"
-    puts "Make sure you have verified the migration was successful before proceeding."
-    print "Type 'YES' to continue: "
-    
-    confirmation = STDIN.gets.chomp
-    
-    if confirmation != 'YES'
-      puts "Cleanup cancelled."
-      return
+    puts "=" * 60
+    puts "Total Linode blobs (DB)  : #{total}"
+    puts "Verified in bucket       : #{verified}"
+    puts "Missing from bucket      : #{missing_count}"
+
+    if missing_blobs.any?
+      puts ""
+      puts "Run 'rails storage:recover_missing_files' to re-upload missing files from AWS."
     end
-    
-    puts "Starting cleanup of AWS S3 attachments..."
-    
-    # Switch to AWS storage
-    original_service = Rails.application.config.active_storage.service
-    Rails.application.config.active_storage.service = :amazon
-    
-    cleaned_count = 0
-    
-    Transaction.joins(:attachments_attachments).find_each do |transaction|
+
+    puts ""
+    puts "Verification completed!"
+  end
+
+  desc 'Clean up old AWS S3 files after successful migration (removes files from S3, not DB records)'
+  task cleanup_aws_attachments: :environment do
+    puts "WARNING: This permanently deletes migrated files from AWS S3."
+    puts "Only proceed after verifying the Linode migration is complete and all files are accessible."
+    print "Type 'YES' to continue: "
+
+    confirmation = $stdin.gets.chomp
+    unless confirmation == 'YES'
+      puts "Cleanup cancelled."
+      next
+    end
+
+    begin
+      amazon_service = ActiveStorage::Blob.services.fetch(:amazon)
+    rescue => e
+      abort "Cannot load 'amazon' service: #{e.message}"
+    end
+
+    # Only delete files for blobs that have already been successfully migrated to Linode
+    migrated_blobs = ActiveStorage::Blob.where(service_name: 'linode')
+    total          = migrated_blobs.count
+    cleaned_count  = 0
+    failed_count   = 0
+
+    puts ""
+    puts "Deleting #{total} file(s) from AWS S3 (keys that have been migrated to Linode)..."
+    puts ""
+
+    migrated_blobs.find_each(batch_size: 100) do |blob|
       begin
-        attachment = transaction.attachment
-        
-        if attachment.attached?
-          puts "  Cleaning up attachment for transaction #{transaction.id}"
-          attachment.purge
-          cleaned_count += 1
-        end
+        amazon_service.delete(blob.key)
+        cleaned_count += 1
+        puts "  ✓ Deleted #{blob.filename} (key: #{blob.key})"
       rescue => e
-        puts "  ✗ Error cleaning up transaction #{transaction.id}: #{e.message}"
+        failed_count += 1
+        puts "  ✗ Failed #{blob.filename} (key: #{blob.key}): #{e.message}"
       end
     end
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    
-    puts "\n" + "="*50
+
+    puts ""
+    puts "=" * 60
     puts "CLEANUP SUMMARY"
-    puts "="*50
-    puts "Cleaned up: #{cleaned_count} attachments"
-    puts "Cleanup completed!"
+    puts "=" * 60
+    puts "Deleted from AWS S3 : #{cleaned_count}"
+    puts "Failed              : #{failed_count}"
+    puts ""
+    puts "Note: DB blob records and Linode files are unchanged."
   end
-  
-  desc 'Validate files exist in Linode bucket by checking bucket contents directly'
+
+  desc 'Validate files exist in Linode bucket by issuing HEAD requests directly via S3 client'
   task validate_linode_bucket: :environment do
     puts "Validating files in Linode bucket..."
-    
-    # Get Linode configuration
-    service_name = 'linode'
+
     bucket_name = ENV['LINODE_BUCKET_NAME']
-    
-    puts "  Service: #{service_name}"
-    puts "  Bucket: #{bucket_name}"
+
+    puts "  Bucket : #{bucket_name}"
     puts ""
-    
-    # Create a temporary service instance to access Linode directly
-    require 'aws-sdk-s3'
-    
-    s3_client = Aws::S3::Client.new(
-      access_key_id: ENV['LINODE_ACCESS_KEY_ID'],
+
+    s3_client = build_s3_client(
+      access_key_id:     ENV['LINODE_ACCESS_KEY_ID'],
       secret_access_key: ENV['LINODE_SECRET_ACCESS_KEY'],
-      region: ENV['LINODE_REGION'],
-      endpoint: ENV['LINODE_ENDPOINT'],
-      force_path_style: true
+      region:            ENV['LINODE_REGION'],
+      endpoint:          ENV['LINODE_ENDPOINT']
     )
-    
-    # Get all blobs that should be on Linode
-    linode_blobs = ActiveStorage::Blob.where(service_name: service_name)
-    
-    puts "Database shows #{linode_blobs.count} blobs should be on Linode"
-    puts ""
-    
-    found_count = 0
+
+    linode_blobs  = ActiveStorage::Blob.where(service_name: 'linode')
+    total         = linode_blobs.count
+    found_count   = 0
     missing_count = 0
     missing_files = []
-    
-    linode_blobs.find_each do |blob|
+
+    puts "DB shows #{total} blob(s) with service_name='linode'"
+    puts ""
+
+    linode_blobs.find_each(batch_size: 100) do |blob|
       begin
-        # Check if the file exists in the bucket
         s3_client.head_object(bucket: bucket_name, key: blob.key)
-        puts "  ✓ #{blob.filename} (key: #{blob.key})"
         found_count += 1
-      rescue Aws::S3::Errors::NoSuchKey
-        puts "  ✗ #{blob.filename} (key: #{blob.key}) - NOT FOUND IN BUCKET"
+        puts "  ✓ #{blob.filename} (key: #{blob.key})"
+      rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::NoSuchKey
         missing_count += 1
-        missing_files << { id: blob.id, filename: blob.filename, key: blob.key }
+        missing_files << { id: blob.id, filename: blob.filename.to_s, key: blob.key }
+        puts "  ✗ #{blob.filename} (key: #{blob.key}) — NOT FOUND IN BUCKET"
       rescue => e
-        puts "  ✗ #{blob.filename} (key: #{blob.key}) - ERROR: #{e.message}"
         missing_count += 1
-        missing_files << { id: blob.id, filename: blob.filename, key: blob.key, error: e.message }
+        missing_files << { id: blob.id, filename: blob.filename.to_s, key: blob.key, error: e.message }
+        puts "  ✗ #{blob.filename} (key: #{blob.key}) — ERROR: #{e.message}"
       end
     end
-    
-    puts "\n" + "="*50
+
+    puts ""
+    puts "=" * 60
     puts "BUCKET VALIDATION SUMMARY"
-    puts "="*50
-    puts "Total blobs in database: #{linode_blobs.count}"
-    puts "Found in bucket: #{found_count}"
-    puts "Missing from bucket: #{missing_count}"
-    
+    puts "=" * 60
+    puts "Blobs in DB (service=linode) : #{total}"
+    puts "Found in bucket              : #{found_count}"
+    puts "Missing from bucket          : #{missing_count}"
+
     if missing_files.any?
-      puts "\nMissing files:"
-      missing_files.each do |missing|
-        puts "  Blob #{missing[:id]}: #{missing[:filename]} (key: #{missing[:key]})"
-        puts "    Error: #{missing[:error]}" if missing[:error]
+      puts ""
+      puts "Missing files:"
+      missing_files.each do |f|
+        puts "  Blob #{f[:id]}: #{f[:filename]} (key: #{f[:key]})"
+        puts "    Error: #{f[:error]}" if f[:error]
       end
     end
-    
-    puts "\nBucket validation completed!"
+
+    puts ""
+    puts "Bucket validation completed!"
   end
-  
-  desc 'Recover missing files by checking AWS S3 and restoring them'
+
+  desc 'Recover blobs missing from their current storage by re-uploading from AWS S3 to Linode'
   task recover_missing_files: :environment do
     puts "Recovering missing files..."
-    puts "This will check AWS S3 for missing files and restore them"
+    puts "Checks every blob's current storage location and re-uploads from AWS S3 if missing."
     print "Type 'RECOVER' to continue: "
-    
-    confirmation = STDIN.gets.chomp
-    
-    if confirmation != 'RECOVER'
+
+    confirmation = $stdin.gets.chomp
+    unless confirmation == 'RECOVER'
       puts "Recovery cancelled."
-      return
+      next
     end
-    
-    puts "Starting file recovery..."
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    
-    # Find all blobs that have missing files
-    all_blobs = ActiveStorage::Blob.joins(:attachments).distinct
-    missing_files = []
-    
-    puts "Checking #{all_blobs.count} blobs for missing files..."
-    
-    all_blobs.find_each do |blob|
-      begin
-        # Try to access the file
-        blob.open do |file|
-          file.read(1)
-        end
-        puts "  ✓ #{blob.filename} - Accessible"
-      rescue => e
-        puts "  ✗ #{blob.filename} - Missing: #{e.message}"
-        missing_files << blob
+
+    require 'tempfile'
+
+    begin
+      amazon_service = ActiveStorage::Blob.services.fetch(:amazon)
+      linode_service = ActiveStorage::Blob.services.fetch(:linode)
+    rescue => e
+      abort "Cannot load storage services: #{e.message}"
+    end
+
+    all_blobs     = ActiveStorage::Blob.joins(:attachments).distinct
+    missing_blobs = []
+
+    puts "Scanning #{all_blobs.count} blob(s) for missing files..."
+    puts ""
+
+    all_blobs.find_each(batch_size: 100) do |blob|
+      unless blob.service.exist?(blob.key)
+        puts "  ✗ Blob #{blob.id} (#{blob.filename}) — missing from #{blob.service_name}"
+        missing_blobs << blob
       end
     end
-    
-    if missing_files.empty?
-      puts "\nNo missing files found!"
-      return
+
+    if missing_blobs.empty?
+      puts "No missing files found — all blobs are accessible."
+      next
     end
-    
-    puts "\nFound #{missing_files.count} missing files. Attempting recovery..."
-    
-    recovered_count = 0
-    failed_count = 0
-    
-    missing_files.each do |blob|
+
+    puts ""
+    puts "Found #{missing_blobs.count} missing blob(s). Attempting recovery from AWS S3..."
+    puts ""
+
+    recovered = 0
+    failed    = 0
+
+    missing_blobs.each do |blob|
       begin
-        puts "Recovering #{blob.filename}..."
-        
-        # Try to recover from AWS S3 first
-        Rails.application.config.active_storage.service = :amazon
-        
-        begin
-          # Check if file exists on AWS
-          aws_blob = ActiveStorage::Blob.find(blob.id)
-          aws_blob.open do |file|
-            file.read(1)
-          end
-          puts "  ✓ File found on AWS, restoring..."
-          
-          # Download from AWS
-          downloaded_file = aws_blob.download
-          
-          # Switch to Linode and upload
-          Rails.application.config.active_storage.service = :linode
-          blob.upload(StringIO.new(downloaded_file))
-          blob.update!(service_name: 'linode')
-          
-          puts "  ✓ Successfully recovered and migrated to Linode"
-          recovered_count += 1
-          
-        rescue => e
-          puts "  ✗ File not found on AWS: #{e.message}"
-          failed_count += 1
+        puts "Recovering Blob #{blob.id} (#{blob.filename})..."
+
+        unless amazon_service.exist?(blob.key)
+          puts "  ✗ Not found in AWS S3 — cannot recover automatically."
+          failed += 1
+          next
         end
-        
+
+        ext = blob.filename.extension_with_delimiter.presence || '.tmp'
+        Tempfile.create(["recovery-#{blob.id}", ext]) do |tmp|
+          tmp.binmode
+          amazon_service.download(blob.key) { |chunk| tmp.write(chunk) }
+          tmp.rewind
+          linode_service.upload(blob.key, tmp, checksum: blob.checksum)
+        end
+
+        blob.update_column(:service_name, 'linode')
+        puts "  ✓ Recovered and uploaded to Linode"
+        recovered += 1
+
       rescue => e
-        puts "  ✗ Error recovering #{blob.filename}: #{e.message}"
-        failed_count += 1
+        puts "  ✗ Error recovering Blob #{blob.id}: #{e.message}"
+        failed += 1
       end
     end
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    
-    puts "\n" + "="*50
+
+    puts ""
+    puts "=" * 60
     puts "RECOVERY SUMMARY"
-    puts "="*50
-    puts "Missing files found: #{missing_files.count}"
-    puts "Successfully recovered: #{recovered_count}"
-    puts "Failed to recover: #{failed_count}"
-    
-    if failed_count > 0
-      puts "\nSome files could not be recovered from AWS S3."
-      puts "You may need to manually restore these files from backups."
-    end
-    
-    puts "\nRecovery completed!"
+    puts "=" * 60
+    puts "Missing found : #{missing_blobs.count}"
+    puts "Recovered     : #{recovered}"
+    puts "Failed        : #{failed}"
+    puts ""
+    puts "Failed blobs will need manual intervention." if failed > 0
+    puts "Recovery completed!"
   end
-  
-  desc 'Rollback migration by restoring blobs to AWS S3 service'
+
+  desc 'Rollback migration: re-upload blobs from Linode back to AWS S3 (resumable)'
   task rollback_migration: :environment do
-    puts "WARNING: This will rollback the Linode migration and restore blobs to AWS S3"
-    puts "This should only be used if the migration failed and you need to restore the previous state"
+    puts "WARNING: This re-uploads blobs from Linode back to AWS S3 and reverts service_name."
+    puts "Use only if the Linode migration must be undone."
     print "Type 'ROLLBACK' to continue: "
-    
-    confirmation = STDIN.gets.chomp
-    
-    if confirmation != 'ROLLBACK'
+
+    confirmation = $stdin.gets.chomp
+    unless confirmation == 'ROLLBACK'
       puts "Rollback cancelled."
-      return
+      next
     end
-    
-    puts "Starting rollback of Linode migration..."
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    
-    # Find all blobs that were migrated to Linode
-    linode_service_name = 'linode'
-    aws_service_name = 'amazon'
-    
-    linode_blobs = ActiveStorage::Blob.where(service_name: linode_service_name)
-    
-    puts "Found #{linode_blobs.count} blobs to rollback"
-    
-    if linode_blobs.count == 0
-      puts "No Linode blobs found to rollback. Exiting."
-      return
+
+    require 'tempfile'
+
+    begin
+      amazon_service = ActiveStorage::Blob.services.fetch(:amazon)
+      linode_service = ActiveStorage::Blob.services.fetch(:linode)
+    rescue => e
+      abort "Cannot load storage services: #{e.message}"
     end
-    
-    rolled_back_count = 0
-    failed_count = 0
-    failed_blobs = []
-    
-    linode_blobs.find_each do |blob|
+
+    linode_blobs = ActiveStorage::Blob.where(service_name: 'linode').order(:id)
+    total        = linode_blobs.count
+
+    if total == 0
+      puts "No Linode blobs found to roll back."
+      next
+    end
+
+    puts ""
+    puts "Rolling back #{total} blob(s) from Linode → AWS S3..."
+    puts ""
+
+    shutdown  = false
+    prev_int  = Signal.trap('INT')  { puts "\nInterrupt — finishing current blob then stopping."; shutdown = true }
+    prev_term = Signal.trap('TERM') { shutdown = true }
+
+    rolled_back = 0
+    failed      = 0
+    failures    = []
+    start_time  = Time.now
+
+    linode_blobs.find_each(batch_size: 100) do |blob|
+      break if shutdown
+
       begin
-        puts "Rolling back blob #{blob.id} (#{blob.filename})"
-        
-        # Switch to AWS storage
-        Rails.application.config.active_storage.service = :amazon
-        
-        # Check if the file still exists on AWS
-        begin
-          # Try to access the file on AWS
-          blob.open do |file|
-            file.read(1)
-          end
-          puts "  ✓ File found on AWS"
-        rescue => e
-          puts "  ⚠️  File not found on AWS: #{e.message}"
-          puts "  This blob may have been deleted from AWS during migration"
+        ext = blob.filename.extension_with_delimiter.presence || '.tmp'
+        Tempfile.create(["rollback-#{blob.id}", ext]) do |tmp|
+          tmp.binmode
+          linode_service.download(blob.key) { |chunk| tmp.write(chunk) }
+          tmp.rewind
+          amazon_service.upload(blob.key, tmp, checksum: blob.checksum)
         end
-        
-        # Restore the service name to AWS
-        blob.update!(service_name: aws_service_name)
-        
-        puts "  ✓ Successfully rolled back"
-        rolled_back_count += 1
-        
+
+        blob.update_column(:service_name, 'amazon')
+        rolled_back += 1
+        storage_print_progress(rolled_back, total, start_time, blob)
+
       rescue => e
-        puts "  ✗ Error rolling back blob #{blob.id}: #{e.message}"
-        failed_count += 1
-        failed_blobs << { id: blob.id, filename: blob.filename, error: e.message }
+        failed += 1
+        failures << { id: blob.id, filename: blob.filename.to_s, error: e.message }
+        puts "  [FAILED] Blob #{blob.id} (#{blob.filename}): #{e.message}"
       end
     end
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    
-    # Print summary
-    puts "\n" + "="*50
+
+    Signal.trap('INT',  prev_int  || 'DEFAULT')
+    Signal.trap('TERM', prev_term || 'DEFAULT')
+
+    remaining = ActiveStorage::Blob.where(service_name: 'linode').count
+
+    puts ""
+    puts "=" * 60
     puts "ROLLBACK SUMMARY"
-    puts "="*50
-    puts "Total blobs: #{linode_blobs.count}"
-    puts "Successfully rolled back: #{rolled_back_count}"
-    puts "Failed: #{failed_count}"
-    
-    if failed_blobs.any?
-      puts "\nFailed rollbacks:"
-      failed_blobs.each do |failure|
-        puts "  Blob #{failure[:id]} (#{failure[:filename]}): #{failure[:error]}"
-      end
+    puts "=" * 60
+    puts "Total Linode blobs   : #{total}"
+    puts "Rolled back          : #{rolled_back}"
+    puts "Failed               : #{failed}"
+    puts "Still on Linode      : #{remaining}"
+    puts "Stopped early        : yes" if shutdown
+
+    if failures.any?
+      puts ""
+      puts "Failed rollbacks:"
+      failures.each { |f| puts "  Blob #{f[:id]} (#{f[:filename]}): #{f[:error]}" }
     end
-    
-    puts "\nRollback completed!"
-    puts "Your blobs should now be pointing back to AWS S3"
+
+    puts ""
+    puts remaining > 0 ? "Re-run to continue rollback." : "All blobs rolled back to AWS S3."
+    puts "Rollback completed!"
   end
-  
+
   desc 'Test Linode configuration and upload a test file'
   task test_linode_upload: :environment do
     puts "Testing Linode configuration and upload..."
-    
-    # Check environment variables
+
     puts "Environment variables:"
-    puts "  LINODE_ACCESS_KEY_ID: #{ENV['LINODE_ACCESS_KEY_ID'] ? 'SET' : 'NOT SET'}"
+    puts "  LINODE_ACCESS_KEY_ID:     #{ENV['LINODE_ACCESS_KEY_ID'] ? 'SET' : 'NOT SET'}"
     puts "  LINODE_SECRET_ACCESS_KEY: #{ENV['LINODE_SECRET_ACCESS_KEY'] ? 'SET' : 'NOT SET'}"
-    puts "  LINODE_ENDPOINT: #{ENV['LINODE_ENDPOINT']}"
-    puts "  LINODE_REGION: #{ENV['LINODE_REGION']}"
-    puts "  LINODE_BUCKET_NAME: #{ENV['LINODE_BUCKET_NAME']}"
+    puts "  LINODE_ENDPOINT:          #{ENV['LINODE_ENDPOINT']}"
+    puts "  LINODE_REGION:            #{ENV['LINODE_REGION']}"
+    puts "  LINODE_BUCKET_NAME:       #{ENV['LINODE_BUCKET_NAME']}"
     puts ""
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    puts "Original storage service: #{original_service}"
-    
-    # Switch to Linode storage
-    target_service = :linode
-    puts "Switching to: #{target_service}"
-    Rails.application.config.active_storage.service = target_service
-    
-    # Create a test blob with a unique key
-    puts "Creating test blob..."
-    test_content = "This is a test file for Linode upload verification. Created at #{Time.current}"
-    test_key = "test-upload-linode-verification-#{Time.current.to_i}"
-    test_filename = "test-upload-linode-verification-#{Time.current.to_i}.txt"
-    
-    # Clean up any existing test blobs first
-    existing_test_blobs = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
-    if existing_test_blobs.any?
-      puts "Cleaning up #{existing_test_blobs.count} existing test blobs..."
-      existing_test_blobs.destroy_all
+
+    # Clean up any stale test blobs first
+    stale = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
+    if stale.any?
+      puts "Cleaning up #{stale.count} stale test blob(s)..."
+      stale.destroy_all
     end
-    
+
+    test_content  = "Linode upload test. Created at #{Time.current}"
+    test_key      = "test-upload-linode-verification-#{Time.current.to_i}"
+    test_filename = "#{test_key}.txt"
+
     test_blob = ActiveStorage::Blob.create!(
-      key: test_key,
-      filename: test_filename,
-      content_type: "text/plain",
-      metadata: {},
-      byte_size: test_content.bytesize,
-      checksum: Digest::MD5.hexdigest(test_content),
+      key:          test_key,
+      filename:     test_filename,
+      content_type: 'text/plain',
+      metadata:     {},
+      byte_size:    test_content.bytesize,
+      checksum:     Digest::MD5.base64digest(test_content),
       service_name: 'linode'
     )
-    
-    puts "Test blob created:"
-    puts "  ID: #{test_blob.id}"
-    puts "  Key: #{test_blob.key}"
-    puts "  Filename: #{test_blob.filename}"
-    puts "  Service: #{test_blob.service_name}"
-    puts ""
-    
-    # Upload the test file
-    puts "Uploading test file..."
+
+    puts "Test blob created (ID: #{test_blob.id}, key: #{test_blob.key})"
+
+    linode_service = ActiveStorage::Blob.services.fetch(:linode)
+
     begin
-      test_blob.upload(StringIO.new(test_content))
-      puts "✓ Upload call completed"
+      require 'tempfile'
+      Tempfile.create(['linode-test', '.txt']) do |tmp|
+        tmp.binmode
+        tmp.write(test_content)
+        tmp.rewind
+        linode_service.upload(test_key, tmp, checksum: Digest::MD5.base64digest(test_content))
+      end
+      puts "✓ Upload succeeded"
     rescue => e
-      puts "✗ Upload failed: #{e.message}"
-      puts "Error class: #{e.class}"
-      puts "Backtrace: #{e.backtrace.first(10).join("\n  ")}"
-      
-      # Clean up the test blob
+      puts "✗ Upload failed: #{e.message} (#{e.class})"
       test_blob.destroy
-      
-      # Switch back to original storage
-      Rails.application.config.active_storage.service = original_service
-      return
+      next
     end
-    
-    # Verify the upload
-    puts "Verifying upload..."
+
     begin
-      test_blob.open do |file|
-        downloaded_content = file.read
-        puts "✓ File downloaded successfully"
-        puts "  Expected size: #{test_content.bytesize} bytes"
-        puts "  Actual size: #{downloaded_content.bytesize} bytes"
-        puts "  Content matches: #{test_content == downloaded_content}"
-      end
+      content = linode_service.download(test_key)
+      puts "✓ Download verified (#{content.bytesize} bytes, content match: #{content == test_content})"
     rescue => e
-      puts "✗ Verification failed: #{e.message}"
-      puts "Error class: #{e.class}"
-      puts "Backtrace: #{e.backtrace.first(5).join("\n  ")}"
+      puts "✗ Download verification failed: #{e.message}"
     end
-    
-    # Test direct S3 access
-    puts "Testing direct S3 access..."
+
+    # Confirm via direct S3 client
     begin
-      require 'aws-sdk-s3'
-      
-      s3_client = Aws::S3::Client.new(
-        access_key_id: ENV['LINODE_ACCESS_KEY_ID'],
+      s3_client = build_s3_client(
+        access_key_id:     ENV['LINODE_ACCESS_KEY_ID'],
         secret_access_key: ENV['LINODE_SECRET_ACCESS_KEY'],
-        region: ENV['LINODE_REGION'],
-        endpoint: ENV['LINODE_ENDPOINT'],
-        force_path_style: true
+        region:            ENV['LINODE_REGION'],
+        endpoint:          ENV['LINODE_ENDPOINT']
       )
-      
-      bucket_name = ENV['LINODE_BUCKET_NAME']
-      
-      # Check if bucket exists
-      begin
-        s3_client.head_bucket(bucket: bucket_name)
-        puts "✓ Bucket '#{bucket_name}' exists"
-      rescue => e
-        puts "✗ Bucket '#{bucket_name}' not accessible: #{e.message}"
-      end
-      
-      # Check if file exists in bucket
-      begin
-        s3_client.head_object(bucket: bucket_name, key: test_blob.key)
-        puts "✓ File found in bucket with key: #{test_blob.key}"
-      rescue => e
-        puts "✗ File not found in bucket: #{e.message}"
-      end
-      
+      s3_client.head_bucket(bucket: ENV['LINODE_BUCKET_NAME'])
+      puts "✓ Bucket '#{ENV['LINODE_BUCKET_NAME']}' is accessible"
+      s3_client.head_object(bucket: ENV['LINODE_BUCKET_NAME'], key: test_key)
+      puts "✓ File confirmed in bucket"
     rescue => e
-      puts "✗ S3 client test failed: #{e.message}"
+      puts "✗ Direct S3 check failed: #{e.message}"
     end
-    
-    # Note: Test file left in Linode for manual inspection
-    puts "Test file uploaded successfully and left in Linode for inspection"
-    puts "You can manually delete it later using: bundle exec rails storage:test_linode_delete"
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    puts "Switched back to: #{original_service}"
-    
-    puts "\nTest completed!"
+
+    puts ""
+    puts "Test file left in Linode for inspection (key: #{test_key})."
+    puts "Run 'rails storage:cleanup_test_blobs' to remove it."
+    puts ""
+    puts "Test completed!"
   end
-  
+
   desc 'Diagnose blob service names and migration readiness'
   task diagnose_migration: :environment do
     puts "Diagnosing migration readiness..."
-    puts "Environment: #{Rails.env}"
-    puts "Current storage service: #{Rails.application.config.active_storage.service}"
+    puts "Environment    : #{Rails.env}"
+    puts "Active service : #{Rails.application.config.active_storage.service}"
     puts ""
-    
-    # Check all blobs and their service names
-    puts "All blobs in database:"
-    ActiveStorage::Blob.group(:service_name).count.each do |service, count|
-      puts "  #{service}: #{count} blobs"
-    end
+
+    puts "All blobs (by service_name):"
+    ActiveStorage::Blob.group(:service_name).count.each { |svc, n| puts "  #{svc}: #{n}" }
     puts ""
-    
-    # Check blobs with attachments
-    puts "Blobs with attachments:"
-    ActiveStorage::Blob.joins(:attachments).group(:service_name).count.each do |service, count|
-      puts "  #{service}: #{count} blobs"
-    end
+
+    puts "Blobs with at least one attachment (by service_name):"
+    ActiveStorage::Blob.joins(:attachments).group(:service_name).count.each { |svc, n| puts "  #{svc}: #{n}" }
     puts ""
-    
-    # Check what the migration script is looking for
-    aws_service_name = 'amazon'
-    puts "Migration script is looking for service_name: '#{aws_service_name}'"
-    
-    # Check if any blobs match this service name
-    matching_blobs = ActiveStorage::Blob.joins(:attachments).where(service_name: aws_service_name).distinct
-    puts "Found #{matching_blobs.count} blobs with service_name '#{aws_service_name}'"
-    
-    if matching_blobs.count == 0
+
+    source_name = ENV.fetch('SOURCE_SERVICE', 'amazon')
+    pending = ActiveStorage::Blob.joins(:attachments).where(service_name: source_name).distinct.count
+    puts "Blobs pending migration (service_name='#{source_name}'): #{pending}"
+
+    if pending == 0
       puts ""
-      puts "⚠️  No blobs found with service_name '#{aws_service_name}'"
-      puts "This means either:"
-      puts "  1. Your blobs use a different service name"
-      puts "  2. You have no attachments to migrate"
-      puts "  3. The migration has already been completed"
-      puts ""
-      
-      # Show some example blobs
-      sample_blobs = ActiveStorage::Blob.joins(:attachments).limit(5)
-      if sample_blobs.any?
-        puts "Sample blobs with attachments:"
-        sample_blobs.each do |blob|
-          puts "  Blob #{blob.id}: #{blob.filename} (service: #{blob.service_name})"
-        end
+      puts "No blobs found with service_name='#{source_name}'."
+      puts "Either migration is complete, there are no attachments, or SOURCE_SERVICE is wrong."
+      sample = ActiveStorage::Blob.joins(:attachments).limit(5)
+      if sample.any?
+        puts ""
+        puts "Sample blobs:"
+        sample.each { |b| puts "  Blob #{b.id}: #{b.filename} (service: #{b.service_name})" }
       end
     else
       puts ""
-      puts "✅ Found blobs to migrate!"
-      puts "Sample blobs that will be migrated:"
-      matching_blobs.limit(5).each do |blob|
-        puts "  Blob #{blob.id}: #{blob.filename}"
-      end
+      puts "#{pending} blob(s) ready to migrate. Run 'rails storage:migrate_blobs_to_linode'."
     end
-    
+
     puts ""
     puts "Diagnosis completed!"
   end
-  
-  desc 'Test Linode delete operations specifically'
+
+  desc 'Test Linode delete operations using the test blob created by test_linode_upload'
   task test_linode_delete: :environment do
     puts "Testing Linode delete operations..."
-    
-    # Check environment variables
-    puts "Environment variables:"
-    puts "  LINODE_ACCESS_KEY_ID: #{ENV['LINODE_ACCESS_KEY_ID'] ? 'SET' : 'NOT SET'}"
-    puts "  LINODE_SECRET_ACCESS_KEY: #{ENV['LINODE_SECRET_ACCESS_KEY'] ? 'SET' : 'NOT SET'}"
-    puts "  LINODE_ENDPOINT: #{ENV['LINODE_ENDPOINT']}"
-    puts "  LINODE_REGION: #{ENV['LINODE_REGION']}"
-    puts "  LINODE_BUCKET_NAME: #{ENV['LINODE_BUCKET_NAME']}"
     puts ""
-    
-    # Store original storage service
-    original_service = Rails.application.config.active_storage.service
-    puts "Original storage service: #{original_service}"
-    
-    # Switch to Linode storage
-    target_service = :linode
-    puts "Switching to: #{target_service}"
-    Rails.application.config.active_storage.service = target_service
-    
-    # Look for the test blob created by the upload task
-    puts "Looking for test blob created by upload task..."
-    
-    # Try to find the most recent test blob in the database
+
+    linode_service = ActiveStorage::Blob.services.fetch(:linode)
+
     test_blob = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
                                    .order(created_at: :desc)
                                    .first
-    
+
     if test_blob.nil?
-      puts "✗ Test blob not found in database"
-      puts "Please run 'bundle exec rails storage:test_linode_upload' first to create the test file"
-      Rails.application.config.active_storage.service = original_service
-      return
+      puts "✗ No test blob found. Run 'rails storage:test_linode_upload' first."
+      next
     end
-    
-    puts "✓ Test blob found in database:"
-    puts "  ID: #{test_blob.id}"
-    puts "  Key: #{test_blob.key}"
-    puts "  Filename: #{test_blob.filename}"
-    puts "  Service: #{test_blob.service_name}"
+
+    puts "Test blob found: ID #{test_blob.id}, key #{test_blob.key}"
     puts ""
-    
-    # Verify the file exists via ActiveStorage
-    puts "Verifying file exists via ActiveStorage..."
-    begin
-      test_blob.open do |file|
-        downloaded_content = file.read
-        puts "✓ File accessible via ActiveStorage (size: #{downloaded_content.bytesize} bytes)"
-      end
-    rescue => e
-      puts "✗ File not accessible via ActiveStorage: #{e.message}"
+
+    if linode_service.exist?(test_blob.key)
+      puts "✓ File is accessible in Linode"
+    else
+      puts "✗ File not found in Linode bucket (may not have been uploaded)"
     end
-    
-    # Test direct S3 access to confirm file exists
-    puts "Confirming file exists via direct S3 access..."
-    begin
-      require 'aws-sdk-s3'
-      
-      s3_client = Aws::S3::Client.new(
-        access_key_id: ENV['LINODE_ACCESS_KEY_ID'],
-        secret_access_key: ENV['LINODE_SECRET_ACCESS_KEY'],
-        region: ENV['LINODE_REGION'],
-        endpoint: ENV['LINODE_ENDPOINT'],
-        force_path_style: true
-      )
-      
-      bucket_name = ENV['LINODE_BUCKET_NAME']
-      
-      # Check if file exists in bucket
-      begin
-        s3_client.head_object(bucket: bucket_name, key: test_blob.key)
-        puts "✓ File confirmed in bucket"
-      rescue => e
-        puts "✗ File not found in bucket: #{e.message}"
-      end
-      
-    rescue => e
-      puts "✗ S3 client test failed: #{e.message}"
-    end
-    
-    # Now test the delete operation
-    puts "\n" + "="*50
-    puts "TESTING DELETE OPERATION"
-    puts "="*50
-    
-    # Make sure we're on the correct storage service
-    puts "Current storage service: #{Rails.application.config.active_storage.service}"
-    puts "Target service: #{target_service}"
-    
-    if Rails.application.config.active_storage.service != target_service
-      puts "Switching to target service for deletion..."
-      Rails.application.config.active_storage.service = target_service
-    end
-    
-    # Test 1: Try purge (deletes file from storage)
-    puts "\nTest 1: Testing purge operation..."
+
+    puts ""
+    puts "Deleting test file via purge..."
     begin
       test_blob.purge
-      puts "✓ Purge operation completed"
+      puts "✓ Purge completed"
     rescue => e
       puts "✗ Purge failed: #{e.message}"
-      puts "Error class: #{e.class}"
-      puts "Backtrace: #{e.backtrace.first(5).join("\n  ")}"
     end
-    
-    # Test 2: Try destroy (deletes database record)
-    puts "\nTest 2: Testing destroy operation..."
-    begin
-      test_blob.destroy
-      puts "✓ Destroy operation completed"
-    rescue => e
-      puts "✗ Destroy failed: #{e.message}"
-      puts "Error class: #{e.class}"
-      puts "Backtrace: #{e.backtrace.first(5).join("\n  ")}"
-    end
-    
-    # Verify deletion via direct S3 access
-    puts "\nVerifying deletion via direct S3 access..."
-    begin
-      s3_client.head_object(bucket: bucket_name, key: test_blob.key)
-      puts "⚠️  File still exists in bucket after deletion"
-    rescue Aws::S3::Errors::NoSuchKey
-      puts "✓ File successfully deleted from bucket"
-    rescue => e
-      puts "✗ Error checking file existence: #{e.message}"
-    end
-    
-    # Switch back to original storage
-    Rails.application.config.active_storage.service = original_service
-    puts "\nSwitched back to: #{original_service}"
-    
-    puts "\nDelete test completed!"
-  end
-  
-  desc 'Clean up test blobs created by the test tasks'
-  task cleanup_test_blobs: :environment do
-    puts "Cleaning up test blobs..."
-    
-    # Find all test blobs
-    test_blobs = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
-    
-    if test_blobs.any?
-      puts "Found #{test_blobs.count} test blobs to clean up:"
-      test_blobs.each do |blob|
-        puts "  - #{blob.key} (#{blob.filename})"
-      end
-      
-      print "Do you want to delete these test blobs? (y/N): "
-      confirmation = STDIN.gets.chomp
-      
-      if confirmation.downcase == 'y'
-        test_blobs.destroy_all
-        puts "✓ Test blobs cleaned up"
-      else
-        puts "Cleanup cancelled"
-      end
+
+    unless linode_service.exist?(test_blob.key)
+      puts "✓ File confirmed deleted from Linode bucket"
     else
-      puts "No test blobs found"
+      puts "✗ File still present in Linode bucket after purge"
+    end
+
+    puts ""
+    puts "Delete test completed!"
+  end
+
+  desc 'Clean up test blobs created by test_linode_upload'
+  task cleanup_test_blobs: :environment do
+    test_blobs = ActiveStorage::Blob.where("key LIKE ?", "test-upload-linode-verification%")
+
+    if test_blobs.none?
+      puts "No test blobs found."
+      next
+    end
+
+    puts "Found #{test_blobs.count} test blob(s):"
+    test_blobs.each { |b| puts "  #{b.key} (#{b.filename})" }
+    print "Delete these? (y/N): "
+
+    if $stdin.gets.chomp.downcase == 'y'
+      test_blobs.destroy_all
+      puts "✓ Test blobs cleaned up."
+    else
+      puts "Cleanup cancelled."
     end
   end
-  
-  desc 'Show current storage configuration and attachment counts'
+
+  desc 'Show storage configuration, blob distribution, and pending migration count'
   task status: :environment do
-    puts "Current storage configuration:"
-    puts "  Service: #{Rails.application.config.active_storage.service}"
-    puts "  Environment: #{Rails.env}"
-    
-    puts "\nAttachment statistics:"
-    total_transactions = Transaction.count
-    transactions_with_attachments = Transaction.joins(:attachments_attachments).count
-    
-    puts "  Total transactions: #{total_transactions}"
-    puts "  Transactions with attachments: #{transactions_with_attachments}"
-    puts "  Attachment percentage: #{total_transactions > 0 ? (transactions_with_attachments.to_f / total_transactions * 100).round(2) : 0}%"
-    
-    puts "\nBlob storage distribution:"
-    ActiveStorage::Blob.group(:service_name).count.each do |service, count|
-      puts "  #{service}: #{count} blobs"
+    puts "Storage configuration:"
+    puts "  Active service : #{Rails.application.config.active_storage.service}"
+    puts "  Environment    : #{Rails.env}"
+    puts ""
+
+    puts "Blob distribution (by service_name):"
+    counts = ActiveStorage::Blob.group(:service_name).count
+    if counts.empty?
+      puts "  (no blobs)"
+    else
+      counts.each { |svc, n| puts "  #{svc}: #{n}" }
     end
+    puts ""
+
+    total_blobs       = ActiveStorage::Blob.count
+    pending_migration = ActiveStorage::Blob.joins(:attachments).where.not(service_name: 'linode').distinct.count
+    fully_migrated    = ActiveStorage::Blob.joins(:attachments).where(service_name: 'linode').distinct.count
+
+    puts "Migration progress:"
+    puts "  Migrated to Linode   : #{fully_migrated}"
+    puts "  Still pending        : #{pending_migration}"
+    puts "  Total attached blobs : #{fully_migrated + pending_migration}"
+    puts ""
+
+    puts "Attachment statistics:"
+    total_transactions              = Transaction.count
+    transactions_with_attachments   = Transaction.joins(:attachments_attachments).count
+    pct = total_transactions > 0 ? (transactions_with_attachments.to_f / total_transactions * 100).round(2) : 0
+
+    puts "  Total transactions              : #{total_transactions}"
+    puts "  Transactions with attachments   : #{transactions_with_attachments} (#{pct}%)"
+    puts "  Total blobs (incl. orphans)     : #{total_blobs}"
   end
-end 
+end
