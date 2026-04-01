@@ -22,7 +22,7 @@ module TransactionsHelper
     # Previous button
     if pagy.prev
       prev_params = base_params.merge(page: pagy.prev)
-      html += link_to("Previous", account_transactions_path(account) + "?" + prev_params.to_query, class: "pagination-previous", data: { turbo_action: "advance" })
+      html += link_to("Previous", account_transactions_path(account) + "?" + prev_params.to_query, class: "pagination-previous", data: { turbo_frame: "_top" })
     else
       html += '<span class="pagination-previous" disabled>Previous</span>'
     end
@@ -30,7 +30,7 @@ module TransactionsHelper
     # Next button
     if pagy.next
       next_params = base_params.merge(page: pagy.next)
-      html += link_to("Next", account_transactions_path(account) + "?" + next_params.to_query, class: "pagination-next", data: { turbo_action: "advance" })
+      html += link_to("Next", account_transactions_path(account) + "?" + next_params.to_query, class: "pagination-next", data: { turbo_frame: "_top" })
     else
       html += '<span class="pagination-next" disabled>Next</span>'
     end
@@ -46,7 +46,7 @@ module TransactionsHelper
           html += '<li><span class="pagination-link is-current" aria-current="page">' + page_num.to_s + '</span></li>'
         else
           page_params = base_params.merge(page: page_num)
-          html += '<li>' + link_to(page_num.to_s, account_transactions_path(account) + "?" + page_params.to_query, class: "pagination-link", data: { turbo_action: "advance" }) + '</li>'
+          html += '<li>' + link_to(page_num.to_s, account_transactions_path(account) + "?" + page_params.to_query, class: "pagination-link", data: { turbo_frame: "_top" }) + '</li>'
         end
       elsif item == :gap
         html += '<li><span class="pagination-ellipsis">&hellip;</span></li>'
