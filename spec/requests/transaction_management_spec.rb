@@ -234,4 +234,99 @@ RSpec.describe "Transaction management", type: :request do
     pending_transaction.reload
     expect(pending_transaction.pending).to be false
   end
+
+  describe "process_receipt action" do
+    let(:quick_receipt) do
+      FactoryBot.build(:transaction, account: @account, quick_receipt: true, pending: true,
+                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
+    end
+
+    before { sign_in @user }
+
+    it "returns OCR data from the AI service for a quick receipt transaction" do
+      ocr_result = ReceiptOcrClient::OcrResult.new(
+        description: 'Starbucks',
+        date:        '2025-04-01',
+        amount:      '12.50',
+        trx_type:    'debit'
+      )
+      allow_any_instance_of(ReceiptOcrClient).to receive(:process).and_return(ocr_result)
+
+      post process_receipt_account_transaction_path(@account, quick_receipt),
+           headers: { 'Accept' => 'application/json' }
+
+      expect(response).to be_successful
+      body = JSON.parse(response.body)
+      expect(body['success']).to be true
+      expect(body['description']).to eq('Starbucks')
+      expect(body['amount']).to eq('12.50')
+    end
+
+    it "returns a failure response when OCR cannot read the receipt" do
+      allow_any_instance_of(ReceiptOcrClient).to receive(:process).and_return(nil)
+
+      post process_receipt_account_transaction_path(@account, quick_receipt),
+           headers: { 'Accept' => 'application/json' }
+
+      expect(response).to be_successful
+      body = JSON.parse(response.body)
+      expect(body['success']).to be false
+    end
+
+    it "rejects non-quick-receipt transactions" do
+      post process_receipt_account_transaction_path(@account, @transaction),
+           headers: { 'Accept' => 'application/json' }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  describe "approve_quick_receipt via update" do
+    let(:quick_receipt) do
+      FactoryBot.build(:transaction, account: @account, quick_receipt: true, pending: true,
+                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
+    end
+
+    before { sign_in @user }
+
+    it "clears the quick_receipt flag and marks the transaction as reviewed when approve_quick_receipt is sent" do
+      patch account_transaction_path(@account, quick_receipt),
+            params: {
+              transaction: {
+                description: 'Coffee',
+                amount: '5.00',
+                trx_type: 'debit',
+                trx_date: Date.today.to_s,
+                account_id: @account.id
+              },
+              approve_quick_receipt: 'true'
+            },
+            headers: { 'Accept' => 'application/json' }
+
+      expect(response).to be_successful
+      quick_receipt.reload
+      expect(quick_receipt.quick_receipt).to be false
+      expect(quick_receipt.pending).to be true
+    end
+
+    it "keeps the quick_receipt flag when approve_quick_receipt is NOT sent" do
+      # Without approval, quick_receipt stays true; the attachment validation also
+      # prevents saving (no attachment on this test transaction), confirming the flag
+      # is only cleared via the explicit approve path.
+      patch account_transaction_path(@account, quick_receipt),
+            params: {
+              transaction: {
+                description: 'Coffee',
+                amount: '5.00',
+                trx_type: 'debit',
+                trx_date: Date.today.to_s,
+                account_id: @account.id
+              }
+            },
+            headers: { 'Accept' => 'application/json' }
+
+      quick_receipt.reload
+      expect(quick_receipt.quick_receipt).to be true
+    end
+  end
 end

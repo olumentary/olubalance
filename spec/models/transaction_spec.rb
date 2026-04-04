@@ -211,23 +211,21 @@ RSpec.describe Transaction, type: :model do
 
   describe 'quick receipt behavior' do
     let(:account) { FactoryBot.create(:account) }
-    # Start without amount so the callback does not clear the flag on creation
     let(:quick_receipt_trx) do
       FactoryBot.build(:transaction, account: account, quick_receipt: true, pending: true,
                                      description: nil, amount: nil).tap { |t| t.save!(validate: false) }
     end
 
     context 'when description and amount are filled in' do
-      it 'clears the quick_receipt flag on save' do
-        # Bypass attachment validation (which requires a file) to test the callback in isolation
+      it 'does NOT automatically clear the quick_receipt flag (flag is cleared via explicit approval)' do
         quick_receipt_trx.assign_attributes(description: 'Coffee', amount: 5.00, trx_type: 'debit')
         quick_receipt_trx.save!(validate: false)
-        expect(quick_receipt_trx.reload.quick_receipt).to be_falsey
+        expect(quick_receipt_trx.reload.quick_receipt).to be true
       end
     end
 
     context 'when description or amount is missing' do
-      it 'keeps the quick_receipt flag when both fields are blank' do
+      it 'keeps the quick_receipt flag' do
         quick_receipt_trx.save
         expect(quick_receipt_trx.quick_receipt).to be true
       end

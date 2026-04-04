@@ -26,6 +26,7 @@ Rails.application.routes.draw do
         patch :update_attachment
         delete :delete_attachment
         post :update_date
+        post :process_receipt
       end
       collection do
         get :descriptions
