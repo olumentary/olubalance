@@ -24,6 +24,11 @@ class AccountsController < ApplicationController
     @accounts_savings_cash = @accounts_savings_cash.decorate
     @accounts_credit = @accounts_credit.decorate
     @accounts = @accounts.decorate
+
+    @quick_receipt_count = Transaction.quick_receipts
+                                      .joins(:account)
+                                      .where(accounts: { user_id: current_user.id, active: true })
+                                      .count
   end
 
   def inactive

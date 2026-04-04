@@ -46,6 +46,7 @@ Rails.application.routes.draw do
 
   resources :transfers, only: %i[create]
   resources :quick_transactions, only: [ :new, :create ]
+  resources :quick_receipts, only: [:index]
   resources :documents, only: %i[index show new create edit update]
   resources :bills, except: %i[show]
   resources :categories

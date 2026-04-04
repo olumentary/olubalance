@@ -5,7 +5,7 @@
   style="z-index: 9999" 
   data-shared-target="modal"
   data-controller="quick-receipt-review"
-  data-quick-receipt-review-url-value="<%= account_transaction_path(id: transaction.id) %>"
+  data-quick-receipt-review-url-value="<%= account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
 >
   <div 
     class="modal-background"
@@ -105,7 +105,7 @@
                 <!-- Description -->
                 <div class="field">
                   <label class="label has-text-grey">Description</label>
-                  <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>" style="position: relative;">
+                  <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path(transaction.account) %>" style="position: relative;">
                     <%= f.text_field :description, class: "input is-primary",
                                                 placeholder: "Description",
                                                 data: { 

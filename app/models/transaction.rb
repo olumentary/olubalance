@@ -53,6 +53,7 @@ class Transaction < ApplicationRecord
   scope :recent, -> { where("created_at > ?", 3.days.ago).order("trx_date, id") }
   scope :pending, -> { where(pending: true).order("trx_date, id") }
   scope :non_pending, -> { where(pending: false).order("trx_date DESC, id DESC") }
+  scope :quick_receipts, -> { where(quick_receipt: true) }
 
   scope :search, lambda { |query|
     query = sanitize_sql_like(query)

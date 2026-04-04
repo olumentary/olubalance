@@ -1,0 +1,66 @@
+<nav class="level is-mobile">
+  <div class="level-left">
+    <%= render partial: "shared/pageLevelTitle", locals: { title: "Review Quick Receipts", subtitle: pluralize(@quick_receipt_count, "receipt") + " pending" } %>
+  </div>
+  <div class="level-right">
+    <div class="level-item">
+      <%= link_to accounts_path, class: "button is-light is-small" do %>
+        <span class="icon">
+          <i class="fas fa-arrow-left"></i>
+        </span>
+        <span>Back to Accounts</span>
+      <% end %>
+    </div>
+  </div>
+</nav>
+
+<% if @quick_receipts_by_account.empty? %>
+  <div class="notification is-success is-light">
+    <span class="icon">
+      <i class="fas fa-check-circle"></i>
+    </span>
+    <span>No quick receipt transactions to review. You're all caught up!</span>
+  </div>
+<% else %>
+  <% @quick_receipts_by_account.each do |account, transactions| %>
+    <div class="container mb-6" data-controller="shared">
+      <p class="title mb-3 is-size-5 has-text-link">
+        <span class="icon-text">
+          <span class="icon">
+            <i class="fas fa-university"></i>
+          </span>
+          <span><%= account.name %></span>
+          <span class="tag is-warning is-light ml-2"><%= pluralize(transactions.size, "receipt") %></span>
+        </span>
+      </p>
+
+      <table class="table is-hoverable is-fullwidth ob-table mb-4">
+        <thead class="ob-table-phead">
+          <th class="has-text-centered is-hidden-mobile">
+            <div class="ob-cell-content">Date</div>
+          </th>
+          <th class="is-hidden-mobile">
+            <div class="ob-cell-content">Description</div>
+          </th>
+          <th class="is-hidden-mobile">
+            <div class="ob-cell-content">Category</div>
+          </th>
+          <th class="has-text-right is-hidden-mobile">
+            <div class="ob-cell-content">Amount</div>
+          </th>
+          <th class="has-text-right is-hidden-mobile">
+            <div class="ob-cell-content">Actions</div>
+          </th>
+        </thead>
+        <tbody>
+          <%= render partial: "quick_receipts/quickReceiptRow", collection: transactions, as: :transaction %>
+        </tbody>
+      </table>
+
+      <% transactions.select(&:pending?).each do |transaction| %>
+        <%= render partial: "transactions/components/quickReceiptReviewModal", locals: { transaction: transaction, categories: @categories } %>
+      <% end %>
+    </div>
+    <hr/>
+  <% end %>
+<% end %>

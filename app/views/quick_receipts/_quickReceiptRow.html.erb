@@ -1,0 +1,101 @@
+<!-- Desktop row -->
+<tr id="transaction_<%= transaction.id %>" class="is-hidden-mobile">
+  <td class="has-text-centered has-text-grey">
+    <div class="ob-cell-content">
+      <%= transaction.trx_date_display %>
+    </div>
+  </td>
+  <td>
+    <div class="ob-cell-content">
+      <% if transaction.description.present? %>
+        <%= transaction.trx_desc_display %>
+      <% else %>
+        <span class="has-text-grey is-size-7 is-italic">No description yet</span>
+      <% end %>
+      <% if transaction.attachments.attached? %>
+        <span class="icon has-text-grey-light has-tooltip" data-tooltip="Transaction has attachments">
+          <i class="fas fa-sm fa-paperclip"></i>
+        </span>
+      <% end %>
+    </div>
+  </td>
+  <td>
+    <div class="ob-cell-content">
+      <% if transaction.category.present? %>
+        <span class="tag is-info is-light"><%= transaction.category.name %></span>
+      <% else %>
+        <span class="has-text-grey is-size-7">Uncategorized</span>
+      <% end %>
+    </div>
+  </td>
+  <td class="has-text-right">
+    <div class="ob-cell-content">
+      <% if transaction.amount.present? %>
+        <span class="<%= transaction.amount_color %>"><%= transaction.amount_decorated %></span>
+      <% else %>
+        <span class="has-text-grey is-size-7 is-italic">No amount yet</span>
+      <% end %>
+    </div>
+  </td>
+  <td class="has-text-right">
+    <div class="ob-cell-content" style="border-right: none;">
+      <div class="buttons are-small" style="justify-content: flex-end; margin-right: -0.5rem;">
+        <button type="button"
+                data-action="click->shared#toggleModal"
+                data-id="quick-receipt-review-modal-<%= transaction.id %>"
+                class="button is-primary is-small"
+                title="Review Quick Receipt">
+          <span class="icon has-text-white">
+            <i class="fas fa-receipt"></i>
+          </span>
+          <span>Review</span>
+        </button>
+      </div>
+    </div>
+  </td>
+</tr>
+
+<!-- Mobile row -->
+<tr id="transaction_mobile_<%= transaction.id %>" class="is-hidden-tablet">
+  <td class="is-hidden-tablet">
+    <div class="level ob-mobile-level is-mobile">
+      <div class="level-left">
+        <div class="level-item">
+          <% if transaction.description.present? %>
+            <%= transaction.trx_desc_display_mobile %>
+          <% else %>
+            <span class="has-text-grey is-size-7 is-italic">No description yet</span>
+          <% end %>
+          <% if transaction.attachments.attached? %>
+            <span class="icon has-text-grey-light">
+              <i class="fas fa-sm fa-paperclip"></i>
+            </span>
+          <% end %>
+        </div>
+      </div>
+      <div class="level-right">
+        <div class="level-item">
+          <button type="button"
+                  data-action="click->shared#toggleModal"
+                  data-id="quick-receipt-review-modal-<%= transaction.id %>"
+                  class="button is-primary is-small"
+                  title="Review Quick Receipt">
+            <span class="icon has-text-white">
+              <i class="fas fa-receipt"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="level ob-mobile-level is-mobile has-text-grey is-size-7">
+      <div class="level-left">
+        <div class="level-item">
+          <%= transaction.trx_date_display %>
+          <% if transaction.category.present? %>
+            <span class="tag is-info is-light is-rounded is-size-7 ml-1"><%= transaction.category.name %></span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </td>
+</tr>

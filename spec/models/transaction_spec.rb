@@ -189,4 +189,48 @@ RSpec.describe Transaction, type: :model do
       expect(transaction.errors).to be_empty
     end
   end
+
+  describe '.quick_receipts scope' do
+    let(:account) { FactoryBot.create(:account) }
+    # Build with nil description/amount so the before_save callback does not clear quick_receipt
+    let!(:quick_receipt_trx) do
+      FactoryBot.build(:transaction, account: account, quick_receipt: true, pending: true,
+                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
+    end
+    let!(:regular_trx) { FactoryBot.create(:transaction, :non_pending, account: account, quick_receipt: false) }
+
+    it 'returns only transactions with quick_receipt: true' do
+      expect(Transaction.quick_receipts).to include(quick_receipt_trx)
+      expect(Transaction.quick_receipts).not_to include(regular_trx)
+    end
+
+    it 'does not return transactions with quick_receipt: false' do
+      expect(Transaction.quick_receipts.count).to eq(1)
+    end
+  end
+
+  describe 'quick receipt behavior' do
+    let(:account) { FactoryBot.create(:account) }
+    # Start without amount so the callback does not clear the flag on creation
+    let(:quick_receipt_trx) do
+      FactoryBot.build(:transaction, account: account, quick_receipt: true, pending: true,
+                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
+    end
+
+    context 'when description and amount are filled in' do
+      it 'clears the quick_receipt flag on save' do
+        # Bypass attachment validation (which requires a file) to test the callback in isolation
+        quick_receipt_trx.assign_attributes(description: 'Coffee', amount: 5.00, trx_type: 'debit')
+        quick_receipt_trx.save!(validate: false)
+        expect(quick_receipt_trx.reload.quick_receipt).to be_falsey
+      end
+    end
+
+    context 'when description or amount is missing' do
+      it 'keeps the quick_receipt flag when both fields are blank' do
+        quick_receipt_trx.save
+        expect(quick_receipt_trx.quick_receipt).to be true
+      end
+    end
+  end
 end
