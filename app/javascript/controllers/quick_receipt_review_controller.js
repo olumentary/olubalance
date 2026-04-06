@@ -29,6 +29,7 @@ export default class extends Controller {
           if (this.element.classList.contains('is-active')) {
             this.clearFormFields();
             this.processReceipt();
+            this.checkImagesAlreadyLoaded();
           }
         }
       });
@@ -279,6 +280,21 @@ export default class extends Controller {
     if (this.hasReceiptImageTarget) {
       this.receiptImageTarget.classList.remove('is-hidden');
     }
+  }
+
+  // When the modal opens, the browser may have already loaded the image (e.g.
+  // from cache or because the page had time to fetch it while an earlier
+  // receipt was being reviewed).  In that case the `load` event already fired
+  // and `imageLoaded` was never called, leaving the spinner stuck.  Check each
+  // image's `.complete` flag and reveal it immediately if loading is done.
+  checkImagesAlreadyLoaded() {
+    this.receiptImageTargets.forEach((img, i) => {
+      if (img.complete && img.naturalWidth > 0) {
+        img.classList.remove('is-hidden');
+        const indicator = this.loadingIndicatorTargets[i];
+        if (indicator) indicator.classList.add('is-hidden');
+      }
+    });
   }
 
   // ── Modal ───────────────────────────────────────────────────────────────────
