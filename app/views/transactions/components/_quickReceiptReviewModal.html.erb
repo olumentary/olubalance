@@ -5,7 +5,8 @@
   style="z-index: 9999" 
   data-shared-target="modal"
   data-controller="quick-receipt-review"
-  data-quick-receipt-review-url-value="<%= account_transaction_path(id: transaction.id) %>"
+  data-quick-receipt-review-url-value="<%= account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
+  data-quick-receipt-review-process-url-value="<%= process_receipt_account_transaction_path(account_id: transaction.account_id, id: transaction.id) %>"
 >
   <div 
     class="modal-background"
@@ -32,7 +33,45 @@
       <section class="card-content" style="overflow-y: auto; max-height: calc(100vh - 120px);">
         <div class="columns quick-receipt-columns">
           <!-- Left Column - Transaction Form -->
-          <div class="column is-6">
+          <div class="column is-6" style="position: relative;">
+
+            <!-- OCR loading overlay -->
+            <div data-quick-receipt-review-target="ocrOverlay"
+                 style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.85); z-index: 10; border-radius: 4px;">
+              <div class="has-text-centered" style="padding-top: 4rem;">
+                <span class="icon is-large has-text-primary">
+                  <i class="fas fa-spinner fa-spin fa-2x"></i>
+                </span>
+                <p class="mt-3 has-text-grey has-text-weight-semibold">Reading receipt with AI...</p>
+              </div>
+            </div>
+
+            <!-- OCR error / retry notification -->
+            <div data-quick-receipt-review-target="ocrError" class="is-hidden">
+              <article class="message is-warning mb-4">
+                <div class="message-body" style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>
+                    <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+                    <span data-quick-receipt-review-target="ocrErrorText">Could not read receipt automatically.</span>
+                  </span>
+                  <button type="button"
+                          class="button is-warning is-small ml-3"
+                          data-action="click->quick-receipt-review#retryOcr">
+                    <span class="icon"><i class="fas fa-redo"></i></span>
+                    <span>Retry</span>
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <!-- OCR success badge -->
+            <div data-quick-receipt-review-target="ocrSuccess" class="is-hidden">
+              <div class="notification is-success is-light mb-4">
+                <span class="icon"><i class="fas fa-magic"></i></span>
+                <span>Fields filled in by AI — please review and approve.</span>
+              </div>
+            </div>
+
             <div class="content">
               <h4 class="title is-5 mb-4">Transaction Details</h4>
               
@@ -60,8 +99,6 @@
                     </div>
                   </article>
                 <% end %>
-
-
 
                 <!-- Transaction Type -->
                 <div class="field">
@@ -105,7 +142,7 @@
                 <!-- Description -->
                 <div class="field">
                   <label class="label has-text-grey">Description</label>
-                  <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path %>" style="position: relative;">
+                  <div class="control has-icons-left" data-controller="typeahead" data-typeahead-url-value="<%= descriptions_account_transactions_path(transaction.account) %>" style="position: relative;">
                     <%= f.text_field :description, class: "input is-primary",
                                                 placeholder: "Description",
                                                 data: { 
@@ -151,13 +188,6 @@
 
                 <!-- Hidden account_id field to ensure the account is preserved -->
                 <%= f.hidden_field :account_id, value: transaction.account_id %>
-
-                <div class="notification is-info is-light">
-                  <span class="icon">
-                    <i class="fas fa-info-circle"></i>
-                  </span>
-                  <span>Fill in the transaction details based on the receipt image shown on the right.</span>
-                </div>
 
                 <div class="notification is-warning is-light">
                   <span class="icon">
@@ -260,13 +290,21 @@
           Cancel
         </button>
         <button 
-          class="card-footer-item has-text-weight-bold has-text-primary"
+          class="card-footer-item has-text-weight-bold has-text-grey-dark"
           data-action="click->quick-receipt-review#saveTransaction"
           data-quick-receipt-review-target="saveButton"
         >
-          Save & Review
+          Save
+        </button>
+        <button 
+          class="card-footer-item has-text-weight-bold has-text-primary"
+          data-action="click->quick-receipt-review#approveTransaction"
+          data-quick-receipt-review-target="approveButton"
+        >
+          <span class="icon"><i class="fas fa-check-circle"></i></span>
+          <span>Approve</span>
         </button>
       </footer>
     </div>
   </div>
-</div> 
+</div>

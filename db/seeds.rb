@@ -561,6 +561,45 @@ end
 
 puts "Created #{documents.length} documents"
 
+# Quick receipt transactions for john@gmail.com
+# Spread across checking, credit, and savings accounts to showcase the
+# grouped-by-account view on the new quick receipts review page.
+puts "Creating quick receipt transactions for john@gmail.com..."
+
+john = User.find_by(email: 'john@gmail.com')
+if john
+  john_checking = john.accounts.where(account_type: :checking).first
+  john_credit   = john.accounts.where(account_type: :credit).first
+  john_savings  = john.accounts.where(account_type: :savings).first
+
+  quick_receipt_definitions = [
+    { account: john_checking, filename: 'quick-receipt-grocery.png' },
+    { account: john_checking, filename: 'quick-receipt-gas.png' },
+    { account: john_credit,   filename: 'quick-receipt-restaurant.png' },
+    { account: john_savings,  filename: 'quick-receipt-atm.png' },
+  ]
+
+  quick_receipt_definitions.each do |defn|
+    next unless defn[:account]
+
+    t = Transaction.new(
+      trx_date:     Date.current,
+      pending:      true,
+      quick_receipt: true,
+      account:      defn[:account]
+    )
+    # Skip the attachment-required validation — the attachment is attached immediately after
+    t.save!(validate: false)
+    t.attachments.attach(
+      io:           File.open('app/assets/images/logo.png'),
+      filename:     defn[:filename],
+      content_type: 'image/png'
+    )
+  end
+
+  puts "Created #{quick_receipt_definitions.length} quick receipt transactions for john@gmail.com"
+end
+
 # Pagination testing account
 # Creates a dedicated user with 55 pending transactions (4 pages at 15/page)
 # so inline edit and mark-reviewed behavior across pages can be verified.

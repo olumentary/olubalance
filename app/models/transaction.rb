@@ -40,7 +40,6 @@ class Transaction < ApplicationRecord
   before_validation :convert_amount
   before_validation :sync_batch_reference
   before_save :set_account
-  before_save :clear_quick_receipt_when_complete, if: :quick_receipt?
   after_create :update_account_balance_create
   after_update :update_account_balance_edit
   after_update :update_account_balance_transfer
@@ -53,6 +52,7 @@ class Transaction < ApplicationRecord
   scope :recent, -> { where("created_at > ?", 3.days.ago).order("trx_date, id") }
   scope :pending, -> { where(pending: true).order("trx_date, id") }
   scope :non_pending, -> { where(pending: false).order("trx_date DESC, id DESC") }
+  scope :quick_receipts, -> { where(quick_receipt: true) }
 
   scope :search, lambda { |query|
     query = sanitize_sql_like(query)
@@ -167,13 +167,6 @@ class Transaction < ApplicationRecord
   def set_account
     return if trx_date_changed? && !amount_changed? && !description_changed?
     @account = Account.find(account_id)
-  end
-
-  def clear_quick_receipt_when_complete
-    # Set quick_receipt to false if both description and amount are present
-    if description.present? && amount.present?
-      self.quick_receipt = false
-    end
   end
 
   def update_account_balance_create

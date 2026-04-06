@@ -10,6 +10,18 @@
   <% end %>
 </div>
 
+<% if @quick_receipt_count > 0 %>
+  <div class="notification is-warning is-light mb-5">
+    <span class="icon">
+      <i class="fas fa-receipt"></i>
+    </span>
+    <span>
+      You have <strong><%= pluralize(@quick_receipt_count, "quick receipt") %></strong> waiting to be reviewed.
+      <%= link_to "Review now", quick_receipts_path, class: "has-text-weight-bold" %>
+    </span>
+  </div>
+<% end %>
+
 <% if !@accounts_checking.empty? %>
   <div class="container">
     <p class="title mb-10 is-size-5 has-text-link">Checking</p>

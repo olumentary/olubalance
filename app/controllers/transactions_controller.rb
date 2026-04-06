@@ -5,7 +5,7 @@ class TransactionsController < ApplicationController
 
   before_action :authenticate_user!
   before_action :find_account
-  before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment delete_attachment]
+  before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment delete_attachment process_receipt]
   before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
   before_action :load_user_accounts, only: [ :new, :create, :edit, :update, :index ]
@@ -97,6 +97,12 @@ class TransactionsController < ApplicationController
 
     @transaction.assign_attributes(transaction_params_without_attachments)
     apply_category_suggestion(@transaction)
+
+    # Approve quick receipt: clear the quick_receipt flag so the transaction enters
+    # the normal pending flow for the user to review and mark reviewed separately.
+    if params[:approve_quick_receipt].present?
+      @transaction.quick_receipt = false
+    end
 
     if @transaction.save
       # Attach new files if any were provided
@@ -325,6 +331,39 @@ class TransactionsController < ApplicationController
       source: suggestion&.source,
       error: suggestion&.source == :ai_rate_limited ? "ai_rate_limited" : nil
     }, status: :ok
+  end
+
+  def process_receipt
+    unless @transaction.quick_receipt?
+      render json: { success: false, error: "Not a quick receipt transaction" }, status: :unprocessable_entity
+      return
+    end
+
+    ocr_result = ReceiptOcrClient.new.process(attachments: @transaction.attachments)
+
+    if ocr_result.nil?
+      render json: { success: false, error: "Could not extract receipt data. Please fill in the details manually." }
+      return
+    end
+
+    response_data = {
+      success:     true,
+      description: ocr_result.description,
+      date:        ocr_result.date,
+      amount:      ocr_result.amount,
+      trx_type:    ocr_result.trx_type
+    }
+
+    # Attempt category suggestion from the extracted description
+    if ocr_result.description.present?
+      suggestion = category_suggester.suggest(ocr_result.description)
+      if suggestion&.category.present? && suggestion.confidence >= 0.5
+        response_data[:category_id]   = suggestion.category.id
+        response_data[:category_name] = suggestion.category.name
+      end
+    end
+
+    render json: response_data
   end
 
   def update_date
