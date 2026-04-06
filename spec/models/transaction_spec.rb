@@ -205,7 +205,7 @@ RSpec.describe Transaction, type: :model do
     end
 
     it 'does not return transactions with quick_receipt: false' do
-      expect(Transaction.quick_receipts.count).to eq(1)
+      expect(Transaction.quick_receipts.where(account: account).count).to eq(1)
     end
   end
 
