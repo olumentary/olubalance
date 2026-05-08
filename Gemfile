@@ -14,7 +14,7 @@ gem "bootsnap", require: false
 gem "bundler", "~> 4.0"
 gem "connection_pool", "~> 2.4"
 gem "cssbundling-rails"
-gem "devise", "~> 5.0.3"
+gem "devise", "~> 5.0.4"
 gem "draper", "~> 4.0.2"
 gem "faker"
 gem "figaro"
