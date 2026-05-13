@@ -125,3 +125,23 @@ Secrets live in `config/application.yml` (Figaro), gitignored. The template `con
 - **Schema questions**: read `db/structure.sql`, not `db/schema.rb` (which doesn't exist in this repo). The structure file is the ground truth for PG-specific features like `pg_trgm` and the `transaction_balances` view.
 - **Before writing a new resource controller**, re-read `app/controllers/application_controller.rb` and a similar existing controller (e.g. `TransactionsController`, `BillsController`) so the new code matches the `current_user`-scoping, Turbo-stream, and decorator patterns already in use.
 - **Before adding a new JS dependency**, check whether an existing Stimulus controller or Bulma component already covers the need.
+
+## External docs (Context7 MCP)
+
+When writing or explaining code that touches an external library API — Rails 8.1, Hotwire (Turbo / Stimulus 3), Devise 5, Pagy, Draper, RSpec 8, FactoryBot, shoulda-matchers, Capybara, ruby-openai, or Bulma 1.0 — call the Context7 MCP before answering from memory:
+
+1. `mcp__context7__resolve-library-id` with the library name.
+2. `mcp__context7__get-library-docs` with the resolved ID and a focused topic.
+3. Ground the answer in what comes back; don't synthesize from training-data recall when the docs are one tool call away.
+
+**Skip Context7 for**: questions answerable from this repo's own code, trivial syntax, anything already covered by CLAUDE.md, and standard-library Ruby. Don't burn a tool call when the answer is local.
+
+## Database introspection (Postgres MCP)
+
+The Postgres MCP is wired to `olubalance_development` (read-only). Prefer it over shelling out to `psql` for:
+
+- Schema questions that go beyond what `db/structure.sql` makes obvious (live indexes, row counts, statistics).
+- Sanity-checking a migration's effect — query the table after running it.
+- Verifying that a query plan for a transaction-listing query actually uses the indexes backing the `transaction_balances` window.
+
+For schema-of-record questions, `db/structure.sql` is still authoritative — the MCP is for the live state.

@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {}
+    },
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://${OLUBALANCE_DATABASE_USERNAME}:${OLUBALANCE_DATABASE_PASSWORD}@localhost/olubalance_development"
+      ],
+      "env": {}
+    }
+  }
+}
