@@ -146,18 +146,36 @@ RSpec.describe Reporting::SpendingByCategory do
       end
     end
 
-    context "ignoring credit transactions" do
-      before do
-        create(:transaction, :non_pending, account: account, category: category1,
-               amount: -100, trx_date: Date.current, trx_type: "debit", pending: false,
-               description: "Debit Purchase")
-        create(:transaction, :non_pending, :credit_transaction, account: account, category: category1,
-               amount: 200, trx_date: Date.current, pending: false,
-               description: "Credit Refund")
+    context "netting refunds against spending in the same category" do
+      context "when a refund partially offsets debits" do
+        before do
+          create(:transaction, :non_pending, account: account, category: category1,
+                 amount: -200, trx_date: Date.current, trx_type: "debit", pending: false,
+                 description: "Original Purchase")
+          create(:transaction, :non_pending, :credit_transaction, account: account, category: category1,
+                 amount: 50, trx_date: Date.current, pending: false,
+                 description: "Partial Refund")
+        end
+
+        it "reports net spending after refund" do
+          expect(result[:totals][:current]).to eq(150)
+        end
       end
 
-      it "only includes debit (spending) transactions" do
-        expect(result[:totals][:current]).to eq(100)
+      context "when credits exceed debits in a category (net income)" do
+        before do
+          create(:transaction, :non_pending, account: account, category: category1,
+                 amount: -100, trx_date: Date.current, trx_type: "debit", pending: false,
+                 description: "Small Debit")
+          create(:transaction, :non_pending, :credit_transaction, account: account, category: category1,
+                 amount: 200, trx_date: Date.current, pending: false,
+                 description: "Larger Credit")
+        end
+
+        it "excludes the category from spending entirely" do
+          expect(result[:categories]).not_to include("Groceries")
+          expect(result[:totals][:current]).to eq(0)
+        end
       end
     end
 

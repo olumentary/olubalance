@@ -27,7 +27,7 @@ module Reporting
       transactions = Transaction.joins(:account)
                                 .where(accounts: { user_id: user.id, active: true })
                                 .where(pending: false)
-                                .where('amount < 0') # Only spending (debits)
+                                .where.not(locked: true, description: 'Starting Balance')
 
       transactions = transactions.where(account_id: account_ids) if account_ids.any?
       transactions = transactions.where(category_id: category_ids) if category_ids.any?
@@ -49,13 +49,18 @@ module Reporting
     end
 
     def spending_by_category(transactions)
-      # Group by category and sum absolute amounts
+      # Net signed amounts per category (debits are negative in this app, so -SUM yields positive
+      # spending and refunds in the same category reduce that spending).
       result = transactions
         .left_joins(:category)
         .group('COALESCE(categories.name, \'Uncategorized\')')
-        .sum('ABS(transactions.amount)')
+        .sum('-transactions.amount')
 
-      result.transform_values { |v| v.round(2) }
+      # Drop categories whose net is zero or negative — those represent income or
+      # refund-dominant categories and don't belong in a spending report. Coerce to
+      # Float so the JSON payload Chart.js receives is numeric, not a quoted string
+      # (BigDecimal#to_json emits a string and breaks chart rendering).
+      result.select { |_, v| v.positive? }.transform_values { |v| v.to_f.round(2) }
     end
 
     def current_spending

@@ -126,6 +126,47 @@ category_names.each do |name|
   Category.find_or_create_by!(name: name, kind: :global)
 end
 
+# Lookup table + description → category mapping so seeded transactions land in
+# sensible buckets for Reports testing (refund netting in particular).
+categories_by_name = Category.global.index_by(&:name)
+
+debit_description_to_category = {
+  "Electric Payment"     => "Utilities",
+  "Gas Payment"          => "Utilities",
+  "Internet Payment"     => "Utilities",
+  "Mobile Phone Payment" => "Utilities",
+  "Rent"                 => "Housing",
+  "Mortgage"             => "Housing",
+  "Shell"                => "Fuel",
+  "BP"                   => "Fuel",
+  "Sunoco"               => "Fuel",
+  "Kroger"               => "Groceries",
+  "Food Lion"            => "Groceries",
+  "McDonalds"            => "Dining",
+  "Subway"               => "Dining",
+  "Starbucks"            => "Dining",
+  "Gym Membership"       => "Health",
+  "Oil Change"           => "Auto",
+  "Car Payment"          => "Auto",
+  "Movie Theater"        => "Entertainment",
+  "Transfer to Savings"  => "Transfer"
+}
+
+credit_description_to_category = {
+  "Paycheck"               => "Income",
+  "Transfer from Savings"  => "Transfer"
+  # "Refund" intentionally omitted — assigned to a random expense category at
+  # creation time so refunds net against spending in the Reports view.
+}
+
+# Categories that represent actual spending (used for "Refund" credits and any
+# transaction whose description doesn't map cleanly).
+spending_category_names = %w[
+  Groceries Dining Utilities Housing Auto Fuel Health Entertainment
+  Travel Subscriptions Education Gifts Family
+]
+spending_categories = spending_category_names.map { |n| categories_by_name[n] }.compact
+
 # Create 5 accounts for each user
 users.each do |user|
   selected_accounts = []
@@ -230,11 +271,14 @@ end
 accounts.each do |account|
   # Create 100 debit transactions for each Account
   100.times do
+    description = trx_debit_desc.sample
+    category = categories_by_name[debit_description_to_category[description]] || spending_categories.sample
     Transaction.create!(
       trx_date: Faker::Date.backward(days: 90),
-      description: trx_debit_desc.sample,
+      description: description,
       amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
       trx_type: 'debit',
+      category: category,
       skip_pending_default: true,
       account: account
     )
@@ -242,11 +286,20 @@ accounts.each do |account|
 
   # Create 10 credit transactions for each Account
   10.times do
+    description = trx_credit_desc.sample
+    # Refunds intentionally land in a random spending category so the Reports
+    # view can demonstrate refund-netting against same-category debits.
+    category = if description == "Refund"
+                 spending_categories.sample
+               else
+                 categories_by_name[credit_description_to_category[description]]
+               end
     Transaction.create!(
       trx_date: Faker::Date.backward(days: 90),
-      description: trx_credit_desc.sample,
+      description: description,
       amount: Faker::Number.between(from: 1.00, to: 5.00).to_f.round(2),
       trx_type: 'credit',
+      category: category,
       skip_pending_default: true,
       account: account
     )
@@ -283,6 +336,7 @@ accounts.each do |account|
         description:          "Migration Test Transaction #{i + 1}",
         amount:               Faker::Number.between(from: 1.00, to: 500.00).to_f.round(2),
         trx_type:             'debit',
+        category:             spending_categories.sample,
         skip_pending_default: true,
         account:              account
       )
@@ -350,6 +404,7 @@ accounts.each do |account|
       description: 'Pending Test Transaction',
       amount: Faker::Number.between(from: 1.00, to: 50.00).to_f.round(2),
       trx_type: 'debit',
+      category: spending_categories.sample,
       pending: true,
       account: account
     )
@@ -638,6 +693,7 @@ pending_descriptions = [
     description: "#{pending_descriptions[i % pending_descriptions.length]} #{i + 1}",
     amount: Faker::Number.between(from: 5.00, to: 200.00).to_f.round(2),
     trx_type: 'debit',
+    category: spending_categories.sample,
     pending: true,
     account: pagination_account
   )

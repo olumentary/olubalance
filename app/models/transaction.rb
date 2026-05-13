@@ -119,17 +119,19 @@ class Transaction < ApplicationRecord
   def convert_amount
     return if amount.nil?
 
-    # If amount is already numeric, just ensure it's a float
-    if amount.is_a?(Numeric)
-      numeric_amount = amount.to_f
+    # Coerce to BigDecimal — money columns are PG `decimal` and Float introduces
+    # binary-floating-point drift that survives into SUM() in reports.
+    if amount.is_a?(BigDecimal)
+      numeric_amount = amount
+    elsif amount.is_a?(Numeric)
+      numeric_amount = amount.to_d
     else
-      # Try to convert string to numeric
       string_amount = amount.to_s.strip
 
       # Return early if amount is not a valid numeric string, let validation handle it
       return unless string_amount.match?(/\A-?\d+(\.\d+)?\z/)
 
-      numeric_amount = string_amount.to_f
+      numeric_amount = BigDecimal(string_amount)
     end
 
     # If trx_type is set, use it to determine the sign
