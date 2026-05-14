@@ -60,6 +60,8 @@ bundle exec rails db:reset                  # drop + create + migrate + seed
 
 There is **no `bin/rspec`** — use `bundle exec rspec`.
 
+**JS package manager: yarn only.** This repo uses yarn (`yarn.lock` is the lockfile of record; `package.json` pins `"yarn": "1.22.x"` under `engines`). Never run `npm install` or `pnpm install` — they create `package-lock.json` / `pnpm-lock.yaml` and can mutate `yarn.lock` in incompatible ways. If yarn isn't on PATH, install it (`corepack enable && corepack prepare yarn@1.22.x --activate`) rather than reaching for npm. If you need to invoke esbuild/sass directly without `yarn` (e.g. to verify a bundle), call `node_modules/.bin/esbuild …` — that doesn't touch the lockfile.
+
 ## Workflow rules
 
 - **Run RSpec before declaring work done.** At minimum run the affected spec files; for cross-cutting changes (models, controllers touched by many flows, schema), run the full suite. State explicitly in your summary whether you ran tests and what passed.

@@ -53,6 +53,10 @@ bower.json
 # Ignore node_modules
 node_modules/
 
+# This project uses yarn; foreign lockfiles must not be committed
+package-lock.json
+pnpm-lock.yaml
+
 # Ignore application configuration
 /config/application.yml
 
