@@ -277,7 +277,45 @@ RSpec.describe "Transaction management", type: :request do
       post process_receipt_account_transaction_path(@account, @transaction),
            headers: { 'Accept' => 'application/json' }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "mark_reviewed / mark_pending render" do
+    # Regression: the turbo_stream response renders the transaction table,
+    # which transitively renders the quick-receipt review modal and the
+    # categories select. That partial calls `category_options(@categories)`
+    # and would NoMethodError on nil. Both before_actions
+    # (load_categories, load_user_accounts) must include these actions.
+    let(:user) { create(:user) }
+    let(:account) { create(:account, user: user, starting_balance: 500) }
+    let!(:reviewed_trx) {
+      create(:transaction, :non_pending, account: account, trx_type: "debit",
+                                         amount: 10, description: "test")
+    }
+    let!(:pending_trx) {
+      create(:transaction, account: account, trx_type: "debit",
+                           amount: 10, description: "pending one")
+    }
+    # A pending quick-receipt in the visible set forces the table partial to
+    # render `_quickReceiptReviewModal`, which calls `category_options(@categories)`.
+    # Without this row the bug doesn't reproduce.
+    let!(:quick_receipt_trx) { create(:transaction, :quick_receipt, account: account) }
+
+    before { sign_in user }
+
+    it "marks reviewed without raising on nil @categories" do
+      patch mark_reviewed_account_transaction_path(account, pending_trx),
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response).to have_http_status(:ok)
+      expect(pending_trx.reload.pending).to be false
+    end
+
+    it "marks pending without raising on nil @categories" do
+      patch mark_pending_account_transaction_path(account, reviewed_trx),
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(response).to have_http_status(:ok)
+      expect(reviewed_trx.reload.pending).to be true
     end
   end
 

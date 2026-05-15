@@ -260,6 +260,7 @@ GEM
       racc (~> 1.4)
     openssl (4.0.2)
     orm_adapter (0.5.0)
+    ostruct (0.6.3)
     pagy (9.4.0)
     parallel (2.1.0)
     parser (3.3.11.1)
@@ -489,6 +490,7 @@ DEPENDENCIES
   letter_opener
   mini_magick (~> 5.3.1)
   openssl (~> 4.0.0)
+  ostruct
   pagy (~> 9)
   pg (~> 1.6.2)
   puma (~> 7.1)

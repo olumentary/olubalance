@@ -8,8 +8,8 @@ class TransactionsController < ApplicationController
   before_action :find_transaction, only: %i[edit update show destroy update_date update_attachment delete_attachment process_receipt]
   before_action :transfer_accounts, only: %i[index mark_reviewed mark_pending]
   before_action :check_account_change, only: [ :index ]
-  before_action :load_user_accounts, only: [ :new, :create, :edit, :update, :index ]
-  before_action :load_categories, only: %i[new create edit update index]
+  before_action :load_user_accounts, only: %i[new create edit update index mark_reviewed mark_pending]
+  before_action :load_categories, only: %i[new create edit update index mark_reviewed mark_pending]
 
   # Index action to render all transactions
   def index
@@ -183,7 +183,7 @@ class TransactionsController < ApplicationController
   end
 
   def mark_reviewed
-    @transaction = Transaction.find(params[:id])
+    @transaction = @account.transactions.find(params[:id])
 
     if @transaction.update(pending: false)
       # Reload the transaction to ensure we have the latest data
@@ -244,7 +244,7 @@ class TransactionsController < ApplicationController
   end
 
   def mark_pending
-    @transaction = Transaction.find(params[:id])
+    @transaction = @account.transactions.find(params[:id])
 
     if @transaction.update(pending: true)
       # Reload the transaction to ensure we have the latest data

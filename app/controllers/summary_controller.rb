@@ -7,8 +7,6 @@ class SummaryController < ApplicationController
   end
 
   def send_mail
-    puts "send_mail params"
-    puts params
     SummaryMailer.with(summary: @summary, current_user: current_user, to: params[:summary_mail][:to]).new_summary_email.deliver_now
   end
 

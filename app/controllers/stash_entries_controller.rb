@@ -24,7 +24,10 @@ class StashEntriesController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions.
   def find_stash
-    @stash = Stash.find(params[:stash_id]).decorate
+    # Scope through current_user → account → stashes so that another user's
+    # stash returns 404 (RecordNotFound) instead of being mutable.
+    account = current_user.accounts.find(params[:account_id])
+    @stash = account.stashes.find(params[:stash_id]).decorate
     respond_to do |format|
       format.html
     end

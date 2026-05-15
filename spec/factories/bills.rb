@@ -43,6 +43,10 @@ FactoryBot.define do
       frequency { 'quarterly' }
       next_occurrence_month { Date.current.month }
     end
+
+    trait :next_due_this_month do
+      day_of_month { Date.current.day }
+    end
   end
 end
 

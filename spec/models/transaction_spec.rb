@@ -105,7 +105,7 @@ RSpec.describe Transaction, type: :model do
   end
 
   it { should belong_to(:account) }
-  # it { is_expected.to have_one(:transaction_balance) }
+  it { is_expected.to have_one(:transaction_balance) }
 
   describe "category ownership validation" do
     let(:user) { FactoryBot.create(:user) }
@@ -192,11 +192,7 @@ RSpec.describe Transaction, type: :model do
 
   describe '.quick_receipts scope' do
     let(:account) { FactoryBot.create(:account) }
-    # Build with nil description/amount so the before_save callback does not clear quick_receipt
-    let!(:quick_receipt_trx) do
-      FactoryBot.build(:transaction, account: account, quick_receipt: true, pending: true,
-                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
-    end
+    let!(:quick_receipt_trx) { FactoryBot.create(:transaction, :quick_receipt, account: account) }
     let!(:regular_trx) { FactoryBot.create(:transaction, :non_pending, account: account, quick_receipt: false) }
 
     it 'returns only transactions with quick_receipt: true' do
@@ -211,10 +207,7 @@ RSpec.describe Transaction, type: :model do
 
   describe 'quick receipt behavior' do
     let(:account) { FactoryBot.create(:account) }
-    let(:quick_receipt_trx) do
-      FactoryBot.build(:transaction, account: account, quick_receipt: true, pending: true,
-                                     description: nil, amount: nil).tap { |t| t.save!(validate: false) }
-    end
+    let(:quick_receipt_trx) { FactoryBot.create(:transaction, :quick_receipt, account: account) }
 
     context 'when description and amount are filled in' do
       it 'does NOT automatically clear the quick_receipt flag (flag is cleared via explicit approval)' do
@@ -229,6 +222,47 @@ RSpec.describe Transaction, type: :model do
         quick_receipt_trx.save
         expect(quick_receipt_trx.quick_receipt).to be true
       end
+    end
+  end
+
+  describe 'counterpart association behavior' do
+    let(:user) { create(:user) }
+    let(:source_account) { create(:account, user: user, starting_balance: BigDecimal("1000")) }
+    let(:target_account) { create(:account, user: user, starting_balance: BigDecimal("100")) }
+
+    before do
+      PerformTransfer.new(source_account.id, target_account.id, 50).do_transfer
+    end
+
+    let(:debit) { source_account.transactions.where(transfer: true).order(:id).last }
+    let(:credit) { target_account.transactions.where(transfer: true).order(:id).last }
+
+    it 'reciprocally links via counterpart_transaction' do
+      expect(debit.counterpart_transaction).to eq(credit)
+      expect(credit.counterpart_transaction).to eq(debit)
+    end
+
+    it 'is account_to_account? on both rows' do
+      expect(debit.account_to_account?).to be true
+      expect(credit.account_to_account?).to be true
+    end
+
+    it 'is locked and transfer-flagged on both rows' do
+      expect([debit.locked, credit.locked]).to eq([true, true])
+      expect([debit.transfer, credit.transfer]).to eq([true, true])
+    end
+
+    it 'mirrors amount/date changes to the counterpart (after_update callback)' do
+      debit.update!(amount: BigDecimal("100"), trx_type: "debit", trx_date: Date.new(2026, 6, 1))
+      credit.reload
+      expect(credit.amount).to eq(BigDecimal("100"))
+      expect(credit.trx_date).to eq(Date.new(2026, 6, 1))
+    end
+
+    it 'nullifies the surviving row when one side is destroyed (dependent: :nullify)' do
+      debit.destroy!
+      credit.reload
+      expect(credit.counterpart_transaction_id).to be_nil
     end
   end
 end
