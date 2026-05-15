@@ -3,7 +3,10 @@ require "rails_helper"
 RSpec.feature "Bill batch preview → generate → undo", type: :feature do
   let(:user) { create(:user) }
   let!(:account) { create(:account, user: user, name: "Main", starting_balance: 5_000) }
-  let(:category) { create(:category, :global, name: "Utilities") }
+  # Don't hardcode a name — `db:reset` loads db/seeds.rb in CI, which seeds
+  # several global categories (Utilities, Groceries, …); the factory's name
+  # sequence sidesteps the uniqueness collision.
+  let(:category) { create(:category, :global) }
   let!(:bill) {
     create(:bill, user: user, account: account, category: category,
                   description: "Power", amount: 90, day_of_month: 15)
