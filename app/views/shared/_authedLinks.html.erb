@@ -74,7 +74,21 @@
       Profile
     <% end %>
 
-    <%= link_to destroy_user_session_path, class: "navbar-item" do%>
+    <%= link_to two_factor_settings_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-shield-alt"></i>
+      </span>
+      Security settings
+    <% end %>
+
+    <%= link_to security_events_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-eye"></i>
+      </span>
+      Security events
+    <% end %>
+
+    <%= link_to destroy_user_session_path, class: "navbar-item", data: { turbo_method: :delete } do%>
       <span class="icon has-text-link is-medium ob-icon-rpad">
         <i class="fas fa-sign-out-alt"></i>
       </span>

@@ -1,0 +1,48 @@
+<div class="columns">
+  <div class="column is-10-desktop is-offset-1-desktop">
+    <div class="level">
+      <div class="level-left">
+        <h2 class="title is-4 has-text-link">Trusted devices</h2>
+      </div>
+      <div class="level-right">
+        <%= button_to "Revoke all",
+                      revoke_all_trusted_devices_path,
+                      method: :delete,
+                      class: "button is-danger is-light",
+                      data: { confirm: "Revoke all trusted devices? You'll be asked for an OTP next sign-in everywhere." } %>
+      </div>
+    </div>
+
+    <% if @devices.empty? %>
+      <div class="notification is-light">No trusted devices on file.</div>
+    <% else %>
+      <table class="table is-fullwidth is-striped">
+        <thead>
+          <tr>
+            <th>User agent</th>
+            <th>Last seen</th>
+            <th>IP</th>
+            <th>Expires</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @devices.each do |device| %>
+            <tr>
+              <td class="is-size-7"><%= device.user_agent.presence || "Unknown" %></td>
+              <td><%= device.last_seen_at&.strftime("%b %-d, %Y %H:%M") %></td>
+              <td><%= device.ip %></td>
+              <td><%= device.expires_at.strftime("%b %-d, %Y") %></td>
+              <td>
+                <%= button_to "Revoke",
+                              trusted_device_path(device),
+                              method: :delete,
+                              class: "button is-small is-danger is-light" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

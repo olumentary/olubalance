@@ -1,0 +1,14 @@
+Hi <%= @user.first_name %>,
+
+We detected <%= @count %> failed sign-in attempts on your olubalance account
+from IP <%= @ip %> in the last <%= @window.inspect %>.
+
+If this was you (forgotten password, etc.), you can ignore this email — the
+rate limiter is doing its job and the attacker's IP is throttled.
+
+If it wasn't you, your password is still safe (it wasn't guessed). To be safe:
+  - Change your password as a precaution.
+  - Review your security events: https://olubalance.com/security_events
+  - Confirm 2FA at https://olubalance.com/two_factor_settings
+
+— olubalance

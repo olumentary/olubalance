@@ -17,5 +17,12 @@ FactoryBot.define do
     trait :unconfirmed do
       confirmed_at { nil }
     end
+
+    trait :with_two_factor do
+      otp_required_for_login { true }
+      after(:build) do |user|
+        user.otp_secret = User.generate_otp_secret
+      end
+    end
   end
 end

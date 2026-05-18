@@ -1,0 +1,117 @@
+<div class="columns">
+  <div class="column">
+    <div class="level">
+      <div class="level-left">
+        <h2 class="title is-4 has-text-link">Security events</h2>
+      </div>
+      <div class="level-right">
+        <span class="tag is-light"><%= @trusted_devices_count %> trusted device(s)</span>
+        &nbsp;
+        <%= link_to "Manage devices", trusted_devices_path, class: "button is-small is-link is-light" %>
+      </div>
+    </div>
+
+    <div class="columns is-multiline">
+      <div class="column is-one-fifth">
+        <div class="box has-text-centered">
+          <p class="heading">Failures (24h)</p>
+          <p class="title is-4 <%= "has-text-danger" if @summary[:failures_24h] > 0 %>"><%= @summary[:failures_24h] %></p>
+        </div>
+      </div>
+      <div class="column is-one-fifth">
+        <div class="box has-text-centered">
+          <p class="heading">Successes (24h)</p>
+          <p class="title is-4 has-text-success"><%= @summary[:successes_24h] %></p>
+        </div>
+      </div>
+      <div class="column is-one-fifth">
+        <div class="box has-text-centered">
+          <p class="heading">Throttles (24h)</p>
+          <p class="title is-4 <%= "has-text-warning-dark" if @summary[:throttles_24h] > 0 %>"><%= @summary[:throttles_24h] %></p>
+        </div>
+      </div>
+      <div class="column is-one-fifth">
+        <div class="box has-text-centered">
+          <p class="heading">Blocks (24h)</p>
+          <p class="title is-4 <%= "has-text-danger" if @summary[:blocks_24h] > 0 %>"><%= @summary[:blocks_24h] %></p>
+        </div>
+      </div>
+      <div class="column is-one-fifth">
+        <div class="box has-text-centered">
+          <p class="heading">Unique IPs (24h)</p>
+          <p class="title is-4"><%= @summary[:unique_ips_24h] %></p>
+        </div>
+      </div>
+    </div>
+
+    <%= form_with url: security_events_path, method: :get, local: true, class: "box" do |f| %>
+      <div class="field is-grouped is-grouped-multiline">
+        <div class="control">
+          <div class="select">
+            <%= f.select :event_type,
+                          options_for_select([
+                            [ "All events", "all" ],
+                            [ "Failures only", "failures" ],
+                            [ "Successes only", "successes" ],
+                            [ "Throttles", "throttle" ],
+                            [ "Blocks", "block" ],
+                            [ "Lockouts", "lockout" ],
+                            [ "OTP failures", "otp_failure" ],
+                            [ "OTP successes", "otp_success" ]
+                          ], params[:event_type]) %>
+          </div>
+        </div>
+        <div class="control">
+          <div class="select">
+            <%= f.select :days, options_for_select([ [ "Last 24 hours", 1 ], [ "Last 7 days", 7 ], [ "Last 30 days", 30 ], [ "Last 90 days", 90 ] ], params[:days]) %>
+          </div>
+        </div>
+        <div class="control">
+          <%= f.text_field :ip, value: params[:ip], placeholder: "Filter by IP", class: "input" %>
+        </div>
+        <div class="control">
+          <%= f.text_field :q, value: params[:q], placeholder: "Filter by email", class: "input" %>
+        </div>
+        <div class="control">
+          <%= f.button "Apply", class: "button is-primary" %>
+        </div>
+        <div class="control">
+          <%= link_to "Reset", security_events_path, class: "button is-light" %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @events.any? %>
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Event</th>
+            <th>Email</th>
+            <th>IP</th>
+            <th>User-Agent</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @events.each do |e| %>
+            <tr>
+              <td class="is-size-7 is-vcentered"><%= e.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+              <td class="is-vcentered">
+                <span class="tag <%= event_type_class(e.event_type) %>"><%= e.event_type.humanize %></span>
+              </td>
+              <td class="is-size-7 is-vcentered"><%= e.email_attempted %></td>
+              <td class="is-size-7 is-family-monospace is-vcentered"><%= e.ip %></td>
+              <td class="is-size-7 is-vcentered"><%= truncate(e.user_agent.to_s, length: 60) %></td>
+              <td class="is-size-7 is-vcentered"><%= e.reason %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <%== pagy_bulma_nav(@pagy) if @pagy.pages > 1 %>
+    <% else %>
+      <div class="notification is-light has-text-centered">No events match these filters.</div>
+    <% end %>
+  </div>
+</div>

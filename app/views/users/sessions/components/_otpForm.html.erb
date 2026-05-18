@@ -1,0 +1,43 @@
+<h3 class="title is-4 has-text-link">Two-factor authentication</h3>
+<p class="subtitle is-6 has-text-grey">
+  Enter the 6-digit code from your authenticator app, or a backup code.
+</p>
+
+<% if flash[:alert].present? %>
+  <div class="notification is-danger is-light"><%= flash[:alert] %></div>
+<% end %>
+
+<%= form_with url: user_session_path, method: :post, data: { turbo: false } do |f| %>
+  <div class="field">
+    <label class="label has-text-grey">Verification code</label>
+    <div class="control has-icons-left">
+      <%= f.text_field :otp_code,
+                       class: "input is-primary",
+                       autocomplete: "one-time-code",
+                       inputmode: "numeric",
+                       autofocus: true,
+                       placeholder: "123456" %>
+      <span class="icon is-small is-left">
+        <i class="fas fa-shield-alt"></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="control">
+      <label class="checkbox">
+        <%= f.check_box :remember_device, {}, "1", "0" %>
+        <span class="ml-2">Remember this device for <%= TrustedDevice.remember_days %> days</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="field is-grouped is-grouped-centered">
+    <div class="control">
+      <%= f.button "Verify", class: "button is-primary" %>
+    </div>
+    <div class="control">
+      <%= link_to "Cancel", new_user_session_path, class: "button is-light" %>
+    </div>
+  </div>
+<% end %>

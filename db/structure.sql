@@ -408,6 +408,42 @@ ALTER SEQUENCE public.hidden_categories_id_seq OWNED BY public.hidden_categories
 
 
 --
+-- Name: login_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.login_events (
+    id bigint NOT NULL,
+    user_id bigint,
+    email_attempted character varying,
+    ip inet,
+    user_agent character varying,
+    event_type character varying NOT NULL,
+    reason character varying,
+    metadata jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: login_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.login_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: login_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.login_events_id_seq OWNED BY public.login_events.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -541,6 +577,43 @@ ALTER SEQUENCE public.transactions_id_seq OWNED BY public.transactions.id;
 
 
 --
+-- Name: trusted_devices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.trusted_devices (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    token_digest character varying NOT NULL,
+    user_agent character varying,
+    ip inet,
+    last_seen_at timestamp(6) without time zone,
+    expires_at timestamp(6) without time zone NOT NULL,
+    revoked_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: trusted_devices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.trusted_devices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: trusted_devices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.trusted_devices_id_seq OWNED BY public.trusted_devices.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -565,7 +638,14 @@ CREATE TABLE public.users (
     confirmed_at timestamp without time zone,
     confirmation_sent_at timestamp without time zone,
     unconfirmed_email character varying,
-    default_account_id bigint
+    default_account_id bigint,
+    failed_attempts integer DEFAULT 0 NOT NULL,
+    unlock_token character varying,
+    locked_at timestamp(6) without time zone,
+    otp_secret character varying,
+    consumed_timestep integer,
+    otp_required_for_login boolean DEFAULT false NOT NULL,
+    otp_backup_codes character varying[] DEFAULT '{}'::character varying[]
 );
 
 
@@ -659,6 +739,13 @@ ALTER TABLE ONLY public.hidden_categories ALTER COLUMN id SET DEFAULT nextval('p
 
 
 --
+-- Name: login_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.login_events ALTER COLUMN id SET DEFAULT nextval('public.login_events_id_seq'::regclass);
+
+
+--
 -- Name: stash_entries id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -677,6 +764,13 @@ ALTER TABLE ONLY public.stashes ALTER COLUMN id SET DEFAULT nextval('public.stas
 --
 
 ALTER TABLE ONLY public.transactions ALTER COLUMN id SET DEFAULT nextval('public.transactions_id_seq'::regclass);
+
+
+--
+-- Name: trusted_devices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trusted_devices ALTER COLUMN id SET DEFAULT nextval('public.trusted_devices_id_seq'::regclass);
 
 
 --
@@ -775,6 +869,14 @@ ALTER TABLE ONLY public.hidden_categories
 
 
 --
+-- Name: login_events login_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.login_events
+    ADD CONSTRAINT login_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -804,6 +906,14 @@ ALTER TABLE ONLY public.stashes
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trusted_devices trusted_devices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trusted_devices
+    ADD CONSTRAINT trusted_devices_pkey PRIMARY KEY (id);
 
 
 --
@@ -1018,6 +1128,41 @@ CREATE UNIQUE INDEX index_hidden_categories_on_user_id_and_category_id ON public
 
 
 --
+-- Name: index_login_events_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_events_on_created_at ON public.login_events USING btree (created_at DESC);
+
+
+--
+-- Name: index_login_events_on_email_attempted_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_events_on_email_attempted_and_created_at ON public.login_events USING btree (email_attempted, created_at);
+
+
+--
+-- Name: index_login_events_on_event_type_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_events_on_event_type_and_created_at ON public.login_events USING btree (event_type, created_at);
+
+
+--
+-- Name: index_login_events_on_ip_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_events_on_ip_and_created_at ON public.login_events USING btree (ip, created_at);
+
+
+--
+-- Name: index_login_events_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_login_events_on_user_id ON public.login_events USING btree (user_id);
+
+
+--
 -- Name: index_stash_entries_on_stash_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1074,6 +1219,27 @@ CREATE INDEX index_transactions_on_counterpart_transaction_id ON public.transact
 
 
 --
+-- Name: index_trusted_devices_on_expires_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_trusted_devices_on_expires_at ON public.trusted_devices USING btree (expires_at);
+
+
+--
+-- Name: index_trusted_devices_on_token_digest; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_trusted_devices_on_token_digest ON public.trusted_devices USING btree (token_digest);
+
+
+--
+-- Name: index_trusted_devices_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_trusted_devices_on_user_id ON public.trusted_devices USING btree (user_id);
+
+
+--
 -- Name: index_users_on_confirmation_token; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1099,6 +1265,13 @@ CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
 --
 
 CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING btree (reset_password_token);
+
+
+--
+-- Name: index_users_on_unlock_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_unlock_token ON public.users USING btree (unlock_token);
 
 
 --
@@ -1230,11 +1403,27 @@ ALTER TABLE ONLY public.hidden_categories
 
 
 --
+-- Name: trusted_devices fk_rails_96c1dacf00; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.trusted_devices
+    ADD CONSTRAINT fk_rails_96c1dacf00 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.active_storage_variant_records
     ADD CONSTRAINT fk_rails_993965df05 FOREIGN KEY (blob_id) REFERENCES public.active_storage_blobs(id);
+
+
+--
+-- Name: login_events fk_rails_9b3abaedfe; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.login_events
+    ADD CONSTRAINT fk_rails_9b3abaedfe FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -1292,6 +1481,10 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260518142810'),
+('20260518142805'),
+('20260518142800'),
+('20260518142755'),
 ('20251226000001'),
 ('20251211193000'),
 ('20251211140000'),

@@ -1,0 +1,27 @@
+<p>Hi <%= @user.first_name %>,</p>
+
+<p>
+  Someone just signed in to your olubalance account from a new IP address.
+</p>
+
+<ul>
+  <li><strong>IP:</strong> <%= @login_event.ip %></li>
+  <li><strong>When:</strong> <%= @login_event.created_at.strftime("%Y-%m-%d %H:%M %Z") %></li>
+  <li><strong>Browser:</strong> <%= @login_event.user_agent %></li>
+</ul>
+
+<p>
+  If this was you (new device, new network, VPN, etc.), no action is needed.
+</p>
+
+<p>
+  If this wasn't you:
+</p>
+
+<ul>
+  <li>Change your password immediately.</li>
+  <li>Revoke trusted devices at <a href="https://olubalance.com/trusted_devices">/trusted_devices</a>.</li>
+  <li>Review recent activity at <a href="https://olubalance.com/security_events">/security_events</a>.</li>
+</ul>
+
+<p>— olubalance</p>

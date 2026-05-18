@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   # Rails 7.1+ health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
-  devise_for :users, skip: [ :registrations ], controllers: { 
+  devise_for :users, skip: [ :registrations ], controllers: {
     registrations: "registrations",
     sessions: "users/sessions"
   }
@@ -12,6 +12,10 @@ Rails.application.routes.draw do
   as :user do
     get "users/edit" => "devise/registrations#edit", :as => "edit_user_registration"
     patch "users/:id" => "devise/registrations#update", :as => "user_registration"
+  end
+
+  devise_scope :user do
+    get "users/otp" => "users/sessions#otp_challenge", as: :user_otp_challenge
   end
 
   get "accounts/inactive" => "accounts#inactive"
@@ -57,6 +61,20 @@ Rails.application.routes.draw do
   namespace :transactions do
     resources :batches, only: %i[index show new create destroy]
   end
+
+  # Two-factor authentication settings
+  resource :two_factor_settings, only: %i[show create destroy] do
+    member do
+      get :backup_codes
+      post :regenerate_backup_codes
+    end
+  end
+  resources :trusted_devices, only: %i[index destroy] do
+    collection do
+      delete :revoke_all
+    end
+  end
+  resources :security_events, only: %i[index]
 
   # Mobile home page route
   get "mobile_home" => "static_pages#mobile_home", as: :mobile_home

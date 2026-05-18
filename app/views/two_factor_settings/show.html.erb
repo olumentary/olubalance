@@ -1,0 +1,88 @@
+<div class="columns">
+  <div class="column is-8-desktop is-offset-2-desktop">
+    <h2 class="title is-4 has-text-link">Two-factor authentication</h2>
+
+    <% if @enrolled %>
+      <div class="notification is-success is-light">
+        <strong>2FA is enabled</strong> on your account.
+      </div>
+
+      <div class="box">
+        <h3 class="title is-5">Backup codes</h3>
+        <p class="mb-4">
+          Backup codes let you sign in if you lose access to your authenticator app.
+          Regenerating invalidates any previously issued codes.
+        </p>
+        <%= button_to "Regenerate backup codes",
+                      regenerate_backup_codes_two_factor_settings_path,
+                      method: :post,
+                      class: "button is-link is-light",
+                      data: { confirm: "This invalidates your current backup codes. Continue?" } %>
+      </div>
+
+      <div class="box">
+        <h3 class="title is-5 has-text-danger">Disable 2FA</h3>
+        <p class="mb-4">Removing 2FA also revokes all trusted devices.</p>
+        <%= form_with url: two_factor_settings_path, method: :delete do |f| %>
+          <div class="field">
+            <label class="label">Confirm with your password</label>
+            <div class="control">
+              <%= f.password_field :current_password, class: "input", autocomplete: "current-password" %>
+            </div>
+          </div>
+          <div class="control">
+            <%= f.button "Disable two-factor authentication", class: "button is-danger" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="box">
+        <h3 class="title is-5">Trusted devices</h3>
+        <p><%= link_to "Manage trusted devices", trusted_devices_path, class: "button is-link is-light" %></p>
+      </div>
+
+    <% else %>
+      <div class="notification is-warning is-light">
+        Two-factor authentication is <strong>not</strong> enabled.
+      </div>
+
+      <div class="box">
+        <h3 class="title is-5">Enroll an authenticator app</h3>
+        <div class="content">
+          <ol>
+            <li>Install an authenticator app (1Password, Authy, Google Authenticator, etc.).</li>
+            <li>Scan the QR code below, or enter the secret manually.</li>
+            <li>Enter the 6-digit code from the app to confirm.</li>
+          </ol>
+        </div>
+
+        <div class="has-text-centered" style="margin: 1.5em 0;">
+          <%= @qr_svg %>
+        </div>
+
+        <div class="field">
+          <label class="label has-text-grey">Secret (manual entry)</label>
+          <div class="control">
+            <input class="input is-family-monospace" value="<%= @pending_secret %>" readonly>
+          </div>
+        </div>
+
+        <%= form_with url: two_factor_settings_path, method: :post do |f| %>
+          <div class="field">
+            <label class="label">Verification code</label>
+            <div class="control">
+              <%= f.text_field :otp_code,
+                                class: "input",
+                                autocomplete: "one-time-code",
+                                inputmode: "numeric",
+                                placeholder: "123456" %>
+            </div>
+          </div>
+          <div class="control">
+            <%= f.button "Enable two-factor authentication", class: "button is-primary" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

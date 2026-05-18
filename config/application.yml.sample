@@ -26,6 +26,22 @@ MAILER_PASSWORD:
 RECAPTCHA_SITE_KEY:
 RECAPTCHA_SECRET_KEY:
 
-OPENAI_API_KEY: 
+OPENAI_API_KEY:
 OPENAI_MODEL:
 OPENAI_VISION_MODEL:
+
+# ActiveRecord encryption keys (required in production/staging).
+# Generate with: `bin/rails db:encryption:init`
+ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY:
+ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY:
+ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT:
+
+# Optional — rotate Devise tokens independently of secret_key_base.
+DEVISE_SECRET_KEY:
+
+# Number of days a trusted-device cookie remains valid after passing 2FA.
+# Clamped between 1 and 90; default 14.
+TWO_FACTOR_REMEMBER_DAYS: 14
+
+# Redis URL used by Rails cache (Rack::Attack counters live here in prod).
+REDIS_URL:

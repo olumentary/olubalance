@@ -30,6 +30,7 @@ class ApplicationController < ActionController::Base
       { |u| u.permit(:first_name, :last_name, :timezone, :email, :password, :password_confirmation) }
     devise_parameter_sanitizer.permit(:account_update) \
       { |u| u.permit(:first_name, :last_name, :timezone, :email, :password, :current_password, :password_confirmation, :default_account_id) }
+    devise_parameter_sanitizer.permit(:sign_in, keys: [ :otp_attempt ])
   end
 
   private
