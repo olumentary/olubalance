@@ -8,7 +8,7 @@
         <%= button_to "Revoke all",
                       revoke_all_trusted_devices_path,
                       method: :delete,
-                      class: "button is-danger is-light",
+                      class: "button is-danger",
                       data: { confirm: "Revoke all trusted devices? You'll be asked for an OTP next sign-in everywhere." } %>
       </div>
     </div>
@@ -37,7 +37,7 @@
                 <%= button_to "Revoke",
                               trusted_device_path(device),
                               method: :delete,
-                              class: "button is-small is-danger is-light" %>
+                              class: "button is-small is-danger" %>
               </td>
             </tr>
           <% end %>
