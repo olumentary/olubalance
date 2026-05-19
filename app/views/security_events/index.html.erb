@@ -7,7 +7,7 @@
       <div class="level-right">
         <span class="tag is-light"><%= @trusted_devices_count %> trusted device(s)</span>
         &nbsp;
-        <%= link_to "Manage devices", trusted_devices_path, class: "button is-small is-link is-light" %>
+        <%= link_to "Manage devices", trusted_devices_path, class: "button is-small is-link" %>
       </div>
     </div>
 
@@ -76,7 +76,7 @@
           <%= f.button "Apply", class: "button is-primary" %>
         </div>
         <div class="control">
-          <%= link_to "Reset", security_events_path, class: "button is-light" %>
+          <%= link_to "Reset", security_events_path, class: "button" %>
         </div>
       </div>
     <% end %>

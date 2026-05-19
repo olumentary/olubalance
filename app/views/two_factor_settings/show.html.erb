@@ -16,7 +16,7 @@
         <%= button_to "Regenerate backup codes",
                       regenerate_backup_codes_two_factor_settings_path,
                       method: :post,
-                      class: "button is-link is-light",
+                      class: "button is-link",
                       data: { confirm: "This invalidates your current backup codes. Continue?" } %>
       </div>
 
@@ -38,7 +38,7 @@
 
       <div class="box">
         <h3 class="title is-5">Trusted devices</h3>
-        <p><%= link_to "Manage trusted devices", trusted_devices_path, class: "button is-link is-light" %></p>
+        <p><%= link_to "Manage trusted devices", trusted_devices_path, class: "button is-link" %></p>
       </div>
 
     <% else %>
