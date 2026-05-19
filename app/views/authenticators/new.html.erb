@@ -1,0 +1,64 @@
+<div class="columns">
+  <div class="column is-8-desktop is-offset-2-desktop">
+    <h2 class="title is-4 has-text-link">Add a new authenticator</h2>
+
+    <div class="box">
+      <div class="content">
+        <ol>
+          <li>Open your authenticator app (1Password, Authy, Google Authenticator, etc.) on the device you want to enroll.</li>
+          <li>Scan the QR code below, or enter the secret manually.</li>
+          <li>Give this device a nickname and enter the 6-digit code from the app.</li>
+        </ol>
+      </div>
+
+      <div class="has-text-centered" style="margin: 1.5em 0;">
+        <%= @qr_svg %>
+      </div>
+
+      <div class="field">
+        <label class="label has-text-grey">Secret (manual entry)</label>
+        <div class="control">
+          <input class="input is-family-monospace" value="<%= @pending_secret %>" readonly>
+        </div>
+      </div>
+
+      <%= form_with url: authenticators_path, method: :post do |f| %>
+        <div class="field">
+          <label class="label" for="nickname">Nickname</label>
+          <div class="control">
+            <%= text_field_tag :nickname,
+                               @nickname,
+                               id: "nickname",
+                               class: "input",
+                               placeholder: "e.g. Kevin's phone",
+                               required: true,
+                               maxlength: 50 %>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="otp_code">Verification code</label>
+          <div class="control">
+            <%= text_field_tag :otp_code,
+                               nil,
+                               id: "otp_code",
+                               class: "input",
+                               autocomplete: "one-time-code",
+                               inputmode: "numeric",
+                               placeholder: "123456",
+                               required: true %>
+          </div>
+        </div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <%= f.button "Add authenticator", class: "button is-primary" %>
+          </div>
+          <div class="control">
+            <%= link_to "Cancel", two_factor_settings_path, class: "button" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

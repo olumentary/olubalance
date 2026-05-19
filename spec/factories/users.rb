@@ -18,10 +18,19 @@ FactoryBot.define do
       confirmed_at { nil }
     end
 
+    # Creates a user with one confirmed authenticator. `authenticator_secret`
+    # is exposed as a transient so specs can compute matching OTP codes.
     trait :with_two_factor do
-      otp_required_for_login { true }
-      after(:build) do |user|
-        user.otp_secret = User.generate_otp_secret
+      transient do
+        authenticator_nickname { "Test Phone" }
+      end
+
+      after(:create) do |user, evaluator|
+        user.authenticators.create!(
+          nickname:     evaluator.authenticator_nickname,
+          otp_secret:   Authenticator.generate_secret,
+          confirmed_at: Time.current
+        )
       end
     end
   end

@@ -67,11 +67,16 @@ RSpec.describe "Users::Sessions", type: :request do
 
   describe "2FA flow" do
     let(:user) { create(:user, :with_two_factor, password: password, password_confirmation: password) }
+    let(:authenticator) { user.authenticators.first }
+    def current_code_for(auth) = ROTP::TOTP.new(auth.otp_secret).now
 
     it "redirects to the OTP challenge after a valid password" do
       post_credentials
       expect(response).to redirect_to(user_otp_challenge_path)
-      expect(controller.current_user).to be_nil
+      # Visit an actually-protected route to confirm we are NOT signed in yet;
+      # `accounts` requires authentication and bounces to sign-in for guests.
+      get accounts_path
+      expect(response).to redirect_to(new_user_session_path)
     end
 
     it "renders the OTP form at the challenge URL" do
@@ -92,30 +97,37 @@ RSpec.describe "Users::Sessions", type: :request do
 
     it "signs in on a valid OTP code and records otp_success" do
       post_credentials
-      code = user.current_otp
       expect {
-        post user_session_path, params: { otp_code: code }
+        post user_session_path, params: { otp_code: current_code_for(authenticator) }
       }.to change(LoginEvent.where(event_type: "otp_success"), :count).by(1)
+      follow_redirect!
+      expect(controller.current_user).to eq(user)
+    end
+
+    it "accepts a code from a second authenticator on the same account" do
+      second = create(:authenticator, user: user, nickname: "Second device")
+      post_credentials
+      post user_session_path, params: { otp_code: current_code_for(second) }
       follow_redirect!
       expect(controller.current_user).to eq(user)
     end
 
     it "issues a trusted device cookie when remember_device is checked" do
       post_credentials
-      post user_session_path, params: { otp_code: user.current_otp, remember_device: "1" }
+      post user_session_path, params: { otp_code: current_code_for(authenticator), remember_device: "1" }
       expect(user.trusted_devices.active.count).to eq(1)
     end
 
     it "does not issue a trusted device when remember_device is unchecked" do
       post_credentials
-      post user_session_path, params: { otp_code: user.current_otp }
+      post user_session_path, params: { otp_code: current_code_for(authenticator) }
       expect(user.trusted_devices.active.count).to eq(0)
     end
 
     it "expires the OTP-pending session after 5 minutes" do
       post_credentials
       travel 6.minutes do
-        post user_session_path, params: { otp_code: user.current_otp }
+        post user_session_path, params: { otp_code: current_code_for(authenticator) }
         expect(response).to redirect_to(new_user_session_path)
         follow_redirect!
         expect(response.body).to include("expired")

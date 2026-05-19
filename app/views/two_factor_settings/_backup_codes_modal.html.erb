@@ -1,0 +1,51 @@
+<%# Display codes grouped by 4 chars for human readability, but copy as raw
+    newline-separated strings so they paste cleanly into a password manager. %>
+<% formatted_codes = backup_codes.map { |c| c.scan(/.{1,4}/).join(" ") } %>
+
+<div id="backup-codes-modal"
+     class="modal is-active"
+     data-controller="clipboard"
+     data-clipboard-text-value="<%= backup_codes.join("\n") %>"
+     data-clipboard-copied-label-value="Copied to clipboard">
+  <div class="modal-background" data-action="click->shared#toggleModal" data-id="backup-codes-modal"></div>
+
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Save your backup codes</p>
+      <button class="delete" aria-label="close"
+              data-action="click->shared#toggleModal" data-id="backup-codes-modal"></button>
+    </header>
+
+    <section class="modal-card-body">
+      <div class="notification is-warning">
+        <strong>Save these now.</strong>
+        Each code can be used once if you lose access to every enrolled authenticator.
+        They will not be shown again.
+      </div>
+
+      <div class="has-text-right mb-3">
+        <button type="button" class="button is-link is-small"
+                data-action="click->clipboard#copy">
+          <span class="icon is-small"><i class="fas fa-clipboard"></i></span>
+          <span>Copy all</span>
+        </button>
+      </div>
+
+      <div class="box has-background-light p-3">
+        <% formatted_codes.each do |code| %>
+          <div class="is-family-monospace has-text-centered"
+               style="font-size: 1.05em; padding: 0.35em 0; letter-spacing: 0.02em;">
+            <%= code %>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <footer class="modal-card-foot is-justify-content-flex-end">
+      <button class="button is-primary"
+              data-action="click->shared#toggleModal" data-id="backup-codes-modal">
+        I have saved these codes
+      </button>
+    </footer>
+  </div>
+</div>

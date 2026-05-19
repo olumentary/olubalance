@@ -62,13 +62,11 @@ Rails.application.routes.draw do
     resources :batches, only: %i[index show new create destroy]
   end
 
-  # Two-factor authentication settings
-  resource :two_factor_settings, only: %i[show create destroy] do
-    member do
-      get :backup_codes
-      post :regenerate_backup_codes
-    end
+  # Two-factor authentication: settings dashboard + per-device enrollment.
+  resource :two_factor_settings, only: %i[show destroy] do
+    post :regenerate_backup_codes, on: :collection
   end
+  resources :authenticators, only: %i[new create destroy]
   resources :trusted_devices, only: %i[index destroy] do
     collection do
       delete :revoke_all

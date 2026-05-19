@@ -61,28 +61,28 @@ RSpec.describe User, type: :model do
   describe "two-factor authentication" do
     let(:user) { create(:user, :with_two_factor) }
 
-    it "reports two_factor_enabled? when otp_required_for_login is true" do
+    it "reports two_factor_enabled? when a confirmed authenticator exists" do
       expect(user).to be_two_factor_enabled
-      user.update!(otp_required_for_login: false)
-      expect(user).not_to be_two_factor_enabled
     end
 
-    it "disable_two_factor! clears OTP fields and revokes trusted devices" do
+    it "is not two_factor_enabled when no authenticators are enrolled" do
+      expect(create(:user)).not_to be_two_factor_enabled
+    end
+
+    it "disable_two_factor! destroys authenticators, clears backup codes, and revokes trusted devices" do
       user.generate_otp_backup_codes!
       user.save!
       device = create(:trusted_device, user: user)
 
-      user.disable_two_factor!
+      expect {
+        user.disable_two_factor!
+      }.to change { user.authenticators.count }.to(0)
 
-      expect(user.reload).to have_attributes(
-        otp_required_for_login: false,
-        otp_secret:             nil,
-        consumed_timestep:      nil,
-        otp_backup_codes:       []
-      )
+      expect(user.reload.otp_backup_codes).to eq([])
       expect(device.reload.revoked_at).to be_present
     end
 
+    it { is_expected.to have_many(:authenticators).dependent(:destroy) }
     it { is_expected.to have_many(:trusted_devices).dependent(:destroy) }
   end
 end

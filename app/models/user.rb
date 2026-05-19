@@ -2,13 +2,7 @@
 
 # Devise user class
 class User < ApplicationRecord
-  encrypts :otp_secret
-
-  # NOTE: `:database_authenticatable` is intentionally NOT loaded alongside
-  # `:two_factor_authenticatable`. devise-two-factor warns this combination
-  # bypasses 2FA via Warden strategy cascading; the latter already provides
-  # password auth.
-  devise :two_factor_authenticatable, :two_factor_backupable,
+  devise :database_authenticatable, :two_factor_backupable,
          :lockable, :recoverable, :rememberable, :trackable, :validatable, :confirmable,
          otp_number_of_backup_codes: 10
 
@@ -28,20 +22,22 @@ class User < ApplicationRecord
   has_many :bills, dependent: :destroy
   has_many :bill_transaction_batches, dependent: :destroy
   has_many :trusted_devices, dependent: :destroy
+  has_many :authenticators, dependent: :destroy
   belongs_to :default_account, class_name: "Account", optional: true
 
+  # 2FA is "active" iff at least one confirmed authenticator exists.
   def two_factor_enabled?
-    otp_required_for_login?
+    authenticators.confirmed.exists?
   end
 
+  # Removes every enrolled authenticator + clears backup codes + revokes
+  # trusted devices. After this returns, the user signs in with password only.
   def disable_two_factor!
-    update!(
-      otp_required_for_login: false,
-      otp_secret:             nil,
-      consumed_timestep:      nil,
-      otp_backup_codes:       []
-    )
-    trusted_devices.update_all(revoked_at: Time.current)
+    transaction do
+      authenticators.destroy_all
+      update!(otp_backup_codes: [])
+      trusted_devices.update_all(revoked_at: Time.current)
+    end
   end
 
   private

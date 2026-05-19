@@ -77,7 +77,7 @@ class Users::SessionsController < Devise::SessionsController
 
     LoginEvent.record_password_attempt(request: request, email: email, user: user, success: true)
 
-    if user.otp_required_for_login? && !trusted_device_for?(user)
+    if user.two_factor_enabled? && !trusted_device_for?(user)
       session[:otp_pending_user_id]     = user.id
       session[:otp_pending_remember_me] = remember_me_requested?
       session[:otp_pending_at]          = Time.current.to_i
@@ -113,13 +113,7 @@ class Users::SessionsController < Devise::SessionsController
     user = User.find(session[:otp_pending_user_id])
     code = params[:otp_code].to_s.gsub(/\s+/, "")
 
-    success =
-      if user.invalidate_otp_backup_code!(code)
-        user.save!
-        true
-      else
-        user.validate_and_consume_otp!(code)
-      end
+    success = consume_backup_code(user, code) || consume_authenticator_code(user, code)
 
     if success
       LoginEvent.record_otp(request: request, user: user, success: true)
@@ -133,6 +127,21 @@ class Users::SessionsController < Devise::SessionsController
       flash.now[:alert] = "Invalid verification code."
       render :otp_challenge, status: :unprocessable_content
     end
+  end
+
+  def consume_backup_code(user, code)
+    if user.invalidate_otp_backup_code!(code)
+      user.save!
+      true
+    else
+      false
+    end
+  end
+
+  # Tries each confirmed authenticator until one accepts the code. Replay
+  # protection is per-authenticator via `consumed_timestep`.
+  def consume_authenticator_code(user, code)
+    user.authenticators.confirmed.any? { |auth| auth.validate_and_consume!(code) }
   end
 
   def complete_sign_in(user, remember:)

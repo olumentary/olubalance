@@ -75,3 +75,6 @@ application.register('reports-chart', ReportsChartController);
 
 import SortableHeaderController from './sortable_header_controller';
 application.register('sortable-header', SortableHeaderController);
+
+import ClipboardController from './clipboard_controller';
+application.register('clipboard', ClipboardController);

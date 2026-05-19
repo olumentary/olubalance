@@ -236,10 +236,14 @@ Devise.setup do |config|
   # If you want to use other strategies, that are not supported by Devise, or
   # change the failure app, you can configure them inside the config.warden block.
   #
-  config.warden do |manager|
-    manager.default_strategies(scope: :user).unshift :two_factor_backupable
-    manager.default_strategies(scope: :user).unshift :two_factor_authenticatable
-  end
+  # NOTE: We do not unshift any 2FA strategies onto Warden's chain — our
+  # custom Users::SessionsController orchestrates password → OTP step-by-step
+  # by calling `valid_for_authentication?` and `Authenticator#validate_and_consume!`
+  # directly. Letting strategies run via warden.authenticate! would
+  # double/triple-increment `failed_attempts` and skew lockout.
+  # config.warden do |manager|
+  #   manager.default_strategies(scope: :user).unshift :two_factor_authenticatable
+  # end
 
   # ==> Mountable engine configurations
   # When using Devise inside an engine, let's call it `MyEngine`, and this engine

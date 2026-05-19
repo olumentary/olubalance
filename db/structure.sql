@@ -191,6 +191,42 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: authenticators; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.authenticators (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    nickname character varying NOT NULL,
+    otp_secret character varying NOT NULL,
+    consumed_timestep integer,
+    last_used_at timestamp(6) without time zone,
+    confirmed_at timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: authenticators_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.authenticators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: authenticators_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.authenticators_id_seq OWNED BY public.authenticators.id;
+
+
+--
 -- Name: bill_transaction_batches; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -642,9 +678,6 @@ CREATE TABLE public.users (
     failed_attempts integer DEFAULT 0 NOT NULL,
     unlock_token character varying,
     locked_at timestamp(6) without time zone,
-    otp_secret character varying,
-    consumed_timestep integer,
-    otp_required_for_login boolean DEFAULT false NOT NULL,
     otp_backup_codes character varying[] DEFAULT '{}'::character varying[]
 );
 
@@ -694,6 +727,13 @@ ALTER TABLE ONLY public.active_storage_blobs ALTER COLUMN id SET DEFAULT nextval
 --
 
 ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAULT nextval('public.active_storage_variant_records_id_seq'::regclass);
+
+
+--
+-- Name: authenticators id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authenticators ALTER COLUMN id SET DEFAULT nextval('public.authenticators_id_seq'::regclass);
 
 
 --
@@ -818,6 +858,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: authenticators authenticators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authenticators
+    ADD CONSTRAINT authenticators_pkey PRIMARY KEY (id);
 
 
 --
@@ -964,6 +1012,20 @@ CREATE UNIQUE INDEX index_active_storage_blobs_on_key ON public.active_storage_b
 --
 
 CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.active_storage_variant_records USING btree (blob_id, variation_digest);
+
+
+--
+-- Name: index_authenticators_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_authenticators_on_user_id ON public.authenticators USING btree (user_id);
+
+
+--
+-- Name: index_authenticators_on_user_id_and_nickname; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_authenticators_on_user_id_and_nickname ON public.authenticators USING btree (user_id, nickname);
 
 
 --
@@ -1435,6 +1497,14 @@ ALTER TABLE ONLY public.accounts
 
 
 --
+-- Name: authenticators fk_rails_b3092b2ea8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authenticators
+    ADD CONSTRAINT fk_rails_b3092b2ea8 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: categories fk_rails_b8e2f7adfc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1481,6 +1551,8 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260519124420'),
+('20260519124413'),
 ('20260518142810'),
 ('20260518142805'),
 ('20260518142800'),

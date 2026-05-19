@@ -1,28 +1,104 @@
-<div class="columns">
-  <div class="column is-8-desktop is-offset-2-desktop">
-    <h2 class="title is-4 has-text-link">Two-factor authentication</h2>
+<%# Backup-code modal lands here via Turbo Stream after Regenerate, or is
+    rendered inline when arriving from a redirect (first enrollment / HTML
+    fallback) with codes piggy-backed via flash. %>
+<div id="backup_codes_modal_container">
+  <% if @just_generated_backup_codes.present? %>
+    <%= render "backup_codes_modal", backup_codes: @just_generated_backup_codes %>
+  <% end %>
+</div>
 
-    <% if @enrolled %>
-      <div class="notification is-success is-light">
-        <strong>2FA is enabled</strong> on your account.
+<div class="columns">
+  <div class="column is-10-desktop is-offset-1-desktop">
+    <div class="level">
+      <div class="level-left">
+        <h2 class="title is-4 has-text-link">Two-factor authentication</h2>
+      </div>
+      <div class="level-right">
+        <% if @enabled %>
+          <span class="tag is-success">2FA enabled</span>
+        <% else %>
+          <span class="tag is-warning">2FA disabled</span>
+        <% end %>
+      </div>
+    </div>
+
+    <%= render "info" %>
+
+    <div class="box">
+      <div class="level">
+        <div class="level-left">
+          <h3 class="title is-5 mb-0">Enrolled authenticators</h3>
+        </div>
+        <div class="level-right">
+          <%= link_to "Add a new authenticator", new_authenticator_path, class: "button is-primary" %>
+        </div>
       </div>
 
+      <% if @authenticators.any? %>
+        <table class="table is-fullwidth is-striped">
+          <thead>
+            <tr>
+              <th>Nickname</th>
+              <th>Enrolled</th>
+              <th>Last used</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @authenticators.each do |auth| %>
+              <tr>
+                <td class="is-vcentered"><strong><%= auth.nickname %></strong></td>
+                <td class="is-vcentered is-size-7"><%= auth.confirmed_at.strftime("%b %-d, %Y") %></td>
+                <td class="is-vcentered is-size-7">
+                  <%= auth.last_used_at ? auth.last_used_at.strftime("%b %-d, %Y %H:%M") : "Never" %>
+                </td>
+                <td class="is-vcentered has-text-right">
+                  <%= button_to "Remove",
+                                authenticator_path(auth),
+                                method: :delete,
+                                class: "button is-small is-danger",
+                                form: { style: "display:inline" },
+                                data: { turbo_confirm: removal_confirmation(auth) } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div class="notification is-warning">
+          You haven't enrolled any authenticators yet. Until you do, sign-in only requires your password.
+        </div>
+      <% end %>
+    </div>
+
+    <% if @enabled %>
       <div class="box">
         <h3 class="title is-5">Backup codes</h3>
         <p class="mb-4">
-          Backup codes let you sign in if you lose access to your authenticator app.
+          Backup codes let you sign in if you lose access to every enrolled authenticator.
           Regenerating invalidates any previously issued codes.
         </p>
+        <% unless @has_backup_codes %>
+          <div class="notification is-warning">
+            No backup codes on file. Generate a set in case you lose your device.
+          </div>
+        <% end %>
         <%= button_to "Regenerate backup codes",
                       regenerate_backup_codes_two_factor_settings_path,
                       method: :post,
                       class: "button is-link",
-                      data: { confirm: "This invalidates your current backup codes. Continue?" } %>
+                      data: { turbo_confirm: "This invalidates your current backup codes. Continue?" } %>
+      </div>
+
+      <div class="box">
+        <h3 class="title is-5">Trusted devices</h3>
+        <p class="mb-4">Browsers you've checked "Remember this device" on skip the OTP step.</p>
+        <p><%= link_to "Manage trusted devices", trusted_devices_path, class: "button is-link" %></p>
       </div>
 
       <div class="box">
         <h3 class="title is-5 has-text-danger">Disable 2FA</h3>
-        <p class="mb-4">Removing 2FA also revokes all trusted devices.</p>
+        <p class="mb-4">Removing 2FA also wipes backup codes and revokes all trusted devices.</p>
         <%= form_with url: two_factor_settings_path, method: :delete do |f| %>
           <div class="field">
             <label class="label">Confirm with your password</label>
@@ -32,54 +108,6 @@
           </div>
           <div class="control">
             <%= f.button "Disable two-factor authentication", class: "button is-danger" %>
-          </div>
-        <% end %>
-      </div>
-
-      <div class="box">
-        <h3 class="title is-5">Trusted devices</h3>
-        <p><%= link_to "Manage trusted devices", trusted_devices_path, class: "button is-link" %></p>
-      </div>
-
-    <% else %>
-      <div class="notification is-warning is-light">
-        Two-factor authentication is <strong>not</strong> enabled.
-      </div>
-
-      <div class="box">
-        <h3 class="title is-5">Enroll an authenticator app</h3>
-        <div class="content">
-          <ol>
-            <li>Install an authenticator app (1Password, Authy, Google Authenticator, etc.).</li>
-            <li>Scan the QR code below, or enter the secret manually.</li>
-            <li>Enter the 6-digit code from the app to confirm.</li>
-          </ol>
-        </div>
-
-        <div class="has-text-centered" style="margin: 1.5em 0;">
-          <%= @qr_svg %>
-        </div>
-
-        <div class="field">
-          <label class="label has-text-grey">Secret (manual entry)</label>
-          <div class="control">
-            <input class="input is-family-monospace" value="<%= @pending_secret %>" readonly>
-          </div>
-        </div>
-
-        <%= form_with url: two_factor_settings_path, method: :post do |f| %>
-          <div class="field">
-            <label class="label">Verification code</label>
-            <div class="control">
-              <%= f.text_field :otp_code,
-                                class: "input",
-                                autocomplete: "one-time-code",
-                                inputmode: "numeric",
-                                placeholder: "123456" %>
-            </div>
-          </div>
-          <div class="control">
-            <%= f.button "Enable two-factor authentication", class: "button is-primary" %>
           </div>
         <% end %>
       </div>
