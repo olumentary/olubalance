@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] changes
 
+## [v2.0.0] - 2026-05-19
+
+### New
+
+- Reports feature: a new Reports page provides Chart.js-powered visualizations, including spending-by-category breakdowns with date-range filters
+- Two-Factor Authentication (TOTP):
+  - Enroll multiple authenticator devices per account and name each one
+  - Backup codes can be generated (and regenerated) for recovery
+  - Trusted devices: skip the OTP challenge on devices you've marked as trusted, with management of the trusted device list
+- Login security hardening:
+  - Account lockable after repeated failed sign-in attempts
+  - Rate limiting via Rack Attack for sign-in, password reset, and OTP endpoints
+  - Security event log accessible from the user menu, capturing successful and failed login attempts
+  - Email notifications for unfamiliar successful logins and bursts of suspicious failed attempts
+- Admin panel powered by Motor Admin, gated to users flagged as admins
+- Bills can now be associated with a transaction category; transactions generated from bills inherit that category automatically
+- Transfers are now categorized using a dedicated Transfer category for clearer reporting
+- Global Transaction search: results can now be sorted by clicking the Date, Description, or Amount column headers (Turbo-Frame powered, no full page reload)
+- Global categories are now provisioned via seed data so new installs start with a sensible default set
+- Quick receipt transactions - upon loading the review modal, the details are automatically filled in via AI by reading the receipt image.
+
+### Changed
+
+- Global Transaction search now uses simple LIKE-based matching on description (replacing the previous `pg_trgm` fuzzy search) with results sorted by transaction date descending
+- Stash progress bars now reflect a calculated percentage toward the goal (with safe handling of zero goals) instead of raw balance
+- Pagination on the transactions index now uses Turbo Frames for smoother in-place updates
+- Several controllers were updated to use `Turbo.visit` in place of `window.location.reload()` for more efficient page refreshes
+
+### Fixed
+
+- Reporting calculations have been corrected to produce accurate spending-by-category totals
+- Quick Receipt review modal no longer gets stuck on "Loading receipt..." when multiple modals are pre-rendered on the page
+- Button color/contrast issues addressed in several areas of the UI
+
+### Chores
+
+- Upgrade to Ruby 3.4.8
+- Upgrade to Devise 5.0.3
+- Added `connection_pool` gem
+- Updated GitHub Actions checkout action to remove Node.js 20 deprecation warnings
+- Numerous gem and node package updates
+- Expanded test coverage and fixed CI stability issues
+- Added `CLAUDE.md` / `AGENTS.md` to standardize guidance for AI coding agents working in the repo
+
 ## [v1.13.2] - 2025-12-23
 
 ### New
@@ -496,7 +540,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account balance will be updated automatically after user operations on transactions
 - Account overview with list of all accounts and balances for each
 
-[Unreleased]: https://github.com/odinsride/olubalance/compare/v1.13.2...develop
+[Unreleased]: https://github.com/odinsride/olubalance/compare/v2.0.0...develop
+[v2.0.0]: https://github.com/odinsride/olubalance/compare/v1.13.2...v2.0.0
 [v1.13.2]: https://github.com/odinsride/olubalance/compare/v1.13.1...v1.13.2
 [v1.13.1]: https://github.com/odinsride/olubalance/compare/v1.13.0...v1.13.1
 [v1.13.0]: https://github.com/odinsride/olubalance/compare/v1.12.1...v1.13.0
