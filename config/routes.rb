@@ -2,7 +2,7 @@
 
 Rails.application.routes.draw do
   authenticate :user, ->(u) { u.admin? } do
-    mount Motor::Admin => "/db_admin"
+    mount Blazer::Engine, at: "blazer"
   end
 
   # Rails 7.1+ health check endpoint

@@ -10,6 +10,7 @@ end
 ruby "3.4.8"
 
 gem "aws-sdk-s3"
+gem "blazer"
 gem "bootsnap", require: false
 gem "bundler", "~> 4.0"
 gem "connection_pool", "~> 2.4"
@@ -24,7 +25,6 @@ gem "image_processing", "~> 1.14.0"
 gem "invisible_captcha"
 gem "jsbundling-rails"
 gem "mini_magick", "~> 5.3.1"
-gem "motor-admin"
 gem "ostruct"
 gem "pagy", "~> 9"
 gem "pg", "~> 1.6.2"
