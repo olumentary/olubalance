@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  authenticate :user, ->(u) { u.admin? } do
+    mount Motor::Admin => "/db_admin"
+  end
+
   # Rails 7.1+ health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 

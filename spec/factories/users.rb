@@ -18,6 +18,10 @@ FactoryBot.define do
       confirmed_at { nil }
     end
 
+    trait :admin do
+      admin { true }
+    end
+
     # Creates a user with one confirmed authenticator. `authenticator_secret`
     # is exposed as a transient so specs can compute matching OTP codes.
     trait :with_two_factor do
