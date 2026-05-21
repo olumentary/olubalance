@@ -33,6 +33,9 @@ class Account < ApplicationRecord
   validates :credit_limit, presence: true, numericality: { greater_than_or_equal_to: 0 }, unless: proc { |u|
                                                                                                     !u.credit?
                                                                                                   }
+  validates :statement_day,
+            numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 31 },
+            allow_nil: true
 
   before_create :set_current_balance
   after_create :create_initial_transaction
@@ -70,6 +73,35 @@ class Account < ApplicationRecord
 
   def credit_utilization
     ((current_balance.abs / credit_limit) * 100).round(2)
+  end
+
+  # Accounts missing any required config are silently skipped by the interest job.
+  def interest_eligible?
+    credit? &&
+      interest_rate.present? && interest_rate.positive? &&
+      statement_day.present? &&
+      current_balance.present? && current_balance.negative?
+  end
+
+  def clamped_statement_day(date)
+    [ statement_day, date.end_of_month.day ].min
+  end
+
+  def interest_due_on?(date)
+    return false if statement_day.blank?
+    return false unless date.day == clamped_statement_day(date)
+
+    last_interest_charged_on.blank? || last_interest_charged_on < date.beginning_of_month
+  end
+
+  # Simple monthly periodic rate: balance × (APR ÷ 12).
+  # APR is stored as a percentage (e.g. 24.99), so the divisor is 1200 in one step.
+  def monthly_interest_amount
+    return BigDecimal("0") unless interest_rate.present? && current_balance.present?
+
+    rate = interest_rate.is_a?(BigDecimal) ? interest_rate : interest_rate.to_d
+    balance = current_balance.is_a?(BigDecimal) ? current_balance.abs : current_balance.to_d.abs
+    (balance * rate / BigDecimal("1200")).round(2)
   end
 
   private

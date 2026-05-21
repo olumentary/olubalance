@@ -43,5 +43,6 @@ DEVISE_SECRET_KEY:
 # Clamped between 1 and 90; default 14.
 TWO_FACTOR_REMEMBER_DAYS: 14
 
-# Redis URL used by Rails cache (Rack::Attack counters live here in prod).
+# Redis URL used by Rails cache (Rack::Attack counters live here in prod),
+# ActionCable, and Sidekiq.
 REDIS_URL:

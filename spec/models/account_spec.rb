@@ -96,4 +96,101 @@ RSpec.describe Account, type: :model do
   it { should belong_to(:user) }
   it { should have_many(:transactions) }
   it { should have_many(:stashes) }
+
+  describe 'statement_day validation' do
+    it { should allow_value(nil).for(:statement_day) }
+    it { should allow_value(1).for(:statement_day) }
+    it { should allow_value(31).for(:statement_day) }
+    it { should_not allow_value(0).for(:statement_day) }
+    it { should_not allow_value(32).for(:statement_day) }
+    it { should_not allow_value(15.5).for(:statement_day) }
+  end
+
+  describe 'interest helpers' do
+    let(:user) { FactoryBot.create(:user) }
+    let(:account) do
+      FactoryBot.create(:account, :credit,
+                        user: user,
+                        starting_balance: -500,
+                        interest_rate: 24.0,
+                        statement_day: 15)
+    end
+
+    describe '#interest_eligible?' do
+      it 'is true for a credit account with rate, statement_day, and a negative balance' do
+        expect(account.interest_eligible?).to be true
+      end
+
+      it 'is false when the account is not credit' do
+        non_credit = FactoryBot.create(:account, :checking, user: user)
+        expect(non_credit.interest_eligible?).to be false
+      end
+
+      it 'is false when interest_rate is zero' do
+        account.update_column(:interest_rate, 0)
+        expect(account.reload.interest_eligible?).to be false
+      end
+
+      it 'is false when statement_day is nil' do
+        account.update_column(:statement_day, nil)
+        expect(account.reload.interest_eligible?).to be false
+      end
+
+      it 'is false when the balance is non-negative (nothing owed)' do
+        account.update_column(:current_balance, 0)
+        expect(account.reload.interest_eligible?).to be false
+      end
+    end
+
+    describe '#clamped_statement_day' do
+      it 'returns statement_day for months with enough days' do
+        account.update_column(:statement_day, 31)
+        expect(account.clamped_statement_day(Date.new(2026, 1, 1))).to eq 31
+      end
+
+      it 'clamps to the last day of February' do
+        account.update_column(:statement_day, 31)
+        expect(account.clamped_statement_day(Date.new(2026, 2, 1))).to eq 28
+      end
+    end
+
+    describe '#interest_due_on?' do
+      it 'is true when the date day matches the statement day and nothing was charged this month' do
+        expect(account.interest_due_on?(Date.new(2026, 5, 15))).to be true
+      end
+
+      it 'is false on a different day' do
+        expect(account.interest_due_on?(Date.new(2026, 5, 14))).to be false
+      end
+
+      it 'is false when already charged this month' do
+        account.update_column(:last_interest_charged_on, Date.new(2026, 5, 15))
+        expect(account.interest_due_on?(Date.new(2026, 5, 15))).to be false
+      end
+
+      it 'is true again the following month after a prior charge' do
+        account.update_column(:last_interest_charged_on, Date.new(2026, 4, 15))
+        expect(account.interest_due_on?(Date.new(2026, 5, 15))).to be true
+      end
+
+      it 'clamps statement_day=31 to month-end (e.g. Feb 28)' do
+        account.update_column(:statement_day, 31)
+        expect(account.interest_due_on?(Date.new(2026, 2, 28))).to be true
+        expect(account.interest_due_on?(Date.new(2026, 2, 27))).to be false
+      end
+    end
+
+    describe '#monthly_interest_amount' do
+      it 'returns BigDecimal rounded to two places using APR/12' do
+        # current_balance set to -500 by starting_balance; rate 24% => 500 * 24 / 1200 = 10.00
+        amount = account.monthly_interest_amount
+        expect(amount).to be_a(BigDecimal)
+        expect(amount).to eq(BigDecimal("10.00"))
+      end
+
+      it 'is positive even when balance is negative' do
+        expect(account.monthly_interest_amount).to be > 0
+      end
+    end
+  end
 end

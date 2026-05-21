@@ -40,6 +40,10 @@ module Olubalance
         routing_specs: false
     end
 
+    # ActiveJob runs through Sidekiq (Redis-backed). Tests use the :test adapter
+    # so jobs are enqueued without a worker process.
+    config.active_job.queue_adapter = :sidekiq
+
     # olubalance Version
     config.version = "1.13.2"
   end

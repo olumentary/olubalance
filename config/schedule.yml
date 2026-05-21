@@ -1,0 +1,5 @@
+monthly_interest_sweep:
+  cron: "0 6 * * *"
+  class: "MonthlyInterestSweepJob"
+  queue: interest
+  description: "Sweep credit accounts daily; assess interest on accounts whose statement_day matches today."

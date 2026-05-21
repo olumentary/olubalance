@@ -56,7 +56,9 @@ CREATE TABLE public.accounts (
     active boolean DEFAULT true,
     account_type public.account_types DEFAULT 'checking'::public.account_types,
     interest_rate numeric,
-    credit_limit numeric
+    credit_limit numeric,
+    statement_day integer,
+    last_interest_charged_on date
 );
 
 
@@ -1863,6 +1865,7 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260520220209'),
 ('20260520164549'),
 ('20260520164411'),
 ('20260520000915'),

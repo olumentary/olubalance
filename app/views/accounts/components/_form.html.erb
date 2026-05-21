@@ -110,6 +110,21 @@
             </div>
           </div>
 
+          <!-- Statement Day -->
+          <div class="column is-hidden" data-acctform-target="statementday">
+            <div class="field">
+              <label class="label has-text-grey">Statement Day</label>
+              <div class="control has-icons-left">
+                <%= f.number_field :statement_day, class: "input is-primary",
+                                                   placeholder: "Day of month (1-31)",
+                                                   min: 1, max: 31 %>
+                <span class="icon is-small is-left has-text-primary">
+                  <i class="fas fa-calendar-day"></i>
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 

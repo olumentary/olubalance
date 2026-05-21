@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require "sidekiq/web"
+require "sidekiq/cron/web"
+
 Rails.application.routes.draw do
   authenticate :user, ->(u) { u.admin? } do
     mount Blazer::Engine, at: "blazer"
+    mount Sidekiq::Web, at: "sidekiq"
   end
 
   # Rails 7.1+ health check endpoint

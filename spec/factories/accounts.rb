@@ -17,6 +17,7 @@ FactoryBot.define do
       account_type { 'credit' }
       interest_rate { Faker::Number.between(from: 10.00, to: 25.00).to_f.round(2) }
       credit_limit { Faker::Number.between(from: 3000.00, to: 20000.00).to_f.round(2) }
+      statement_day { 15 }
     end
 
     trait :savings do

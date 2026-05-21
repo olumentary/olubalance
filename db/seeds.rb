@@ -116,10 +116,11 @@ emails.each do |email|
 end
 
 # Create global categories
-category_names = %w[
-  Groceries Dining Utilities Housing Auto Transportation Fuel Health Insurance
-  Entertainment Travel Transfer Income Savings Investments Subscriptions
-  Education Gifts Miscellaneous Family Taxes
+category_names = [
+  "Groceries", "Dining", "Utilities", "Housing", "Auto", "Transportation", "Fuel",
+  "Health", "Insurance", "Entertainment", "Travel", "Transfer", "Income", "Savings",
+  "Investments", "Subscriptions", "Education", "Gifts", "Miscellaneous", "Family",
+  "Taxes", "Interest Charges"
 ]
 
 category_names.each do |name|
