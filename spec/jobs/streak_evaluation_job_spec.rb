@@ -9,9 +9,14 @@ RSpec.describe StreakEvaluationJob do
     create(:account, user: user_a, last_transaction_on: Date.current)
     create(:account, user: user_b, last_transaction_on: Date.current)
 
-    expect(Users::StreakEvaluator).to receive(:call).with(user_a)
-    expect(Users::StreakEvaluator).to receive(:call).with(user_b)
+    # Allow seeded users (present in CI after db:reset) to be processed
+    # without strict expectations — we only care that OUR two users get
+    # called.
+    allow(Users::StreakEvaluator).to receive(:call)
 
     described_class.new.perform
+
+    expect(Users::StreakEvaluator).to have_received(:call).with(user_a)
+    expect(Users::StreakEvaluator).to have_received(:call).with(user_b)
   end
 end
