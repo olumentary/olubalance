@@ -14,6 +14,7 @@ class LoginEvent < ApplicationRecord
     block
     otp_success
     otp_failure
+    unlock
   ].freeze
 
   validates :event_type, inclusion: { in: EVENT_TYPES }
@@ -74,6 +75,24 @@ class LoginEvent < ApplicationRecord
     )
   rescue ActiveRecord::RecordInvalid, ActiveRecord::ConnectionNotEstablished => e
     Rails.logger.warn("[LoginEvent] failed to record rack-attack event: #{e.class}: #{e.message}")
+    nil
+  end
+
+  # Records an admin-initiated unlock action (clears a Devise account lock or
+  # a Rack::Attack throttle/block for an IP). `target_user` is set when a user
+  # account was unlocked; `ip` is set when an IP block/throttle was cleared.
+  def self.record_unlock(actor:, reason:, target_user: nil, ip: nil, request: nil)
+    create!(
+      user:            target_user,
+      email_attempted: target_user&.email,
+      ip:              ip || request&.remote_ip,
+      user_agent:      request&.user_agent.to_s.first(255),
+      event_type:      "unlock",
+      reason:          reason,
+      metadata:        { actor_id: actor&.id, actor_email: actor&.email }
+    )
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::ConnectionNotEstablished => e
+    Rails.logger.warn("[LoginEvent] failed to record unlock: #{e.class}: #{e.message}")
     nil
   end
 

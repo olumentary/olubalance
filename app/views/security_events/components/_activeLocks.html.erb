@@ -1,0 +1,87 @@
+<%# Admin-only panel: lets the signed-in admin clear a Devise account lock
+    or a Rack::Attack IP throttle/block from this authenticated session.
+    Each unlock requires the admin's current password as a second-factor
+    check (defends against a stolen "remember me" cookie). %>
+<% if current_user&.admin? && (@locked_users.any? || @blocked_ips.any?) %>
+  <div class="box">
+    <h3 class="title is-5 has-text-warning-dark">Active locks</h3>
+
+    <% if @locked_users.any? %>
+      <h4 class="subtitle is-6 mb-2">Locked accounts</h4>
+      <table class="table is-fullwidth is-striped is-narrow mb-5">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Locked at</th>
+            <th>Failed attempts</th>
+            <th class="has-text-right">Unlock</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @locked_users.each do |locked| %>
+            <tr>
+              <td class="is-vcentered is-size-7"><strong><%= locked.email %></strong></td>
+              <td class="is-vcentered is-size-7"><%= locked.locked_at.strftime("%Y-%m-%d %H:%M") %></td>
+              <td class="is-vcentered is-size-7"><%= locked.failed_attempts %></td>
+              <td class="is-vcentered has-text-right">
+                <%= form_with url: unlock_account_security_events_path,
+                              method: :post,
+                              local: true,
+                              class: "is-inline-flex",
+                              data: { turbo: false } do |f| %>
+                  <%= f.hidden_field :user_id, value: locked.id %>
+                  <%= f.password_field :current_password,
+                                       placeholder: "Your password",
+                                       autocomplete: "current-password",
+                                       required: true,
+                                       class: "input is-small mr-2",
+                                       style: "max-width: 180px;" %>
+                  <%= f.button "Unlock", class: "button is-small is-warning" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <% if @blocked_ips.any? %>
+      <h4 class="subtitle is-6 mb-2">Throttled / blocked IPs (last 24h)</h4>
+      <table class="table is-fullwidth is-striped is-narrow">
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>Events</th>
+            <th>Last seen</th>
+            <th class="has-text-right">Clear throttle &amp; block</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @blocked_ips.each do |ip, count, last_seen| %>
+            <tr>
+              <td class="is-vcentered is-size-7 is-family-monospace"><%= ip %></td>
+              <td class="is-vcentered is-size-7"><%= count %></td>
+              <td class="is-vcentered is-size-7"><%= last_seen.in_time_zone.strftime("%Y-%m-%d %H:%M") %></td>
+              <td class="is-vcentered has-text-right">
+                <%= form_with url: unlock_ip_security_events_path,
+                              method: :post,
+                              local: true,
+                              class: "is-inline-flex",
+                              data: { turbo: false } do |f| %>
+                  <%= f.hidden_field :ip, value: ip %>
+                  <%= f.password_field :current_password,
+                                       placeholder: "Your password",
+                                       autocomplete: "current-password",
+                                       required: true,
+                                       class: "input is-small mr-2",
+                                       style: "max-width: 180px;" %>
+                  <%= f.button "Clear", class: "button is-small is-warning" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+<% end %>

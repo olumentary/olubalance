@@ -8,7 +8,8 @@ module SecurityEventsHelper
     "otp_failure"  => "is-warning",
     "throttle"     => "is-warning is-light",
     "block"        => "is-danger",
-    "lockout"      => "is-danger"
+    "lockout"      => "is-danger",
+    "unlock"       => "is-info"
   }.freeze
 
   def event_type_class(event_type)

@@ -11,6 +11,8 @@
       </div>
     </div>
 
+    <%= render "security_events/components/activeLocks" %>
+
     <div class="columns is-multiline">
       <div class="column is-one-fifth">
         <div class="box has-text-centered">
@@ -57,7 +59,8 @@
                             [ "Blocks", "block" ],
                             [ "Lockouts", "lockout" ],
                             [ "OTP failures", "otp_failure" ],
-                            [ "OTP successes", "otp_success" ]
+                            [ "OTP successes", "otp_success" ],
+                            [ "Unlocks", "unlock" ]
                           ], params[:event_type]) %>
           </div>
         </div>

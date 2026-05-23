@@ -85,7 +85,12 @@ Rails.application.routes.draw do
       delete :revoke_all
     end
   end
-  resources :security_events, only: %i[index]
+  resources :security_events, only: %i[index] do
+    collection do
+      post :unlock_account
+      post :unlock_ip
+    end
+  end
 
   # Mobile home page route
   get "mobile_home" => "static_pages#mobile_home", as: :mobile_home
