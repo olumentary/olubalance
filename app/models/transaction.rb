@@ -45,6 +45,8 @@ class Transaction < ApplicationRecord
   after_update :update_account_balance_transfer
   after_update :update_counterpart_transaction
   after_destroy :update_account_balance_destroy
+  after_save :refresh_account_last_transaction_on
+  after_destroy :refresh_account_last_transaction_on
   after_commit :update_category_lookup_cache, on: %i[create update], if: -> { category_id.present? && description.present? }
 
   scope :with_balance, -> { includes(:transaction_balance).references(:transaction_balance) }
@@ -397,6 +399,21 @@ class Transaction < ApplicationRecord
     if category.user_id.present? && category.user_id != account.user_id
       errors.add(:category_id, "must belong to the same user")
     end
+  end
+
+  # Recompute the parent account's last_transaction_on from non-pending trx.
+  # Recomputing the max (rather than stamping Date.current) keeps the column
+  # honest when past-dated transactions are added or non-pending rows are
+  # destroyed — both can move the "most recent" date in either direction.
+  def refresh_account_last_transaction_on
+    return unless account_id
+    return if destroyed? && account.destroyed?
+
+    target = Account.find_by(id: account_id)
+    return unless target
+
+    latest = target.transactions.where(pending: false).maximum(:trx_date)
+    target.update_columns(last_transaction_on: latest) if target.last_transaction_on != latest
   end
 
   def update_category_lookup_cache

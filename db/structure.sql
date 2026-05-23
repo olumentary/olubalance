@@ -58,7 +58,8 @@ CREATE TABLE public.accounts (
     interest_rate numeric,
     credit_limit numeric,
     statement_day integer,
-    last_interest_charged_on date
+    last_interest_charged_on date,
+    last_transaction_on date
 );
 
 
@@ -854,7 +855,10 @@ CREATE TABLE public.users (
     unlock_token character varying,
     locked_at timestamp(6) without time zone,
     otp_backup_codes character varying[] DEFAULT '{}'::character varying[],
-    admin boolean DEFAULT false NOT NULL
+    admin boolean DEFAULT false NOT NULL,
+    current_streak_weeks integer DEFAULT 0 CONSTRAINT users_current_streak_days_not_null NOT NULL,
+    longest_streak_weeks integer DEFAULT 0 CONSTRAINT users_longest_streak_days_not_null NOT NULL,
+    streak_last_evaluated_on date
 );
 
 
@@ -1228,6 +1232,13 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE INDEX index_accounts_on_account_type ON public.accounts USING btree (account_type);
+
+
+--
+-- Name: index_accounts_on_last_transaction_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_accounts_on_last_transaction_on ON public.accounts USING btree (last_transaction_on);
 
 
 --
@@ -1865,6 +1876,9 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260521130000'),
+('20260521120100'),
+('20260521120000'),
 ('20260520220209'),
 ('20260520164549'),
 ('20260520164411'),

@@ -1,7 +1,13 @@
 <%= render partial: "accounts/components/accountLevel" %>
 <%= render partial: "accounts/components/noAccounts", locals: { description: Account::NO_ACCOUNT_DESC } if @accounts.empty? %>
 
-<div class="is-hidden-desktop has-text-centered mb-4">
+<% unless @accounts.empty? %>
+  <div class="mb-5">
+    <%= render partial: "accounts/components/weeklyBanner", locals: { user: @user, week_incomplete: @week_incomplete } %>
+  </div>
+<% end %>
+
+<div class="is-hidden-desktop has-text-centered mb-5">
   <%= link_to new_quick_transaction_path, class: "button is-primary is-fullwidth" do %>
     <span class="icon">
       <i class="fas fa-receipt"></i>
@@ -11,7 +17,7 @@
 </div>
 
 <% if @quick_receipt_count > 0 %>
-  <div class="notification is-warning is-light mb-5">
+  <div class="notification is-warning is-light">
     <span class="icon">
       <i class="fas fa-receipt"></i>
     </span>

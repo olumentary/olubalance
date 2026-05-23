@@ -54,7 +54,12 @@ Rails.application.routes.draw do
     member do
       get :deactivate
       get :activate
+      post :mark_reviewed_this_week
     end
+  end
+
+  resource :reconcile, only: [ :show ], controller: "reconcile" do
+    post :mark_current, on: :member
   end
 
   resources :transfers, only: %i[create]

@@ -14,7 +14,10 @@
     <p class="subtitle is-2 mb-0 <%= account.balance_color %>">
       <%= account.current_balance_display %>
     </p>
-    <p class="is-size-7 has-text-grey-light">as of <%= account.updated_at_display %></p>
+    <p class="is-size-7 has-text-grey-light">Last activity: <%= account.last_transaction_on_display %></p>
+    <div class="mt-2 mb-2">
+      <span class="tag <%= account.weekly_review_tag_class %>"><%= account.weekly_review_label %></span>
+    </div>
     <% if account.credit? %>
       <div class="is-size-7 has-text-grey">
         <strong><%= number_to_currency(account.available_credit) %></strong> available of <strong><%= number_to_currency(account.credit_limit) %></strong><br />

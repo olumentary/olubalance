@@ -2,7 +2,7 @@
 
 class AccountsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_account, only: %i[show edit update destroy activate deactivate]
+  before_action :set_account, only: %i[show edit update destroy activate deactivate mark_reviewed_this_week]
 
   # GET /accounts
   # GET /accounts.json
@@ -20,15 +20,18 @@ class AccountsController < ApplicationController
     @credit_limit_total = @accounts_credit.sum(:credit_limit)
     @credit_utilization_total = ((@credit_total.abs / @credit_limit_total) * 100).round(2)
 
-    @accounts_checking = @accounts_checking.decorate
-    @accounts_savings_cash = @accounts_savings_cash.decorate
-    @accounts_credit = @accounts_credit.decorate
+    @accounts_checking = sort_by_weekly_review(@accounts_checking.decorate)
+    @accounts_savings_cash = sort_by_weekly_review(@accounts_savings_cash.decorate)
+    @accounts_credit = sort_by_weekly_review(@accounts_credit.decorate)
     @accounts = @accounts.decorate
 
     @quick_receipt_count = Transaction.quick_receipts
                                       .joins(:account)
                                       .where(accounts: { user_id: current_user.id, active: true })
                                       .count
+
+    @user = current_user.decorate
+    @week_incomplete = @user.accounts_needing_review_count.positive?
   end
 
   def inactive
@@ -101,7 +104,30 @@ class AccountsController < ApplicationController
     end
   end
 
+  # Confirms "no transactions to enter" for the current Sun–Sat week. Stamps
+  # last_transaction_on to today so the account satisfies the weekly streak
+  # check without a real transaction. Responds with a turbo_stream that
+  # replaces the card frame and the banner so the page updates in place.
+  def mark_reviewed_this_week
+    @account.update_columns(last_transaction_on: Date.current)
+    @account = @account.object.reload.decorate
+    @user = current_user.decorate
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to accounts_path, notice: "Account marked reviewed for the week." }
+    end
+  end
+
   private
+
+  # Pending-urgent first (Fri/Sat unreviewed), then pending-normal, then
+  # reviewed. Within a tier, oldest activity gets attention first.
+  def sort_by_weekly_review(decorated_accounts)
+    decorated_accounts.sort_by do |account|
+      [ account.weekly_review_sort_key, -(account.days_since_last_transaction || 99_999) ]
+    end
+  end
 
   # Use callbacks to share common setup or constraints between actions.
   def set_account

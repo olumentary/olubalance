@@ -1,0 +1,26 @@
+<%= turbo_frame_tag "account_card_#{account.id}" do %>
+  <div class="card has-equal-height account-card <%= account.weekly_review_border_class %>" id="account-card-<%= account.id %>">
+    <%= link_to(account_transactions_path(account.id), data: { turbo_frame: "_top" }) do %>
+      <%= render partial: "accounts/components/accountCardContent", locals: { account: account } %>
+    <% end %>
+
+    <footer class="card-footer">
+      <span class="card-footer-item has-text-weight-medium has-text-grey"><%= account.last_four_display %></span>
+      <%= link_to "Edit", edit_account_path(account), class: "card-footer-item has-text-weight-bold", data: { turbo_frame: "_top" } %>
+      <% unless account.reviewed_this_week? %>
+        <%= button_to mark_reviewed_this_week_account_path(account),
+                      method: :post,
+                      class: "card-footer-item has-text-weight-bold has-text-success",
+                      form: { class: "card-footer-item-form" } do %>
+          Mark reviewed
+        <% end %>
+      <% end %>
+      <a class="card-footer-item has-text-weight-bold modal-button"
+         data-action="click->shared#toggleModal"
+         data-id="deactivate-modal-<%=account.id%>"
+      >
+        Deactivate
+      </a>
+    </footer>
+  </div>
+<% end %>

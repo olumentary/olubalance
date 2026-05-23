@@ -265,4 +265,34 @@ RSpec.describe Transaction, type: :model do
       expect(credit.counterpart_transaction_id).to be_nil
     end
   end
+
+  describe 'maintaining account.last_transaction_on' do
+    let(:account) { FactoryBot.create(:account) }
+
+    it 'seeds last_transaction_on from the initial starting-balance transaction' do
+      expect(account.reload.last_transaction_on).to eq(Date.current)
+    end
+
+    it 'updates last_transaction_on when a non-pending transaction is created' do
+      account.update_columns(last_transaction_on: 30.days.ago.to_date)
+      FactoryBot.create(:transaction, :non_pending, account: account, trx_date: 2.days.ago.to_date)
+      # Expected: max(starting-balance date today, new trx 2 days ago) = today
+      expect(account.reload.last_transaction_on).to eq(Date.current)
+    end
+
+    it 'does NOT update last_transaction_on for a pending transaction' do
+      # Start from a known-empty state so the only candidate trx is the pending one.
+      account.transactions.destroy_all
+      expect(account.reload.last_transaction_on).to be_nil
+      FactoryBot.create(:transaction, account: account, pending: true)
+      expect(account.reload.last_transaction_on).to be_nil
+    end
+
+    it 'recomputes when a non-pending transaction is destroyed' do
+      # Destroy the starting-balance trx (locked but still destroyable) and the
+      # account should fall back to a nil last_transaction_on.
+      account.transactions.destroy_all
+      expect(account.reload.last_transaction_on).to be_nil
+    end
+  end
 end

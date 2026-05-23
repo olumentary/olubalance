@@ -1,0 +1,54 @@
+<%= turbo_frame_tag "reconcile_account_#{account.id}", class: "block" do %>
+  <div class="box">
+    <div class="level is-mobile mb-3">
+      <div class="level-left">
+        <div class="level-item">
+          <div>
+            <p class="title is-5 mb-1"><%= account.account_card_title %></p>
+            <p class="is-size-7 has-text-grey">Last activity: <%= account.last_transaction_on_display %></p>
+          </div>
+        </div>
+      </div>
+      <div class="level-right">
+        <div class="level-item">
+          <span class="tag <%= account.weekly_review_tag_class %>"><%= account.weekly_review_label %></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="subtitle is-3 mb-3 <%= account.balance_color %>"><%= account.current_balance_display %></p>
+
+    <% recent = account.transactions.non_pending.limit(5) %>
+    <% if recent.any? %>
+      <div class="content is-small mb-4">
+        <strong>Recent transactions</strong>
+        <ul class="mb-0">
+          <% recent.each do |t| %>
+            <li>
+              <%= t.trx_date.strftime("%b %d") %> — <%= t.description %>
+              <span class="<%= t.amount.to_f.negative? ? 'has-text-danger' : 'has-text-success' %>">
+                <%= number_to_currency(t.amount) %>
+              </span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% else %>
+      <p class="is-size-7 has-text-grey-light mb-4">No transactions recorded yet.</p>
+    <% end %>
+
+    <div class="buttons">
+      <%= link_to new_account_transaction_path(account), class: "button is-primary", data: { turbo_frame: "_top" } do %>
+        <span class="icon"><i class="fas fa-plus"></i></span>
+        <span>Add transaction</span>
+      <% end %>
+      <%= button_to mark_current_reconcile_path(account_id: account.id),
+                    method: :post,
+                    class: "button is-light",
+                    form: { data: { turbo_frame: "reconcile_account_#{account.id}" } } do %>
+        <span class="icon"><i class="fas fa-check"></i></span>
+        <span>Mark reviewed for the week</span>
+      <% end %>
+    </div>
+  </div>
+<% end %>

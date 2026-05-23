@@ -1,0 +1,30 @@
+<%= turbo_frame_tag "weekly_banner" do %>
+  <div class="notification <%= user.weekly_banner_color_class %> mb-5">
+    <div class="columns is-mobile is-vcentered">
+      <div class="column is-narrow has-text-centered">
+        <p class="title is-5 mb-1">Streak</p>
+        <p class="title is-3 mb-1 <%= user.streak_color_class %>"><%= user.streak_display %></p>
+        <p class="is-size-7"><%= user.streak_subtitle %></p>
+      </div>
+      <div class="column">
+        <p class="heading mb-1">Week of <%= user.week_range_display %></p>
+        <p class="subtitle is-5 mb-2">
+          <strong><%= user.accounts_reviewed_this_week_count %> of <%= user.active_accounts_count %></strong>
+          accounts reviewed
+        </p>
+        <progress class="progress is-small is-light"
+                  value="<%= user.accounts_reviewed_this_week_count %>"
+                  max="<%= [ user.active_accounts_count, 1 ].max %>"></progress>
+        <p class="is-size-7"><%= user.weekly_progress_message %></p>
+      </div>
+      <% if week_incomplete %>
+        <div class="column is-narrow">
+          <%= link_to reconcile_path, class: "button is-warning", data: { turbo_frame: "_top" } do %>
+            <span class="icon"><i class="fas fa-bolt"></i></span>
+            <span>Catch up</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

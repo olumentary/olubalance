@@ -35,6 +35,24 @@
   }
 }
 
+// Weekly-review accent border on account cards. Uses Bulma 1.x CSS
+// variables so the colors stay in sync with the rest of the theme. The
+// `.column .card.account-card--*` selector reaches through the
+// `<turbo-frame>` wrapper that Turbo Frames inject between the column and
+// the card. A 4px left strip gives a clear at-a-glance signal without
+// competing with the card-header fill.
+.column .card.account-card--reviewed {
+  border-left: 4px solid var(--bulma-success);
+}
+
+.column .card.account-card--pending {
+  border-left: 4px solid var(--bulma-warning);
+}
+
+.column .card.account-card--urgent {
+  border-left: 4px solid var(--bulma-danger);
+}
+
 .stash-card {
   border: 1px solid ob.$primary;
   height: 75px;
