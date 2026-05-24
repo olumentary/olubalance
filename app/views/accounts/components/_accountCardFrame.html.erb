@@ -8,19 +8,12 @@
       <span class="card-footer-item has-text-weight-medium has-text-grey"><%= account.last_four_display %></span>
       <%= link_to "Edit", edit_account_path(account), class: "card-footer-item has-text-weight-bold", data: { turbo_frame: "_top" } %>
       <% unless account.reviewed_this_week? %>
-        <%= button_to mark_reviewed_this_week_account_path(account),
-                      method: :post,
-                      class: "card-footer-item has-text-weight-bold has-text-success",
-                      form: { class: "card-footer-item-form" } do %>
-          Mark reviewed
+        <%= link_to mark_reviewed_this_week_account_path(account),
+                    class: "card-footer-item has-text-weight-bold has-text-success",
+                    data: { turbo_method: :post } do %>
+          Review
         <% end %>
       <% end %>
-      <a class="card-footer-item has-text-weight-bold modal-button"
-         data-action="click->shared#toggleModal"
-         data-id="deactivate-modal-<%=account.id%>"
-      >
-        Deactivate
-      </a>
     </footer>
   </div>
 <% end %>

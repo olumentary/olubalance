@@ -2,7 +2,7 @@
 <%= render partial: "accounts/components/noAccounts", locals: { description: Account::NO_ACCOUNT_DESC } if @accounts.empty? %>
 
 <% unless @accounts.empty? %>
-  <div class="mb-5">
+  <div class="mb-6 is-hidden-mobile">
     <%= render partial: "accounts/components/weeklyBanner", locals: { user: @user, week_incomplete: @week_incomplete } %>
   </div>
 <% end %>

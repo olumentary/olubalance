@@ -427,6 +427,29 @@ accounts.each do |account|
   end
 end
 
+# Spread accounts across the weekly-review states so the dashboard demos
+# the full color spectrum (reviewed / pending / urgent) instead of every
+# account looking the same after the random-transactions backfill above.
+# Uses update_columns to bypass the Transaction callback chain that would
+# otherwise recompute last_transaction_on from the (recent) trx history.
+current_week_start = Date.current.beginning_of_week(:sunday)
+days_into_week = (Date.current - current_week_start).to_i
+users.each do |user|
+  user.accounts.order(:id).each_with_index do |account, idx|
+    case idx % 10
+    when 0..4
+      # ~50% land somewhere inside this Sun–Sat week → "Reviewed this week"
+      account.update_columns(last_transaction_on: current_week_start + rand(0..days_into_week).days)
+    when 5..7
+      # ~30% are 8–13 days back → "Not reviewed yet" / "Urgent" near weekend
+      account.update_columns(last_transaction_on: rand(8..13).days.ago.to_date)
+    else
+      # ~20% are 20–35 days back → clearly stale
+      account.update_columns(last_transaction_on: rand(20..35).days.ago.to_date)
+    end
+  end
+end
+
 # Create Bills
 expense_categories = Category.where(kind: :global).where.not(name: 'Income').to_a
 income_category = Category.find_by(name: 'Income', kind: :global)

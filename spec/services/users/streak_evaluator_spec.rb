@@ -4,11 +4,17 @@ require "rails_helper"
 
 RSpec.describe Users::StreakEvaluator do
   let(:user) { create(:user, current_streak_weeks: 0, longest_streak_weeks: 0) }
-  # Run the evaluator on Sunday 2026-05-24, judging the prior Sun–Sat week
-  # (2026-05-17 .. 2026-05-23).
-  let(:evaluation_sunday) { Date.new(2026, 5, 24) }
-  let(:last_week_start) { Date.new(2026, 5, 17) }
-  let(:last_week_end) { Date.new(2026, 5, 23) }
+  # Use a Sunday strictly in the future (relative to "now") so accounts
+  # created during the test always satisfy `existed_at?(last_week_end)`.
+  # Hardcoded dates rot once the real clock moves past them.
+  let(:evaluation_sunday) do
+    today = Date.current
+    days_ahead = (7 - today.wday) % 7
+    days_ahead = 7 if days_ahead.zero?
+    today + days_ahead.days
+  end
+  let(:last_week_start) { evaluation_sunday - 7.days }
+  let(:last_week_end) { last_week_start + 6.days }
 
   describe "no active accounts" do
     it "is a no-op" do
