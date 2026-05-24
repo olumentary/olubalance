@@ -145,6 +145,12 @@ GEM
     cssbundling-rails (1.4.3)
       railties (>= 6.0.0)
     csv (3.3.5)
+    dartsass-sprockets (3.2.1)
+      railties (>= 4.0.0)
+      sassc-embedded (~> 1.80.1)
+      sprockets (> 3.0)
+      sprockets-rails
+      tilt
     date (3.5.1)
     debug (1.11.1)
       irb (~> 1.10)
@@ -206,6 +212,27 @@ GEM
       raabro (~> 1.4)
     globalid (1.3.0)
       activesupport (>= 6.1)
+    google-protobuf (4.35.0)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-aarch64-linux-gnu)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-aarch64-linux-musl)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-arm64-darwin)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-x86_64-darwin)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-x86_64-linux-gnu)
+      bigdecimal
+      rake (~> 13.3)
+    google-protobuf (4.35.0-x86_64-linux-musl)
+      bigdecimal
+      rake (~> 13.3)
     hiredis (0.6.3)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
@@ -224,6 +251,18 @@ GEM
     jsbundling-rails (1.3.1)
       railties (>= 6.0.0)
     json (2.19.5)
+    kaminari (1.2.2)
+      activesupport (>= 4.1.0)
+      kaminari-actionview (= 1.2.2)
+      kaminari-activerecord (= 1.2.2)
+      kaminari-core (= 1.2.2)
+    kaminari-actionview (1.2.2)
+      actionview
+      kaminari-core (= 1.2.2)
+    kaminari-activerecord (1.2.2)
+      activerecord
+      kaminari-core (= 1.2.2)
+    kaminari-core (1.2.2)
     language_server-protocol (3.17.0.5)
     launchy (3.1.1)
       addressable (~> 2.8)
@@ -252,6 +291,7 @@ GEM
       prism (~> 1.5)
     msgpack (1.8.0)
     multipart-post (2.4.1)
+    nested_form (0.3.2)
     net-http (0.9.1)
       uri (>= 0.11.1)
     net-imap (0.6.4)
@@ -342,6 +382,13 @@ GEM
     rails-html-sanitizer (1.7.0)
       loofah (~> 2.25)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    rails_admin (3.3.0)
+      activemodel-serializers-xml (>= 1.0)
+      csv
+      kaminari (>= 0.14, < 2.0)
+      nested_form (~> 0.3)
+      rails (>= 6.0, < 9)
+      turbo-rails (>= 1.0, < 3)
     railties (8.1.3)
       actionpack (= 8.1.3)
       activesupport (= 8.1.3)
@@ -433,6 +480,24 @@ GEM
     ruby2_keywords (0.0.5)
     rubyzip (3.3.0)
     safely_block (1.0.0)
+    sass-embedded (1.100.0-aarch64-linux-gnu)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-aarch64-linux-musl)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-arm-linux-gnueabihf)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-arm-linux-musleabihf)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-arm64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-x86_64-darwin)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-x86_64-linux-gnu)
+      google-protobuf (~> 4.31)
+    sass-embedded (1.100.0-x86_64-linux-musl)
+      google-protobuf (~> 4.31)
+    sassc-embedded (1.80.8)
+      sass-embedded (~> 1.80)
     securerandom (0.4.1)
     selenium-webdriver (4.44.0)
       base64 (~> 0.2)
@@ -471,6 +536,7 @@ GEM
       railties (>= 6.0.0)
     stringio (3.2.0)
     thor (1.5.0)
+    tilt (2.7.0)
     timeout (0.6.1)
     tsort (0.2.0)
     turbo-rails (2.0.23)
@@ -521,6 +587,7 @@ DEPENDENCIES
   capybara
   connection_pool (~> 2.4)
   cssbundling-rails
+  dartsass-sprockets
   debug
   devise (~> 5.0.3)
   devise-two-factor
@@ -542,6 +609,7 @@ DEPENDENCIES
   rack-attack
   rails (~> 8.1)
   rails-controller-testing
+  rails_admin (~> 3.3)
   recaptcha
   redis (~> 5.4.1)
   rqrcode

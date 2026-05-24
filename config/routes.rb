@@ -5,6 +5,7 @@ require "sidekiq/cron/web"
 
 Rails.application.routes.draw do
   authenticate :user, ->(u) { u.admin? } do
+    mount RailsAdmin::Engine => "/admin", as: "rails_admin"
     mount Blazer::Engine, at: "blazer"
     mount Sidekiq::Web, at: "sidekiq"
   end
