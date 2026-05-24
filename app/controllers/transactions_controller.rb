@@ -87,12 +87,12 @@ class TransactionsController < ApplicationController
 
     # Handle attachments separately to append new ones to existing ones
     new_attachments = params[:transaction][:attachments] if params[:transaction]&.key?(:attachments)
-    
+
     # Remove attachments from params to prevent replacement
     transaction_params_without_attachments = transaction_params.except(:attachments)
 
     # Check if account is being changed
-    account_changed = params[:transaction]&.key?(:account_id) && 
+    account_changed = params[:transaction]&.key?(:account_id) &&
                      params[:transaction][:account_id].to_i != @transaction.account_id
 
     @transaction.assign_attributes(transaction_params_without_attachments)
@@ -194,7 +194,7 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      
+
       # Build filtered transaction scope (before pagination)
       filtered_transactions = @account.transactions
                                       .with_attached_attachments
@@ -255,7 +255,7 @@ class TransactionsController < ApplicationController
       @account.reload
       # Force reload of the transactions association to ensure pending_balance calculation is fresh
       @account.transactions.reload
-      
+
       # Build filtered transaction scope (before pagination)
       filtered_transactions = @account.transactions
                                       .with_attached_attachments
@@ -339,7 +339,10 @@ class TransactionsController < ApplicationController
       return
     end
 
-    ocr_result = ReceiptOcrClient.new.process(attachments: @transaction.attachments)
+    ocr_result = ReceiptOcrClient.new.process(
+      attachments:    @transaction.attachments,
+      reference_date: @transaction.created_at.to_date
+    )
 
     if ocr_result.nil?
       render json: { success: false, error: "Could not extract receipt data. Please fill in the details manually." }
@@ -379,12 +382,12 @@ class TransactionsController < ApplicationController
       # Handle multiple file uploads
       files = Array(params[:transaction][:attachments])
       uploaded_files = []
-      
+
       files.each do |file|
         @transaction.attachments.attach(file)
         uploaded_files << file.original_filename
       end
-      
+
       render json: {
         success: true,
         filenames: uploaded_files,
@@ -394,7 +397,7 @@ class TransactionsController < ApplicationController
     else
       render json: {
         success: false,
-        errors: ["No files were selected"]
+        errors: [ "No files were selected" ]
       }, status: :unprocessable_content
     end
   rescue => e
@@ -410,32 +413,32 @@ class TransactionsController < ApplicationController
     # Find the attachment by ID from the transaction's attachments
     attachment_id = params[:attachment_id]
     Rails.logger.info "Attempting to delete attachment ID: #{attachment_id}"
-    
+
     begin
       # Find the attachment from this transaction's attachments
       attachment = @transaction.attachments.find_by(id: attachment_id)
-      
+
       unless attachment
         Rails.logger.error "Attachment not found with ID: #{attachment_id} for transaction: #{@transaction.id}"
         render json: {
           success: false,
-          errors: ["Attachment not found"]
+          errors: [ "Attachment not found" ]
         }, status: :not_found
         return
       end
-      
+
       filename = attachment.filename.to_s
       Rails.logger.info "Found attachment: #{filename}"
-      
+
       # Delete the attachment
       attachment.purge
       Rails.logger.info "Purge completed"
-      
+
       # Reload the transaction to get fresh attachment count
       @transaction.reload
       new_count = @transaction.attachments.count
       Rails.logger.info "New attachment count: #{new_count}"
-      
+
       # If we got here without an exception, the purge was successful
       render json: {
         success: true,
@@ -468,7 +471,7 @@ class TransactionsController < ApplicationController
       # For JSON requests, handle different field types
       if params[:transaction]&.key?(:description) && params[:transaction]&.key?(:amount) && params[:transaction]&.key?(:trx_type) && params[:transaction]&.key?(:trx_date)
         # Handle full form submission (like from Quick Receipt review modal)
-        { 
+        {
           description: params[:transaction][:description],
           amount: params[:transaction][:amount],
           trx_type: params[:transaction][:trx_type],
@@ -567,11 +570,11 @@ class TransactionsController < ApplicationController
     # Separate quick receipts from other transactions
     @quick_receipts = @transactions.select(&:quick_receipt?)
     @other_transactions = @transactions.reject(&:quick_receipt?)
-    
+
     # Further separate other transactions into pending and non-pending
     @pending_transactions = @other_transactions.select(&:pending?)
     @non_pending_transactions = @other_transactions.reject(&:pending?)
-    
+
     # Group non-pending transactions by date for desktop rendering
     @transactions_by_date = @non_pending_transactions.group_by(&:trx_date).transform_values do |transactions|
       transactions.sort_by(&:id).reverse
