@@ -43,23 +43,6 @@ describe UserDecorator do
     end
   end
 
-  describe '#streak_color_class' do
-    it 'returns has-text-black for zero streak (readable on colored banner backgrounds)' do
-      u = FactoryBot.build_stubbed(:user, current_streak_weeks: 0).decorate
-      expect(u.streak_color_class).to eq('has-text-black')
-    end
-
-    it 'returns has-text-warning-dark for a short streak' do
-      u = FactoryBot.build_stubbed(:user, current_streak_weeks: 2).decorate
-      expect(u.streak_color_class).to eq('has-text-warning-dark')
-    end
-
-    it 'returns has-text-success for a sustained streak' do
-      u = FactoryBot.build_stubbed(:user, current_streak_weeks: 6).decorate
-      expect(u.streak_color_class).to eq('has-text-success')
-    end
-  end
-
   describe '#week_range_display' do
     it 'spans Sun to Sat of the containing week' do
       u = FactoryBot.build_stubbed(:user).decorate
@@ -90,9 +73,9 @@ describe UserDecorator do
       expect(real_user.decorate.week_complete?(today: wednesday)).to be true
     end
 
-    it 'paints the banner color: info Sun–Thu, warning Fri, danger Sat — success when complete' do
+    it 'paints the banner color: primary Sun–Thu, warning Fri, danger Sat — success when complete' do
       decorated = real_user.decorate
-      expect(decorated.weekly_banner_color_class(today: wednesday)).to eq('is-info')
+      expect(decorated.weekly_banner_color_class(today: wednesday)).to eq('is-primary')
       expect(decorated.weekly_banner_color_class(today: friday)).to eq('is-warning')
       expect(decorated.weekly_banner_color_class(today: saturday)).to eq('is-danger')
       @pending.update_columns(last_transaction_on: saturday)

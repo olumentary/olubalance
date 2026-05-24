@@ -105,6 +105,20 @@ RSpec.describe Users::StreakEvaluator do
     end
   end
 
+  describe "idempotency — already evaluated for this cycle" do
+    let!(:account) { create(:account, user: user) }
+
+    before do
+      account.update_columns(last_transaction_on: last_week_start + 1.day)
+      user.update_columns(current_streak_weeks: 4, longest_streak_weeks: 4, streak_last_evaluated_on: evaluation_sunday)
+    end
+
+    it "does not re-increment current_streak_weeks when called twice on the same Sunday" do
+      described_class.call(user, on: evaluation_sunday)
+      expect(user.reload.current_streak_weeks).to eq(4)
+    end
+  end
+
   describe "account reviewed on the new week's Sunday counts toward last week" do
     let!(:account) { create(:account, user: user) }
 

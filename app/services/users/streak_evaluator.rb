@@ -28,6 +28,8 @@ module Users
       return if user.accounts.active.none?
 
       previous = user.streak_last_evaluated_on
+      return if previous.present? && previous >= @today.beginning_of_week(:sunday)
+
       if previous.present? && (@today - previous).to_i > 7
         user.update_columns(current_streak_weeks: 0)
       end

@@ -33,14 +33,6 @@ class UserDecorator < Draper::Decorator
     end
   end
 
-  def streak_color_class
-    case current_streak_weeks
-    when 0 then "has-text-black"
-    when 1..3 then "has-text-warning-dark"
-    else "has-text-success"
-    end
-  end
-
   def week_range_display(today: Date.current)
     start_date = today.beginning_of_week(:sunday)
     end_date = today.end_of_week(:sunday)
@@ -64,14 +56,14 @@ class UserDecorator < Draper::Decorator
   end
 
   # Banner color escalates with day-of-week when the week is incomplete.
-  # Sun–Thu = info (informational), Fri = warning, Sat = danger.
+  # Sun–Thu = primary (brand), Fri = warning, Sat = danger.
   # All-clear states paint success regardless of day.
   def weekly_banner_color_class(today: Date.current)
     return "is-success" if week_complete?(today: today)
     return "is-danger" if today.saturday?
     return "is-warning" if today.friday?
 
-    "is-info"
+    "is-primary"
   end
 
   def weekly_progress_message(today: Date.current)
