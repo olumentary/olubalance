@@ -194,45 +194,4 @@ RSpec.describe Account, type: :model do
     end
   end
 
-  describe '#reviewed_this_week?' do
-    let(:account) { FactoryBot.create(:account) }
-    let(:wednesday) { Date.new(2026, 5, 20) }
-    let(:sunday) { Date.new(2026, 5, 17) }
-    let(:saturday) { Date.new(2026, 5, 23) }
-
-    it 'is false when last_transaction_on is nil' do
-      account.update_columns(last_transaction_on: nil)
-      expect(account.reload.reviewed_this_week?(wednesday)).to be false
-    end
-
-    it 'is true when last_transaction_on is the week-start Sunday' do
-      account.update_columns(last_transaction_on: sunday)
-      expect(account.reload.reviewed_this_week?(wednesday)).to be true
-    end
-
-    it 'is true when last_transaction_on is Saturday (last day of week)' do
-      account.update_columns(last_transaction_on: saturday)
-      expect(account.reload.reviewed_this_week?(saturday)).to be true
-    end
-
-    it 'is false when last_transaction_on is the prior Saturday (last week)' do
-      account.update_columns(last_transaction_on: sunday - 1.day) # prior Saturday
-      expect(account.reload.reviewed_this_week?(wednesday)).to be false
-    end
-  end
-
-  describe '#existed_at?' do
-    let(:account) { FactoryBot.create(:account) }
-
-    it 'is true when created_at is before or on the date' do
-      account.update_columns(created_at: Time.zone.parse('2026-05-20 12:00'))
-      expect(account.existed_at?(Date.new(2026, 5, 21))).to be true
-      expect(account.existed_at?(Date.new(2026, 5, 20))).to be true
-    end
-
-    it 'is false when created_at is after the date' do
-      account.update_columns(created_at: Time.zone.parse('2026-05-22 00:01'))
-      expect(account.existed_at?(Date.new(2026, 5, 21))).to be false
-    end
-  end
 end

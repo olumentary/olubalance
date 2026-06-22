@@ -1,7 +1,0 @@
-<%= turbo_stream.replace "account_card_#{@account.id}" do %>
-  <%= render partial: "accounts/components/accountCardFrame", locals: { account: @account } %>
-<% end %>
-
-<%= turbo_stream.replace "weekly_banner" do %>
-  <%= render partial: "accounts/components/weeklyBanner", locals: { user: @user, week_incomplete: @user.accounts_needing_review_count.positive? } %>
-<% end %>

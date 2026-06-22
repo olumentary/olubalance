@@ -91,52 +91,6 @@ class AccountDecorator < ApplicationDecorator
     (Date.current - last_transaction_on).to_i
   end
 
-  # Per-card weekly review state. Mid-week, an unreviewed account reads as
-  # :pending_normal; Friday and Saturday escalate to :pending_urgent so the
-  # card visually signals "you have hours, not days." `today` is injectable
-  # for tests — production paths pass Date.current.
-  def weekly_review_status(today = Date.current)
-    return :reviewed if account.reviewed_this_week?(today)
-
-    today.wday >= 5 ? :pending_urgent : :pending_normal
-  end
-
-  def weekly_review_tag_class(today = Date.current)
-    case weekly_review_status(today)
-    when :reviewed then "is-success"
-    when :pending_normal then "is-warning"
-    when :pending_urgent then "is-danger"
-    end
-  end
-
-  def weekly_review_label(today = Date.current)
-    case weekly_review_status(today)
-    when :reviewed then "Reviewed this week"
-    when :pending_normal then "Not reviewed yet"
-    when :pending_urgent then "Urgent — review by Saturday"
-    end
-  end
-
-  # Ordering key for surfacing pending accounts ahead of reviewed ones, and
-  # urgent-pending ahead of normal-pending.
-  def weekly_review_sort_key(today = Date.current)
-    case weekly_review_status(today)
-    when :pending_urgent then 0
-    when :pending_normal then 1
-    when :reviewed then 2
-    end
-  end
-
-  # CSS class on the outer card element that paints the staleness-coloured
-  # accent border. See `account-card--*` rules in _card.scss.
-  def weekly_review_border_class(today = Date.current)
-    case weekly_review_status(today)
-    when :reviewed then "account-card--reviewed"
-    when :pending_normal then "account-card--pending"
-    when :pending_urgent then "account-card--urgent"
-    end
-  end
-
   private
 
   # Match the timezone resolution used by `updated_at_display` so display

@@ -4,8 +4,3 @@ monthly_interest_sweep:
   queue: interest
   description: "Sweep credit accounts daily; assess interest on accounts whose statement_day matches today."
 
-streak_evaluation:
-  cron: "5 0 * * 0"
-  class: "StreakEvaluationJob"
-  queue: default
-  description: "Weekly: evaluate the just-completed Sun–Sat week for each user's review streak."

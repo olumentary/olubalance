@@ -855,10 +855,7 @@ CREATE TABLE public.users (
     unlock_token character varying,
     locked_at timestamp(6) without time zone,
     otp_backup_codes character varying[] DEFAULT '{}'::character varying[],
-    admin boolean DEFAULT false NOT NULL,
-    current_streak_weeks integer DEFAULT 0 CONSTRAINT users_current_streak_days_not_null NOT NULL,
-    longest_streak_weeks integer DEFAULT 0 CONSTRAINT users_longest_streak_days_not_null NOT NULL,
-    streak_last_evaluated_on date
+    admin boolean DEFAULT false NOT NULL
 );
 
 
@@ -1876,6 +1873,7 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260622210000'),
 ('20260521130000'),
 ('20260521120100'),
 ('20260521120000'),

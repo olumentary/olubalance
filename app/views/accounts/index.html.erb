@@ -1,12 +1,6 @@
 <%= render partial: "accounts/components/accountLevel" %>
 <%= render partial: "accounts/components/noAccounts", locals: { description: Account::NO_ACCOUNT_DESC } if @accounts.empty? %>
 
-<% unless @accounts.empty? %>
-  <div class="mb-6 is-hidden-mobile">
-    <%= render partial: "accounts/components/weeklyBanner", locals: { user: @user, week_incomplete: @week_incomplete } %>
-  </div>
-<% end %>
-
 <div class="is-hidden-desktop has-text-centered mb-5">
   <%= link_to new_quick_transaction_path, class: "button is-primary is-fullwidth" do %>
     <span class="icon">

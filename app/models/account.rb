@@ -75,23 +75,6 @@ class Account < ApplicationRecord
     ((current_balance.abs / credit_limit) * 100).round(2)
   end
 
-  # True if the account has been "touched" (transaction or manual review)
-  # at any point during the current Sunday→Saturday week. The clock advances
-  # via Account.last_transaction_on, which is stamped both by real
-  # transactions and by the explicit "mark reviewed for the week" action.
-  def reviewed_this_week?(today = Date.current)
-    return false if last_transaction_on.blank?
-
-    last_transaction_on >= today.beginning_of_week(:sunday)
-  end
-
-  # True if this account existed on or before the given date. Used by the
-  # streak evaluator to skip brand-new accounts when judging a week that
-  # predates their creation.
-  def existed_at?(date)
-    created_at.to_date <= date
-  end
-
   # Accounts missing any required config are silently skipped by the interest job.
   def interest_eligible?
     credit? &&
