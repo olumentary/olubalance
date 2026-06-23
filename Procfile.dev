@@ -1,4 +1,4 @@
 web: bin/rails s -p 3000
 js: yarn build --watch
 css: yarn build:css --watch
-# worker: bundle exec sidekiq -C config/sidekiq.yml  # uncomment when testing the Sidekiq queue locally; requires Redis on localhost:6379
+worker: bundle exec sidekiq -C config/sidekiq.yml  # uncomment when testing the Sidekiq queue locally; requires Redis on localhost:6379

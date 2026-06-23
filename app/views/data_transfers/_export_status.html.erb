@@ -1,0 +1,61 @@
+<% data_export ||= nil %>
+<% in_progress = data_export&.pending? || data_export&.processing? %>
+
+<div data-controller="status-poll"
+     data-status-poll-status-value="<%= data_export&.status %>">
+
+  <% if in_progress %>
+    <div class="notification is-link is-light mb-4">
+      <div class="is-flex is-align-items-center mb-2">
+        <span class="icon has-text-link mr-2"><i class="fas fa-spinner fa-spin"></i></span>
+        <span class="has-text-weight-semibold"><%= data_export.step.presence || "Preparing…" %></span>
+        <span class="ml-auto has-text-weight-bold"><%= data_export.progress %>%</span>
+      </div>
+      <progress class="progress is-link is-small mb-0" value="<%= data_export.progress %>" max="100">
+        <%= data_export.progress %>%
+      </progress>
+      <p class="help has-text-grey mt-2">
+        Started <%= time_ago_in_words(data_export.created_at) %> ago — you can leave this page and come back; it’ll keep running.
+      </p>
+    </div>
+
+  <% elsif data_export&.complete? %>
+    <div class="notification is-success is-light mb-4">
+      <p class="is-flex is-align-items-center mb-3">
+        <span class="icon has-text-success mr-2"><i class="fas fa-check-circle"></i></span>
+        <span class="has-text-weight-semibold">Export ready</span>
+        <span class="ml-auto has-text-grey is-size-7">
+          expires <%= data_export.expires_at ? "#{time_ago_in_words(data_export.expires_at)} from now" : "in 24 hours" %>
+        </span>
+      </p>
+      <%# turbo: false — this link inside the turbo-frame redirects to a binary
+          blob (Content-Disposition: attachment). Without opting out of Turbo,
+          the click is intercepted as a frame fetch and no download fires. %>
+      <%= link_to download_data_transfer_path, class: "button is-success is-fullwidth",
+            data: { turbo: false } do %>
+        <span class="icon"><i class="fas fa-download"></i></span>
+        <span>Download ZIP</span>
+      <% end %>
+    </div>
+
+  <% elsif data_export&.failed? %>
+    <div class="notification is-danger is-light mb-4">
+      <p class="is-flex is-align-items-center mb-1">
+        <span class="icon has-text-danger mr-2"><i class="fas fa-exclamation-circle"></i></span>
+        <span class="has-text-weight-semibold">Export failed</span>
+      </p>
+      <p class="is-size-7"><%= data_export.error_message.presence || "An unknown error occurred. Please try again." %></p>
+    </div>
+
+  <% else %>
+    <p class="has-text-grey mb-4">No exports yet. Create a full backup of your data and attachments below.</p>
+  <% end %>
+
+  <%# Start button lives inside the frame so it disables while a job runs. %>
+  <%= button_to export_data_transfer_path, method: :post,
+        class: "button is-link is-fullwidth has-text-weight-bold",
+        disabled: in_progress do %>
+    <span class="icon"><i class="fas fa-<%= in_progress ? 'spinner fa-spin' : 'play' %>"></i></span>
+    <span><%= in_progress ? "Export in progress…" : (data_export ? "Start a new export" : "Start export") %></span>
+  <% end %>
+</div>

@@ -53,6 +53,13 @@
       Matching Rules
     <% end %>
 
+    <%= link_to data_transfer_path, class: "navbar-item" do %>
+      <span class="icon has-text-link is-medium ob-icon-rpad">
+        <i class="fas fa-file-export"></i>
+      </span>
+      Export / Import Data
+    <% end %>
+
     <% if current_user.admin? %>
       <hr class="navbar-divider">
       <%= link_to "/blazer", class: "navbar-item", target: "_blank", rel: "noopener" do %>

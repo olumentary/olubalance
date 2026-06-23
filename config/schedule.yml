@@ -4,3 +4,9 @@ monthly_interest_sweep:
   queue: interest
   description: "Sweep credit accounts daily; assess interest on accounts whose statement_day matches today."
 
+data_export_cleanup:
+  cron: "0 4 * * *"
+  class: "DataExportCleanupJob"
+  queue: default
+  description: "Purge expired data export archives (older than 24h)."
+

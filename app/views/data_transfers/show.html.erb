@@ -1,0 +1,168 @@
+<% content_for :title, "Data Export & Import" %>
+
+<div class="container ob-compact-container"
+     data-controller="shared"
+     data-shared-message="<%= flash[:notice] || flash[:alert] %>"
+     data-shared-message-type="<%= flash[:notice] ? 'notice' : (flash[:alert] ? 'alert' : '') %>">
+
+  <div class="level is-mobile mb-2">
+    <div class="level-left">
+      <div class="level-item">
+        <h1 class="title is-4">Data Export &amp; Import</h1>
+      </div>
+    </div>
+  </div>
+  <p class="subtitle is-6 has-text-grey mb-5">
+    Back up everything in your account — transactions, stashes, bills, categories, documents, and
+    all attachments — or restore it from a previous export.
+  </p>
+
+  <div class="columns is-variable is-5">
+
+    <%# ── Export ── %>
+    <div class="column is-half">
+      <div class="card ob-card-fill">
+        <header class="card-header">
+          <p class="card-header-title">
+            <span class="icon has-text-link mr-2"><i class="fas fa-file-export"></i></span>
+            Export my data
+          </p>
+        </header>
+        <section class="card-content">
+          <div class="content has-text-grey">
+            <p>
+              Creates a ZIP archive of all your data and attachments. Large accounts may take a
+              little while — the export runs in the background, so you can navigate away and the
+              progress below will update on its own. Download links expire after
+              <strong>24 hours</strong>.
+            </p>
+          </div>
+
+          <%= render "export_frame", data_export: @latest_export, src: status_data_transfer_path %>
+        </section>
+      </div>
+    </div>
+
+    <%# ── Import ── %>
+    <div class="column is-half">
+      <div class="card ob-card-fill">
+        <header class="card-header has-background-danger-light">
+          <p class="card-header-title has-text-danger">
+            <span class="icon mr-2"><i class="fas fa-file-import"></i></span>
+            Import &amp; replace data
+          </p>
+        </header>
+        <section class="card-content">
+          <div class="content">
+            <p class="has-text-grey">Restore from a previously exported ZIP file.</p>
+            <div class="notification is-danger is-light py-3 px-4 mb-0">
+              <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+              <strong>This permanently deletes all your current data</strong> and replaces it with
+              the archive contents. This cannot be undone.
+            </div>
+          </div>
+
+          <%# import-file controller must wrap BOTH the file input and the trigger
+              button — its "trigger" target is the button below, not inside .file. %>
+          <%= form_tag import_data_transfer_path, method: :post, multipart: true, id: "import-form", class: "mt-4", data: { controller: "import-file" } do %>
+            <div class="file has-name is-fullwidth mb-4">
+              <label class="file-label">
+                <input class="file-input" type="file" name="archive" accept=".zip"
+                       data-action="change->import-file#selected"
+                       data-import-file-target="input">
+                <span class="file-cta">
+                  <span class="file-icon"><i class="fas fa-upload"></i></span>
+                  <span class="file-label">Choose export file…</span>
+                </span>
+                <span class="file-name has-text-grey" data-import-file-target="name">
+                  No file selected
+                </span>
+              </label>
+            </div>
+
+            <button type="button"
+                    class="button is-danger is-light is-fullwidth has-text-weight-bold"
+                    data-action="click->shared#toggleModal"
+                    data-id="import-confirm-modal"
+                    data-import-file-target="trigger"
+                    disabled>
+              <span class="icon"><i class="fas fa-exclamation-triangle"></i></span>
+              <span>Import &amp; replace all data…</span>
+            </button>
+          <% end %>
+
+          <div class="mt-4">
+            <%= render "import_frame", data_import: @latest_import, src: status_data_transfer_path %>
+          </div>
+        </section>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<%# ── Type-to-confirm import modal ── %>
+<div id="import-confirm-modal"
+     class="modal"
+     style="z-index: 9999"
+     data-shared-target="modal"
+     data-controller="confirm-destroy"
+     data-confirm-destroy-expected-value="<%= current_user.email %>">
+  <div class="modal-background"
+       data-action="click->shared#toggleModal"
+       data-id="import-confirm-modal"></div>
+  <div class="modal-content ob-modal-card">
+    <div class="card">
+      <header class="card-header has-background-danger">
+        <p class="card-header-title has-text-white">
+          <span class="icon mr-2"><i class="fas fa-exclamation-triangle"></i></span>
+          Replace ALL your data?
+        </p>
+      </header>
+      <section class="card-content">
+        <div class="content">
+          <p class="has-text-danger has-text-weight-bold is-size-5">This action cannot be undone.</p>
+          <p>
+            All of your current accounts, transactions, stashes, bills, documents, and attachments
+            will be <strong>permanently deleted</strong> and replaced with the contents of the
+            selected import file.
+          </p>
+          <p class="has-text-grey">Make sure you have selected the correct file before continuing.</p>
+
+          <div class="field mt-4">
+            <label class="label">Type your email address to confirm:</label>
+            <div class="control">
+              <input class="input"
+                     type="text"
+                     autocomplete="off"
+                     placeholder="<%= current_user.email %>"
+                     data-confirm-destroy-target="input"
+                     data-action="input->confirm-destroy#validate">
+            </div>
+          </div>
+
+          <%# Hidden field linked to the import-form outside this modal %>
+          <input type="hidden"
+                 name="confirm_email"
+                 form="import-form"
+                 data-confirm-destroy-target="hidden">
+        </div>
+      </section>
+      <footer class="card-footer">
+        <a class="card-footer-item has-text-weight-bold has-text-grey"
+           data-action="click->shared#toggleModal"
+           data-id="import-confirm-modal">
+          Cancel
+        </a>
+        <button type="submit"
+                form="import-form"
+                class="card-footer-item button is-danger is-light has-text-weight-bold"
+                data-confirm-destroy-target="submit"
+                disabled>
+          <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
+          <span>Replace my data</span>
+        </button>
+      </footer>
+    </div>
+  </div>
+</div>

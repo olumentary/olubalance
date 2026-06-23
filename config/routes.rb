@@ -71,6 +71,15 @@ Rails.application.routes.draw do
     resources :batches, only: %i[index show new create destroy]
   end
 
+  resource :data_transfer, only: %i[show] do
+    member do
+      post :export
+      get  :status
+      get  :download
+      post :import
+    end
+  end
+
   # Two-factor authentication: settings dashboard + per-device enrollment.
   resource :two_factor_settings, only: %i[show destroy] do
     post :regenerate_backup_codes, on: :collection

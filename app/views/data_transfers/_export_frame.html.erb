@@ -1,0 +1,9 @@
+<%# Export status frame.
+    - On the page (and after starting an export) it is rendered WITH src so it
+      eager-loads and the status-poll controller can reload it.
+    - As a poll *response* (status.html.erb) it is rendered WITHOUT src — a frame
+      that returns itself carrying the same src loops forever and renders empty. %>
+<% src = local_assigns.fetch(:src, nil) %>
+<%= turbo_frame_tag "data_export_status", src: src do %>
+  <%= render "export_status", data_export: data_export %>
+<% end %>

@@ -552,6 +552,77 @@ ALTER SEQUENCE public.category_lookups_id_seq OWNED BY public.category_lookups.i
 
 
 --
+-- Name: data_exports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_exports (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    progress integer DEFAULT 0 NOT NULL,
+    step character varying,
+    error_message text,
+    expires_at timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: data_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_exports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_exports_id_seq OWNED BY public.data_exports.id;
+
+
+--
+-- Name: data_imports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.data_imports (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    status character varying DEFAULT 'pending'::character varying NOT NULL,
+    progress integer DEFAULT 0 NOT NULL,
+    step character varying,
+    error_message text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: data_imports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.data_imports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: data_imports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.data_imports_id_seq OWNED BY public.data_imports.id;
+
+
+--
 -- Name: documents; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -977,6 +1048,20 @@ ALTER TABLE ONLY public.category_lookups ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: data_exports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_exports ALTER COLUMN id SET DEFAULT nextval('public.data_exports_id_seq'::regclass);
+
+
+--
+-- Name: data_imports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_imports ALTER COLUMN id SET DEFAULT nextval('public.data_imports_id_seq'::regclass);
+
+
+--
 -- Name: documents id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1150,6 +1235,22 @@ ALTER TABLE ONLY public.categories
 
 ALTER TABLE ONLY public.category_lookups
     ADD CONSTRAINT category_lookups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_exports data_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_exports
+    ADD CONSTRAINT data_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_imports data_imports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_imports
+    ADD CONSTRAINT data_imports_pkey PRIMARY KEY (id);
 
 
 --
@@ -1456,6 +1557,34 @@ CREATE INDEX index_category_lookups_on_user_id ON public.category_lookups USING 
 
 
 --
+-- Name: index_data_exports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_data_exports_on_user_id ON public.data_exports USING btree (user_id);
+
+
+--
+-- Name: index_data_exports_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_data_exports_on_user_id_and_created_at ON public.data_exports USING btree (user_id, created_at);
+
+
+--
+-- Name: index_data_imports_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_data_imports_on_user_id ON public.data_imports USING btree (user_id);
+
+
+--
+-- Name: index_data_imports_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_data_imports_on_user_id_and_created_at ON public.data_imports USING btree (user_id, created_at);
+
+
+--
 -- Name: index_documents_on_attachable; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1731,6 +1860,14 @@ ALTER TABLE ONLY public.bills
 
 
 --
+-- Name: data_exports fk_rails_5408e45594; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_exports
+    ADD CONSTRAINT fk_rails_5408e45594 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: category_lookups fk_rails_5566223128; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1851,6 +1988,14 @@ ALTER TABLE ONLY public.active_storage_attachments
 
 
 --
+-- Name: data_imports fk_rails_ee39bd5867; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.data_imports
+    ADD CONSTRAINT fk_rails_ee39bd5867 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: transactions fk_rails_f0365210d9; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1873,6 +2018,8 @@ ALTER TABLE ONLY public.bills
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260622220001'),
+('20260622220000'),
 ('20260622210000'),
 ('20260521130000'),
 ('20260521120100'),

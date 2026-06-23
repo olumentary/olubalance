@@ -1,0 +1,4 @@
+<%# Polled by both the export and import turbo-frames. Each frame reloads this
+    response and extracts the frame matching its own id. %>
+<%= render "export_frame", data_export: @latest_export %>
+<%= render "import_frame", data_import: @latest_import %>

@@ -724,3 +724,23 @@ pending_descriptions = [
 end
 
 puts "Pagination test account created: email=pagination@test.com password=topsecret (55 pending transactions)"
+
+# Empty import-target user
+# A confirmed user with no accounts, transactions, bills, stashes, categories,
+# or documents — a clean slate for testing the data import flow (export from
+# another user, then import here to verify the restore wipes nothing and lands
+# everything correctly).
+puts "Creating empty import-test user..."
+
+import_user = User.create!(
+  email: 'import@test.com',
+  password: 'topsecret',
+  password_confirmation: 'topsecret',
+  first_name: 'Import',
+  last_name: 'Tester',
+  timezone: 'Eastern Time (US & Canada)',
+  confirmed_at: DateTime.now
+)
+import_user.skip_confirmation!
+
+puts "Empty import-test user created: email=import@test.com password=topsecret (no data)"

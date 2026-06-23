@@ -428,6 +428,14 @@ a.has-text-white.sortable {
   }
 }
 
+// Card that fills the full height of its flex column, so side-by-side
+// cards stay aligned regardless of differing content length.
+.ob-card-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 // Typeahead styles
 [data-controller='typeahead'] {
   .dropdown-menu {

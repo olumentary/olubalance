@@ -78,3 +78,12 @@ application.register('sortable-header', SortableHeaderController);
 
 import ClipboardController from './clipboard_controller';
 application.register('clipboard', ClipboardController);
+
+import ConfirmDestroyController from './confirm_destroy_controller';
+application.register('confirm-destroy', ConfirmDestroyController);
+
+import StatusPollController from './status_poll_controller';
+application.register('status-poll', StatusPollController);
+
+import ImportFileController from './import_file_controller';
+application.register('import-file', ImportFileController);

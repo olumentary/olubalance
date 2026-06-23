@@ -23,6 +23,8 @@ class User < ApplicationRecord
   has_many :bill_transaction_batches, dependent: :destroy
   has_many :trusted_devices, dependent: :destroy
   has_many :authenticators, dependent: :destroy
+  has_many :data_exports, dependent: :destroy
+  has_many :data_imports, dependent: :destroy
   belongs_to :default_account, class_name: "Account", optional: true
 
   # 2FA is "active" iff at least one confirmed authenticator exists.

@@ -616,6 +616,7 @@ DEPENDENCIES
   rspec-rails (~> 8)
   rubocop-rails-omakase
   ruby-openai
+  rubyzip
   selenium-webdriver
   shoulda-matchers (~> 7.0)
   sidekiq (~> 7.3)

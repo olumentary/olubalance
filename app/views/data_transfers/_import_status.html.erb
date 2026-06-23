@@ -1,0 +1,39 @@
+<% data_import ||= nil %>
+<% in_progress = data_import&.pending? || data_import&.processing? %>
+
+<div data-controller="status-poll"
+     data-status-poll-status-value="<%= data_import&.status %>">
+
+  <% if in_progress %>
+    <div class="notification is-warning is-light">
+      <div class="is-flex is-align-items-center mb-2">
+        <span class="icon has-text-warning-dark mr-2"><i class="fas fa-spinner fa-spin"></i></span>
+        <span class="has-text-weight-semibold"><%= data_import.step.presence || "Preparing…" %></span>
+        <span class="ml-auto has-text-weight-bold"><%= data_import.progress %>%</span>
+      </div>
+      <progress class="progress is-warning is-small mb-0" value="<%= data_import.progress %>" max="100">
+        <%= data_import.progress %>%
+      </progress>
+      <p class="help has-text-grey mt-2">
+        Replacing your data — please don’t close the app until this finishes.
+      </p>
+    </div>
+
+  <% elsif data_import&.complete? %>
+    <div class="notification is-success is-light">
+      <p class="is-flex is-align-items-center mb-0">
+        <span class="icon has-text-success mr-2"><i class="fas fa-check-circle"></i></span>
+        <span class="has-text-weight-semibold">Import completed successfully.</span>
+      </p>
+    </div>
+
+  <% elsif data_import&.failed? %>
+    <div class="notification is-danger is-light">
+      <p class="is-flex is-align-items-center mb-1">
+        <span class="icon has-text-danger mr-2"><i class="fas fa-exclamation-circle"></i></span>
+        <span class="has-text-weight-semibold">Import failed</span>
+      </p>
+      <p class="is-size-7"><%= data_import.error_message.presence || "An unknown error occurred. Please try again." %></p>
+    </div>
+  <% end %>
+</div>

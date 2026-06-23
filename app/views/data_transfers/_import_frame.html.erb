@@ -1,0 +1,5 @@
+<%# Import status frame — see _export_frame for the src vs. no-src rationale. %>
+<% src = local_assigns.fetch(:src, nil) %>
+<%= turbo_frame_tag "data_import_status", src: src do %>
+  <%= render "import_status", data_import: data_import %>
+<% end %>
