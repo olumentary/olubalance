@@ -9,7 +9,10 @@ require "rails_helper"
 RSpec.describe "DataTransfer round trip", type: :service do
   let(:source) { create(:user, :confirmed) }
   let(:target) { create(:user, :confirmed) }
-  let(:global_category) { create(:category, :global, name: "Groceries") }
+  # find_or_create_by! — CI seeds the test DB (db:reset), so global categories
+  # like "Groceries" may already exist; a plain create would hit the unique-name
+  # validation. Globals are resolved by name on import, so reusing it is correct.
+  let(:global_category) { Category.find_or_create_by!(name: "Groceries", kind: :global, user_id: nil) }
 
   def build_zip_for(user)
     export = create(:data_export, user: user)
