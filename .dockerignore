@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# CI / deploy configs not needed in the image
+.github
+
+# Dependencies (reinstalled in the build stage)
+/node_modules
+/vendor/bundle
+
+# Build artifacts (regenerated during the build)
+/app/assets/builds
+/public/assets
+/public/packs
+
+# Runtime state
+/tmp/*
+/log/*
+/storage/*
+!/storage/.keep
+
+# Local env / secrets — never bake into the image
+/config/application.yml
+.env
+.env.*
+!.env.sample
+
+# Tests and docs
+/spec
+/coverage
+/docs
+
+# Editor / OS cruft
+.DS_Store
+*.swp
+.idea
+.vscode

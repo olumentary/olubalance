@@ -92,3 +92,5 @@ production:
   database: olubalance_production
   username: <%= ENV['OLUBALANCE_DATABASE_USERNAME'] %>
   password: <%= ENV['OLUBALANCE_DATABASE_PASSWORD'] %>
+  host: <%= ENV.fetch('OLUBALANCE_DATABASE_HOST', 'localhost') %>
+  port: <%= ENV.fetch('OLUBALANCE_DATABASE_PORT', 5432) %>

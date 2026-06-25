@@ -12,22 +12,25 @@ olubalance is a personal-finance app — an online checkbook register. Users man
 - **PostgreSQL** 17 (uses `db/structure.sql`, not `schema.rb`, because of `pg_trgm` and a SQL view)
 - **Frontend**: Bulma 1.0, Stimulus 3, Turbo (Hotwire) 8 — bundled by **esbuild** (JS) and **Dart Sass** (CSS) via `jsbundling-rails` / `cssbundling-rails`
 - **Auth**: Devise 5 (database_authenticatable, recoverable, rememberable, trackable, validatable, confirmable)
-- **Storage**: ActiveStorage with `local` (dev), `linode` (S3-compatible, prod), or `amazon` (S3) services
+- **Storage**: ActiveStorage with `local` (dev + self-host default), `linode` (S3-compatible, prod), or `amazon` (S3) services
+- **Background jobs**: Sidekiq 7 + sidekiq-cron, backed by **Redis** (`config.active_job.queue_adapter = :sidekiq`)
+- **Redis**: also backs the Rails cache store and ActionCable
 - **Decorators**: Draper
 - **Pagination**: Pagy
 - **Testing**: RSpec 8, FactoryBot, Capybara/Selenium, shoulda-matchers, SimpleCov
 - **Lint/Security**: rubocop-rails-omakase, Brakeman
 - **Config**: Figaro (`config/application.yml`)
-- **AI**: ruby-openai (used for category suggestion / receipt OCR)
-- **Deploy**: Dokku via GitHub Actions
+- **AI**: ruby-openai (used for category suggestion / receipt OCR — called **synchronously** in-request, not queued)
+- **Deploy**: Dokku via GitHub Actions (hosted), or Docker Compose for self-hosting (see `docs/SELF_HOSTING.md`)
 
-There are **no background jobs**. `ApplicationJob` is an empty stub; no Sidekiq/SolidQueue/Resque is configured. If you think a job is genuinely needed, raise it before introducing a queue.
+**Background jobs exist and are required.** The app uses Sidekiq (Redis-backed) with five jobs in `app/jobs/`: `MonthlyInterestSweepJob`, `AssessInterestChargeJob`, `DataExportJob`, `DataImportJob`, `DataExportCleanupJob`. Two run on a cron schedule via sidekiq-cron (`config/schedule.yml`: monthly interest sweep, data-export cleanup); the others are enqueued via `perform_later` (e.g. from `DataTransfersController`). A running Redis instance **and** a Sidekiq worker process are needed in any environment that exercises these flows. Note: emails are sent **synchronously** (`deliver_now`), not via ActiveJob.
 
 ## Repo layout
 
 | Path | Purpose |
 | --- | --- |
 | `app/models/` | 13 ActiveRecord models. Money columns are `decimal`. |
+| `app/jobs/` | Sidekiq/ActiveJob jobs (interest sweep, data import/export, export cleanup). |
 | `app/controllers/` | Resource controllers; all scoped by `current_user`. |
 | `app/views/<resource>/components/` | Resource-specific partials (camelCase filenames, e.g. `_transactionLineDesktop.html.erb`). |
 | `app/views/shared/` | Reusable partials (`_navbar`, `_modal`, `_formPage`, `_error_messages`). |
@@ -39,8 +42,10 @@ There are **no background jobs**. `ApplicationJob` is an empty stub; no Sidekiq/
 | `db/migrate/` | Migrations. |
 | `config/routes.rb` | Route surface — nested resources under `accounts`. |
 | `config/storage.yml` | ActiveStorage services. |
+| `config/schedule.yml` | sidekiq-cron schedule (loaded on Sidekiq server startup). |
 | `config/application.yml.sample` | Template for Figaro secrets. |
-| `bin/` | Dev scripts (`setup`, `dev`, `ci`, `rubocop`, `brakeman`). |
+| `bin/` | Dev scripts (`setup`, `dev`, `ci`, `rubocop`, `brakeman`) + `docker-entrypoint` (self-host container boot). |
+| `Dockerfile` / `docker-compose.yml` / `.env.sample` | Self-hosting via Docker Compose (web + worker + Postgres + Redis). See `docs/SELF_HOSTING.md`. |
 
 ## Dev commands
 
@@ -82,6 +87,8 @@ There is **no `bin/rspec`** — use `bundle exec rspec`.
 **Decorators.** Draper. `ApplicationController` wraps current resources in decorators for mobile views; check the base controller before adding presenter logic in models.
 
 **Mobile.** The app detects mobile devices and routes some flows (`/quick_transactions`, `/quick_receipts`, `/mobile_home`) to mobile-optimized variants. Don't assume desktop-only when changing transaction-creation paths.
+
+**Background jobs.** Sidekiq (Redis-backed) is the ActiveJob adapter. Jobs live in `app/jobs/`; the cron schedule is `config/schedule.yml`, loaded on Sidekiq server startup via `config/initializers/sidekiq.rb`. `Sidekiq::Web` is mounted at `/sidekiq` behind the admin authenticate block in `config/routes.rb`. When adding a job, prefer `perform_later` and put long-running or external-API work (e.g. anything that would otherwise block a request) on a queue — but note current OpenAI calls are intentionally synchronous. Heavy data import/export already runs in jobs (`DataExportJob`/`DataImportJob`), which read/write ActiveStorage attachments, so they must share the same storage backend as the web process.
 
 ## Domain invariants (financial correctness)
 

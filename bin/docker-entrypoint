@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+# On the web container (RUN_DB_PREPARE=true) prepare the database and bootstrap the
+# admin user before starting the server. Both steps are idempotent. The worker
+# container leaves RUN_DB_PREPARE unset so it doesn't race the web container.
+if [ "${RUN_DB_PREPARE}" = "true" ]; then
+  ./bin/rails db:prepare
+  ./bin/rails self_host:bootstrap_admin
+fi
+
+exec "$@"

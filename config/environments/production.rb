@@ -33,11 +33,17 @@ Rails.application.configure do
   # Options: :amazon, :linode
   config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'amazon').to_sym
 
+  # SSL behavior is env-driven so the same image can run behind a TLS-terminating
+  # reverse proxy (set both to "true") or be accessed directly over plain HTTP on a
+  # LAN / self-hosted box (leave them unset/"false"). The Dokku deploy sets these to
+  # "true" via its app config; self-host defaults to HTTP-friendly.
+  ssl_enabled = ENV.fetch("FORCE_SSL", "false") == "true"
+
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
+  config.assume_ssl = ENV.fetch("ASSUME_SSL", "false") == "true"
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = ssl_enabled
 
   # Trust Dokku's nginx + Docker bridge as proxies so `request.remote_ip` reflects the real client.
   config.action_dispatch.trusted_proxies = [
@@ -52,10 +58,10 @@ Rails.application.configure do
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
   
   # Session configuration for better mobile persistence
-  config.session_store :cookie_store, 
+  config.session_store :cookie_store,
     key: '_olubalance_session',
     expire_after: 2.weeks,
-    secure: true,
+    secure: ssl_enabled,
     same_site: :lax
 
   # Log to STDOUT with the current request id as a default log tag.
@@ -82,8 +88,12 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: 'olubalance.com' }
+  # Set host to be used by links generated in mailer templates. Env-driven so
+  # self-hosted instances generate correct links for their own hostname.
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch("APP_HOST", "olubalance.com"),
+    protocol: ssl_enabled ? "https" : "http"
+  }
 
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.default :charset => "utf-8"

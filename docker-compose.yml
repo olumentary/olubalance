@@ -1,0 +1,101 @@
+# Self-hosting stack for olubalance.
+#
+#   1. cp .env.sample .env   and fill in the values (SECRET_KEY_BASE, ADMIN_*, DB creds)
+#   2. docker compose up -d
+#   3. open http://<host>:${OLUBALANCE_PORT:-3000} and sign in as the bootstrapped admin
+#
+# Persisted state lives in the `pgdata`, `redis_data`, and `storage` volumes — back these up.
+
+x-app-env: &app-env
+  env_file: .env
+
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${OLUBALANCE_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${OLUBALANCE_DATABASE_PASSWORD}
+      POSTGRES_DB: olubalance_production
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${OLUBALANCE_DATABASE_USERNAME} -d olubalance_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: ${OLUBALANCE_IMAGE:-ghcr.io/olumentary/olubalance:latest}
+    restart: unless-stopped
+    <<: *app-env
+    environment:
+      RUN_DB_PREPARE: "true"
+    ports:
+      - "${OLUBALANCE_PORT:-3000}:3000"
+    volumes:
+      - storage:/rails/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  worker:
+    image: ${OLUBALANCE_IMAGE:-ghcr.io/olumentary/olubalance:latest}
+    restart: unless-stopped
+    <<: *app-env
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    volumes:
+      # MUST share the same storage volume as `web`: DataExport/DataImport jobs
+      # run here and read/write attachments uploaded via the web container.
+      - storage:/rails/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # Optional: S3-compatible object storage instead of the local `storage` volume.
+  # The `linode` storage service supports a custom endpoint, so it's the one to use
+  # for MinIO. To enable: uncomment this service, set STORAGE_SERVICE=linode and the
+  # LINODE_* vars in .env (LINODE_ENDPOINT=http://minio:9000), and create the bucket.
+  # ---------------------------------------------------------------------------
+  # minio:
+  #   image: minio/minio
+  #   restart: unless-stopped
+  #   command: server /data --console-address ":9001"
+  #   environment:
+  #     MINIO_ROOT_USER: ${LINODE_ACCESS_KEY_ID}
+  #     MINIO_ROOT_PASSWORD: ${LINODE_SECRET_ACCESS_KEY}
+  #   ports:
+  #     - "9001:9001"
+  #   volumes:
+  #     - minio_data:/data
+
+volumes:
+  pgdata:
+  redis_data:
+  storage:
+  # minio_data:

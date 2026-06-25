@@ -14,6 +14,11 @@ class User < ApplicationRecord
   validates :timezone, presence: { message: "Please select a Time Zone" }
   validate :default_account_belongs_to_user, if: :default_account_id?
 
+  # Self-hosted instances often run without an SMTP server. When
+  # SELF_HOST_SKIP_CONFIRMATION=true, auto-confirm users at creation (e.g. those an
+  # admin creates via rails_admin) so they can sign in without a confirmation email.
+  before_create :auto_confirm_for_self_host
+
   has_many :accounts, dependent: :destroy
   has_many :categories, dependent: :destroy
   has_many :hidden_categories, dependent: :destroy
@@ -43,6 +48,10 @@ class User < ApplicationRecord
   end
 
   private
+
+  def auto_confirm_for_self_host
+    skip_confirmation! if ENV["SELF_HOST_SKIP_CONFIRMATION"] == "true" && confirmed_at.blank?
+  end
 
   def default_account_belongs_to_user
     return unless default_account_id.present?
