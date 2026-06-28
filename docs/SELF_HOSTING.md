@@ -20,8 +20,10 @@ cd olubalance
 # 2. Create your environment file
 cp .env.sample .env
 
-# 3. Generate a secret and set the required values in .env
+# 3. Generate secrets and set the required values in .env
 openssl rand -hex 64   # paste into SECRET_KEY_BASE
+#   Generate the three ActiveRecord encryption keys (paste each into .env):
+docker compose run --rm --no-deps web ./bin/rails db:encryption:init
 #   also set: OLUBALANCE_DATABASE_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD, APP_HOST
 
 # 4. Authenticate to ghcr (private image) and start
@@ -88,6 +90,10 @@ Persist and back up these volumes:
 - `pgdata` — the PostgreSQL database (all financial data).
 - `storage` — uploaded attachments (only when `STORAGE_SERVICE=local`).
 - `redis_data` — job/cron state (not critical; can be recreated).
+
+Also back up your **`.env` file**, and treat the three `ACTIVE_RECORD_ENCRYPTION_*` keys as
+irreplaceable: they decrypt sensitive columns (2FA secrets). If they're lost or changed,
+that encrypted data can no longer be read.
 
 ## Upgrading
 

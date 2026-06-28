@@ -53,9 +53,15 @@ COPY . .
 RUN bundle exec bootsnap precompile app/ lib/
 
 # Build JS (esbuild) + CSS (Dart Sass), then precompile Rails assets.
-# SECRET_KEY_BASE_DUMMY lets assets:precompile run without a real secret.
+# Booting the production env for precompile requires SECRET_KEY_BASE and the
+# ActiveRecord encryption keys to be present. Assets don't read encrypted data,
+# so throwaway dummy values are fine here — real keys are supplied at runtime.
 RUN yarn build && yarn build:css && \
-    SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+    SECRET_KEY_BASE_DUMMY=1 \
+    ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY="dummy_build_primary_key_not_used_at_runtime______" \
+    ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY="dummy_build_deterministic_key_not_used_at_runtime" \
+    ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT="dummy_build_salt_not_used_at_runtime______________" \
+    ./bin/rails assets:precompile
 
 # Drop node_modules from the final copy — assets are already compiled into builds/.
 RUN rm -rf node_modules
