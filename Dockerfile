@@ -24,7 +24,7 @@ FROM base AS build
 # Packages needed to build gems (pg, image_processing) and run the asset toolchain.
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      build-essential git libpq-dev pkg-config curl && \
+      build-essential git libpq-dev libyaml-dev pkg-config curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Node 24 + Yarn 1.22 (esbuild/sass build tooling) — copied from the official image.
@@ -68,7 +68,7 @@ FROM base
 # Runtime libs only: pg client, ImageMagick (image_processing/mini_magick), curl (healthcheck).
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      libpq5 postgresql-client imagemagick libmagickwand-dev curl && \
+      libpq5 postgresql-client imagemagick libmagickwand-dev libyaml-0-2 curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy compiled gems and the built application from the build stage.
