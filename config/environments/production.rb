@@ -28,10 +28,12 @@ Rails.application.configure do
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   config.assets.compile = false
 
-  # Store uploaded files on Amazon S3 (see config/storage.yml for options).
-  # Use STORAGE_SERVICE environment variable to switch between services
-  # Options: :amazon, :linode
-  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'amazon').to_sym
+  # Store uploaded files (see config/storage.yml for options).
+  # Use STORAGE_SERVICE environment variable to switch between services.
+  # Options: :local, :amazon, :linode. Defaults to :local so a self-hosted
+  # instance with STORAGE_SERVICE unset writes to disk rather than failing
+  # against S3 with cryptic AWS errors. Cloud deploys set STORAGE_SERVICE explicitly.
+  config.active_storage.service = ENV.fetch('STORAGE_SERVICE', 'local').to_sym
 
   # SSL behavior is env-driven so the same image can run behind a TLS-terminating
   # reverse proxy (set both to "true") or be accessed directly over plain HTTP on a

@@ -73,8 +73,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      # Wait until `web` is healthy (i.e. after it has run db:prepare migrations)
+      # so the worker never boots against an un-migrated schema.
       web:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      # Sidekiq has no HTTP endpoint; check the process is alive instead.
+      test: ["CMD-SHELL", "pgrep -f sidekiq > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   # ---------------------------------------------------------------------------
   # Optional: S3-compatible object storage instead of the local `storage` volume.

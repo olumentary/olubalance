@@ -22,8 +22,9 @@ cp .env.sample .env
 
 # 3. Generate secrets and set the required values in .env
 openssl rand -hex 64   # paste into SECRET_KEY_BASE
-#   Generate the three ActiveRecord encryption keys (paste each into .env):
-docker compose run --rm --no-deps web ./bin/rails db:encryption:init
+#   Generate the three ActiveRecord encryption keys — run this three times,
+#   pasting one value into each ACTIVE_RECORD_ENCRYPTION_* var in .env:
+openssl rand -hex 32
 #   also set: OLUBALANCE_DATABASE_PASSWORD, ADMIN_EMAIL, ADMIN_PASSWORD, APP_HOST
 
 # 4. Authenticate to ghcr (private image) and start
@@ -31,10 +32,21 @@ echo $GHCR_PAT | docker login ghcr.io -u <your-github-username> --password-stdin
 docker compose up -d
 ```
 
-Then open `http://<host>:3000` and sign in with the `ADMIN_EMAIL` / `ADMIN_PASSWORD`
-you set. Create any additional users from the admin UI at `/admin`.
+`GHCR_PAT` is a GitHub personal access token with the `read:packages` scope. A
+**classic** token with that scope is simplest; a **fine-grained** token also works but
+must additionally be granted access to the `olumentary` org's packages. If `docker
+compose pull` / `up` fails with `denied` or `unauthorized`, the login didn't take or the
+token lacks `read:packages` — re-run the `docker login` above and confirm the scope.
 
-`GHCR_PAT` is a GitHub personal access token with the `read:packages` scope.
+> Prefer `db:encryption:init`? `docker compose run --rm --no-deps web ./bin/rails
+> db:encryption:init` prints a YAML block; map its `primary_key`, `deterministic_key`,
+> and `key_derivation_salt` to the three `ACTIVE_RECORD_ENCRYPTION_*` vars respectively.
+
+Then open `http://<host>:3000` and sign in with the `ADMIN_EMAIL` / `ADMIN_PASSWORD`
+you set. Create any additional users from the admin UI at `/admin` — self-hosted
+instances have public sign-up disabled, and admin-created users are auto-confirmed (with
+`SELF_HOST_SKIP_CONFIRMATION=true`), so no email server or CAPTCHA setup is required to
+add users.
 
 ## How it works
 
@@ -76,8 +88,10 @@ emails won't send. To enable email, set the `MAILER_*` vars in `.env`.
 Use the **Compose Manager** plugin (Docker Compose), not the unraid app store:
 
 1. Add your ghcr credentials so unraid can pull the private image: in unraid's Docker
-   settings, add a registry login for `ghcr.io` with your GitHub username and a PAT that
-   has `read:packages`.
+   settings, add a registry login with **Registry URL** `ghcr.io`, **Username** your
+   GitHub username, and **Password** a PAT that has the `read:packages` scope. If pulls
+   fail with `denied`/`unauthorized`, the PAT is missing that scope (or, for fine-grained
+   tokens, access to the `olumentary` org's packages).
 2. Create a new compose stack and paste the contents of `docker-compose.yml`.
 3. Provide the `.env` contents alongside the stack (Compose Manager supports a per-stack
    env file).
@@ -94,6 +108,18 @@ Persist and back up these volumes:
 Also back up your **`.env` file**, and treat the three `ACTIVE_RECORD_ENCRYPTION_*` keys as
 irreplaceable: they decrypt sensitive columns (2FA secrets). If they're lost or changed,
 that encrypted data can no longer be read.
+
+For a portable database dump (the `db` container already ships `pg_dump`):
+
+```bash
+# Back up
+docker compose exec db pg_dump -U "$OLUBALANCE_DATABASE_USERNAME" \
+  olubalance_production > olubalance-$(date +%F).sql
+
+# Restore into a fresh stack (db must be up, database empty)
+cat olubalance-YYYY-MM-DD.sql | docker compose exec -T db \
+  psql -U "$OLUBALANCE_DATABASE_USERNAME" -d olubalance_production
+```
 
 ## Upgrading
 

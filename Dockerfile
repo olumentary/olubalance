@@ -71,10 +71,12 @@ RUN rm -rf node_modules
 # ---------------------------------------------------------------------------
 FROM base
 
-# Runtime libs only: pg client, ImageMagick (image_processing/mini_magick), curl (healthcheck).
+# Runtime libs only: pg client (psql/pg_dump for backups), ImageMagick CLI
+# (image_processing/mini_magick shell out to it — dev headers are not needed at
+# runtime), libyaml, curl (web healthcheck), procps (worker pgrep healthcheck).
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
-      libpq5 postgresql-client imagemagick libmagickwand-dev libyaml-0-2 curl && \
+      libpq5 postgresql-client imagemagick libyaml-0-2 curl procps && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy compiled gems and the built application from the build stage.
